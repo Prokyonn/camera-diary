@@ -1,0 +1,26 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Note that the session will be started ONLY if you read or write from it.
+    session: true
+
+    # Tailscale Serve terminates HTTPS in front of the container.
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host']
+
+    http_client:
+        scoped_clients:
+            home_assistant.client:
+                base_uri: '%env(HA_URL)%'
+                headers:
+                    Authorization: 'Bearer %env(HA_TOKEN)%'
+                timeout: 30
+
+when@test:
+    framework:
+        test: true
+        http_client:
+            mock_response_factory: App\Tests\Support\FakeHomeAssistant
+        session:
+            storage_factory_id: session.storage.factory.mock_file

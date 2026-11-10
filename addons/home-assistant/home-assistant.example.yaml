@@ -1,0 +1,24 @@
+# Copy to the path in HOME_ASSISTANT_CONFIG (default var/data/home-assistant.yaml) and adapt.
+
+cameras:
+    # Camera slug in Camera events => its Home Assistant sensors
+    garden:
+        name: Garden
+        scene: Back garden with a lawn and a hedge. The fence at the back is the property line; behind it runs a public path.
+        # binary_sensor.garden_person, binary_sensor.garden_animal turning "on" are detections (e.g. the Reolink integration)
+        sensor_prefix: binary_sensor.garden
+        detections: [person, animal]
+        # Optional: folder of continuous recordings under RECORDINGS_DIR; frames are cut 1, 2 and 3 s after the detection
+        recording_folder: Garden
+
+signals:
+    # State changes near an event become hints for the AI and the search
+    binary_sensor.cat_flap:
+        time_attribute: since   # optional: attribute with the real time, if the state reports late
+        states:
+            on: The cat came in through the cat flap
+            off: The cat went out through the cat flap
+    lock.front_door:
+        states:
+            locked: Front door locked
+            unlocked: Front door unlocked

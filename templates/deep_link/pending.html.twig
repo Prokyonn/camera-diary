@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Not imported yet · Camera events{% endblock %}
+
+{% block body %}
+    <h1>{{ camera.name }}, {{ at|date('H:i:s') }}</h1>
+    <p>This event is not imported yet. The page checks again every 30 seconds.</p>
+    <p><a href="{{ path('timeline', {day: at|date('Y-m-d'), camera: camera.slug}) }}">Open {{ at|date('l, j F') }} in the timeline</a></p>
+{% endblock %}

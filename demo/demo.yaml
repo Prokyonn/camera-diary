@@ -1,0 +1,51 @@
+# Sample events for `bin/console app:demo`. Each one is placed at the latest past occurrence of its local time of day.
+# The clips are openly licensed, see demo/CREDITS.md.
+
+cameras:
+    garden:
+        name: Garden
+        scene: Back garden with an infrared camera; a paved path runs along a bed of ferns and potted plants. Everything in view is our property.
+    woods:
+        name: Woods
+        scene: Wildlife camera at the edge of the woods behind the house, aimed at a tree trunk between rocks. Wild animals are expected here.
+    hedge:
+        name: Hedge
+        scene: Daytime camera at the back hedge of the garden, aimed at an overgrown corner with shrubs and nettles. Our property.
+    street:
+        name: Street
+        scene: Camera above the front door, looking down at the public sidewalk and the house fronts across. The sidewalk is not our property.
+    courtyard:
+        name: Courtyard
+        scene: High view from an upper floor over the shared courtyard; trees, a lawn, a garage roof and parked cars. Only the lawn in front of the garage is ours.
+
+events:
+    demo-badger:
+        camera: garden
+        clip: clips/badger-night.mp4
+        time: '21:40'
+        detections: [animal]
+        hints: [The cat was inside all evening]
+    demo-fox:
+        camera: woods
+        clip: clips/fox-night.mp4
+        time: '23:15'
+        detections: [animal]
+        hints: [Bait at the tree was refilled at dusk]
+    demo-fox-cubs:
+        camera: hedge
+        clip: clips/fox-cubs-day.mp4
+        time: '17:05'
+        detections: [animal]
+        hints: []
+    demo-person:
+        camera: street
+        clip: clips/person-snow.mp4
+        time: '08:10'
+        detections: [person]
+        hints: [Doorbell did not ring]
+    demo-rain:
+        camera: courtyard
+        clip: clips/rain-courtyard.mp4
+        time: '14:20'
+        detections: [motion]
+        hints: [Weather station reports heavy rain]

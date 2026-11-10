@@ -1,0 +1,192 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tests\Unit\Application\Description;
+
+use App\Application\Ai\AiCallBudgetInterface;
+use App\Application\Ai\AiRequestFailedException;
+use App\Application\Description\EventDescriberInterface;
+use App\Application\Description\EventDescription;
+use App\Application\Description\EventProcessor;
+use App\Application\Description\HintCollector;
+use App\Application\Description\HintProviderInterface;
+use App\Application\Description\ProcessOutcome;
+use App\Application\Frame\FootageNotFoundException;
+use App\Application\Frame\FrameExtractionFailedException;
+use App\Application\Frame\FrameSourceInterface;
+use App\Application\Frame\FrameSources;
+use App\Application\Frame\FrameStorageInterface;
+use App\Application\Persistence\UnitOfWorkInterface;
+use App\Application\Search\EventIndexerInterface;
+use App\Domain\Model\CameraEvent;
+use App\Domain\Model\EventStatus;
+use App\Domain\Model\FalseAlarmCause;
+use App\Domain\Model\Side;
+use App\Domain\Model\Subject;
+use App\Domain\Model\Verdict;
+use App\Tests\Factory\CameraEventFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\NullLogger;
+use Symfony\Component\Clock\MockClock;
+
+#[CoversClass(EventProcessor::class)]
+final class EventProcessorTest extends TestCase
+{
+    use ProphecyTrait;
+
+    /** @var ObjectProphecy<FrameSourceInterface> */
+    private ObjectProphecy $grabber;
+
+    /** @var ObjectProphecy<HintProviderInterface> */
+    private ObjectProphecy $hints;
+
+    /** @var ObjectProphecy<FrameStorageInterface> */
+    private ObjectProphecy $storage;
+
+    /** @var ObjectProphecy<EventDescriberInterface> */
+    private ObjectProphecy $describer;
+
+    /** @var ObjectProphecy<AiCallBudgetInterface> */
+    private ObjectProphecy $budget;
+
+    /** @var ObjectProphecy<EventIndexerInterface> */
+    private ObjectProphecy $indexer;
+
+    /** @var ObjectProphecy<UnitOfWorkInterface> */
+    private ObjectProphecy $unitOfWork;
+
+    private MockClock $clock;
+
+    protected function setUp(): void
+    {
+        $this->grabber = $this->prophesize(FrameSourceInterface::class);
+        $this->grabber->supports(Argument::type(CameraEvent::class))->willReturn(true);
+        $this->hints = $this->prophesize(HintProviderInterface::class);
+        $this->hints->hintsFor(Argument::type(CameraEvent::class))->willReturn([]);
+        $this->storage = $this->prophesize(FrameStorageInterface::class);
+        foreach (array_keys(EventProcessor::FRAME_OFFSETS_SECONDS) as $index) {
+            $relativePath = \sprintf('terrace/2026/11/06/1-%d.jpg', $index);
+            $this->storage->relativePathFor(Argument::type(CameraEvent::class), $index)->willReturn($relativePath);
+            $this->storage->prepare($relativePath)->willReturn('/frames/'.$relativePath);
+        }
+
+        $this->storage->imageSize(Argument::type('string'))->willReturn([640, 360]);
+        $this->storage->remove(Argument::type('array'));
+        $this->describer = $this->prophesize(EventDescriberInterface::class);
+        $this->budget = $this->prophesize(AiCallBudgetInterface::class);
+        $this->budget->tryConsume()->willReturn(true);
+        $this->indexer = $this->prophesize(EventIndexerInterface::class);
+        $this->unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
+        $this->clock = new MockClock('2026-11-06 06:30:00', 'UTC');
+    }
+
+    public function testGrabsThreeFramesAndDescribesTheEvent(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1, source: 'home-assistant');
+        $event->addHint('Doorbell rang');
+        foreach (['06:16:41', '06:16:42', '06:16:43'] as $index => $time) {
+            $this->grabber->grab($event, CameraEventFactory::utc('2026-11-06 '.$time), '/frames/terrace/2026/11/06/1-'.$index.'.jpg')->shouldBeCalledOnce();
+        }
+
+        $this->hints->hintsFor($event)->willReturn(['07:17:02 Luna came in through the cat flap']);
+        $this->describer->describe($event, ['Doorbell rang', '07:17:02 Luna came in through the cat flap'])->willReturn(
+            new EventDescription(Verdict::Real, FalseAlarmCause::None, Side::OurProperty, Subject::Cat, 'A grey cat drags the doormat to the door.', 'test-model'),
+        );
+        $this->unitOfWork->flush()->shouldBeCalledOnce();
+        $this->indexer->index($event)->shouldBeCalledOnce();
+
+        self::assertSame(ProcessOutcome::Described, $this->processor()->process($event));
+        self::assertSame(EventStatus::Described, $event->getStatus());
+        self::assertSame(['terrace/2026/11/06/1-0.jpg', 'terrace/2026/11/06/1-1.jpg', 'terrace/2026/11/06/1-2.jpg'], $event->getFramePaths());
+        self::assertSame([640, 360], [$event->getFrameWidth(), $event->getFrameHeight()]);
+        self::assertSame('test-model', $event->getModel());
+    }
+
+    public function testMarksAnEventWithoutFramesAndFrameSourceAsNoFootage(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $this->grabber->supports($event)->willReturn(false);
+        $this->budget->tryConsume()->shouldNotBeCalled();
+
+        self::assertSame(ProcessOutcome::NoFootage, $this->processor()->process($event));
+        self::assertSame(EventStatus::NoFootage, $event->getStatus());
+    }
+
+    public function testWaitsForFootageOfAYoungEvent(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $this->grabber->grab(Argument::cetera())->willThrow(FootageNotFoundException::class);
+        $this->storage->remove([])->shouldBeCalled();
+        $this->budget->tryConsume()->shouldNotBeCalled();
+
+        self::assertSame(ProcessOutcome::Waiting, $this->processor()->process($event));
+        self::assertEquals(CameraEventFactory::utc('2026-11-06 06:40:00'), $event->getNextAttemptAt());
+    }
+
+    public function testGivesUpOnFootageAfterAnHour(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 05:00:00', id: 1);
+        $this->grabber->grab(Argument::cetera())->willThrow(FootageNotFoundException::class);
+
+        self::assertSame(ProcessOutcome::NoFootage, $this->processor()->process($event));
+        self::assertSame(EventStatus::NoFootage, $event->getStatus());
+    }
+
+    public function testRemovesPartialFramesWhenExtractionFails(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $this->grabber->grab(Argument::any(), CameraEventFactory::utc('2026-11-06 06:16:41'), Argument::any())->shouldBeCalled();
+        $this->grabber->grab(Argument::any(), CameraEventFactory::utc('2026-11-06 06:16:42'), Argument::any())->willThrow(new FrameExtractionFailedException('moov atom not found'));
+        $this->storage->remove(['terrace/2026/11/06/1-0.jpg'])->shouldBeCalledOnce();
+
+        self::assertSame(ProcessOutcome::Waiting, $this->processor()->process($event));
+        self::assertSame([], $event->getFramePaths());
+        self::assertSame(1, $event->getAttempts());
+    }
+
+    public function testFailsAfterTheLastAttempt(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        for ($attempt = 1; $attempt < EventProcessor::MAX_ATTEMPTS; ++$attempt) {
+            $event->retryAt($this->clock->now());
+        }
+        $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
+        $this->describer->describe(Argument::cetera())->willThrow(new AiRequestFailedException('503'));
+
+        self::assertSame(ProcessOutcome::Failed, $this->processor()->process($event));
+        self::assertSame(EventStatus::Failed, $event->getStatus());
+    }
+
+    public function testKeepsTheFramesWhenTheBudgetIsUsedUp(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $this->grabber->grab(Argument::cetera())->shouldBeCalledTimes(3);
+        $this->budget->tryConsume()->willReturn(false);
+        $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
+        $this->unitOfWork->flush()->shouldBeCalledOnce();
+
+        self::assertSame(ProcessOutcome::OverBudget, $this->processor()->process($event));
+        self::assertCount(3, $event->getFramePaths());
+        self::assertSame(EventStatus::Pending, $event->getStatus());
+    }
+
+    private function processor(): EventProcessor
+    {
+        return new EventProcessor(
+            new FrameSources([$this->grabber->reveal()]),
+            $this->storage->reveal(),
+            $this->describer->reveal(),
+            $this->budget->reveal(),
+            new HintCollector([$this->hints->reveal()]),
+            $this->indexer->reveal(),
+            $this->unitOfWork->reveal(),
+            $this->clock,
+            new NullLogger(),
+        );
+    }
+}

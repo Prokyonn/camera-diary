@@ -1,0 +1,8 @@
+mcp:
+    servers:
+        default:
+            registry: 'App\UserInterface\Mcp\'
+
+            # Only localhost is allowed by default; add the host name Home Assistant uses once the network path is decided.
+            http:
+                path: /mcp

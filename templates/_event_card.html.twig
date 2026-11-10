@@ -1,0 +1,29 @@
+{# Variables: event, lazy (bool), show_date (bool) #}
+{% set status_text = {
+    pending: 'Waiting for the description',
+    no_footage: 'No footage found',
+    failed: 'Could not be described',
+    described: '',
+} %}
+<a class="card-link" href="{{ path('event_show', {id: event.id}) }}">
+    <article class="card{{ event.falseAlarm ? ' is-false-alarm' }}">
+        {% if event.framePaths is not empty %}
+            <img src="{{ path('event_frame', {id: event.id, index: 0, v: event.startedAt|date('U')}) }}" alt="" width="{{ event.frameWidth }}" height="{{ event.frameHeight }}"{% if lazy|default(true) %} loading="lazy"{% endif %}>
+        {% endif %}
+        <header>
+            <h3>
+                <time datetime="{{ event.startedAt|date('c') }}">{{ event.startedAt|date(show_date|default(false) ? 'D j M, H:i:s' : 'H:i:s') }}</time>
+                {{ event.camera.name }}
+            </h3>
+            <p class="badges">
+                {% for type in event.detectionTypes %}<span class="badge">{{ type.value }}</span>{% endfor %}
+                {% if event.effectiveVerdict %}<span class="badge verdict-{{ event.effectiveVerdict.value }}">{{ event.effectiveVerdict.label }}</span>{% endif %}
+                {% if event.side and event.side.value != 'unclear' %}<span class="badge">{{ event.side.label }}</span>{% endif %}
+            </p>
+        </header>
+        <p>
+            {% if event.label %}<strong>{{ event.label }}.</strong> {% endif %}
+            {{ event.summary ?? status_text[event.status.value] }}
+        </p>
+    </article>
+</a>

@@ -1,0 +1,3 @@
+# The worker consumes only the scheduler transport: `messenger:consume scheduler_default`.
+framework:
+    messenger: ~

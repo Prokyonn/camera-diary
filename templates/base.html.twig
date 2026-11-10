@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark">
+        <title>{% block title %}Camera events{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('styles.css') }}">
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+        <header class="site-header">
+            <nav aria-label="Main">
+                <a href="{{ path('timeline') }}"{% if app.current_route == 'timeline' %} aria-current="page"{% endif %}>Timeline</a>
+                <a href="{{ path('ask') }}"{% if app.current_route == 'ask' %} aria-current="page"{% endif %}>Ask</a>
+            </nav>
+        </header>
+        <main>
+            {% for message in app.flashes('success') %}
+                <p class="flash" role="status">{{ message }}</p>
+            {% endfor %}
+            {% block body %}{% endblock %}
+        </main>
+    </body>
+</html>

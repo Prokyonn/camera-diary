@@ -1,0 +1,27 @@
+cameras:
+    garden:
+        name: Garden
+        scene: Garden with a fence at the back.
+        sensor_prefix: binary_sensor.garden
+        detections: [person, animal]
+        recording_folder: Garden
+    terrace:
+        name: Terrace
+        sensor_prefix: binary_sensor.terrace
+        detections: [person, animal]
+        recording_folder: Terrace
+
+signals:
+    binary_sensor.luna:
+        time_attribute: since
+        states:
+            on: Luna came in through the cat flap
+            off: Luna went out through the cat flap
+    lock.front_door:
+        states:
+            locked: Front door locked
+            unlocked: Front door unlocked
+    binary_sensor.front_door:
+        states:
+            on: Front door opened
+            off: Front door closed

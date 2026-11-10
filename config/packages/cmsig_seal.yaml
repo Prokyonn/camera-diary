@@ -1,0 +1,7 @@
+cmsig_seal:
+    schemas:
+        app:
+            dir: '%kernel.project_dir%/config/schemas'
+    engines:
+        default:
+            adapter: '%env(resolve:SEARCH_ENGINE_DSN)%'

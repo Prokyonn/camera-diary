@@ -1,0 +1,162 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Description;
+
+use App\Application\Ai\AiCallBudgetInterface;
+use App\Application\Ai\AiRequestFailedException;
+use App\Application\Frame\FootageNotFoundException;
+use App\Application\Frame\FrameExtractionFailedException;
+use App\Application\Frame\FrameSourceInterface;
+use App\Application\Frame\FrameSources;
+use App\Application\Frame\FrameStorageInterface;
+use App\Application\Persistence\UnitOfWorkInterface;
+use App\Application\Search\EventIndexerInterface;
+use App\Domain\Model\CameraEvent;
+use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Takes one closed event from pending to described: frames first (from its add-on, if it came without), then the AI
+ * description.
+ */
+final readonly class EventProcessor
+{
+    /** The object often appears only one to three seconds after the detection. */
+    public const array FRAME_OFFSETS_SECONDS = [1, 2, 3];
+
+    public const int RETRY_DELAY_SECONDS = 600;
+    public const int MAX_ATTEMPTS = 8;
+
+    /** How long to wait for a recording to show up before giving up on the footage. */
+    public const int FOOTAGE_GRACE_SECONDS = 3600;
+
+    public function __construct(
+        private FrameSources $frameSources,
+        private FrameStorageInterface $frameStorage,
+        private EventDescriberInterface $describer,
+        private AiCallBudgetInterface $budget,
+        private HintCollector $hints,
+        private EventIndexerInterface $indexer,
+        private UnitOfWorkInterface $unitOfWork,
+        private ClockInterface $clock,
+        private LoggerInterface $logger,
+    ) {
+    }
+
+    public function process(CameraEvent $event): ProcessOutcome
+    {
+        $outcome = $this->advance($event);
+        $this->unitOfWork->flush();
+        $this->indexer->index($event);
+
+        return $outcome;
+    }
+
+    private function advance(CameraEvent $event): ProcessOutcome
+    {
+        if ([] === $event->getFramePaths()) {
+            $outcome = $this->grabFrames($event);
+            if ($outcome instanceof ProcessOutcome) {
+                return $outcome;
+            }
+        }
+
+        if (!$this->budget->tryConsume()) {
+            return ProcessOutcome::OverBudget;
+        }
+
+        return $this->describe($event);
+    }
+
+    /**
+     * @return ProcessOutcome|null null when all frames were stored
+     */
+    private function grabFrames(CameraEvent $event): ?ProcessOutcome
+    {
+        $source = $this->frameSources->forEvent($event);
+        if (!$source instanceof FrameSourceInterface) {
+            $event->markNoFootage();
+
+            return ProcessOutcome::NoFootage;
+        }
+
+        $paths = [];
+        $size = [0, 0];
+        foreach (self::FRAME_OFFSETS_SECONDS as $index => $offset) {
+            $relativePath = $this->frameStorage->relativePathFor($event, $index);
+            try {
+                $source->grab($event, $event->getStartedAt()->modify(\sprintf('+%d seconds', $offset)), $this->frameStorage->prepare($relativePath));
+                if (0 === $index) {
+                    $size = $this->frameStorage->imageSize($relativePath);
+                }
+            } catch (FootageNotFoundException) {
+                $this->frameStorage->remove($paths);
+
+                return $this->waitForFootage($event);
+            } catch (FrameExtractionFailedException $exception) {
+                $this->logger->warning('Frame extraction failed for event {id}: {message}', ['id' => $event->getId(), 'message' => $exception->getMessage()]);
+                $this->frameStorage->remove($paths);
+
+                return $this->retryOrFail($event);
+            }
+
+            $paths[] = $relativePath;
+        }
+
+        $event->recordFrames($paths, ...$size);
+
+        return null;
+    }
+
+    private function describe(CameraEvent $event): ProcessOutcome
+    {
+        try {
+            $description = $this->describer->describe($event, $this->hints->hintsFor($event));
+        } catch (AiRequestFailedException $exception) {
+            $this->logger->warning('The AI could not describe event {id}: {message}', ['id' => $event->getId(), 'message' => $exception->getMessage()]);
+
+            return $this->retryOrFail($event);
+        }
+
+        $event->describe(
+            $description->verdict,
+            $description->falseAlarmCause,
+            $description->side,
+            $description->subject,
+            $description->summary,
+            $description->model,
+            $this->clock->now(),
+        );
+
+        return ProcessOutcome::Described;
+    }
+
+    private function waitForFootage(CameraEvent $event): ProcessOutcome
+    {
+        $age = $this->clock->now()->getTimestamp() - $event->getStartedAt()->getTimestamp();
+        if ($age > self::FOOTAGE_GRACE_SECONDS) {
+            $event->markNoFootage();
+
+            return ProcessOutcome::NoFootage;
+        }
+
+        $event->retryAt($this->clock->now()->modify(\sprintf('+%d seconds', self::RETRY_DELAY_SECONDS)));
+
+        return ProcessOutcome::Waiting;
+    }
+
+    private function retryOrFail(CameraEvent $event): ProcessOutcome
+    {
+        if ($event->getAttempts() + 1 >= self::MAX_ATTEMPTS) {
+            $event->markFailed();
+
+            return ProcessOutcome::Failed;
+        }
+
+        $event->retryAt($this->clock->now()->modify(\sprintf('+%d seconds', self::RETRY_DELAY_SECONDS)));
+
+        return ProcessOutcome::Waiting;
+    }
+}

@@ -1,0 +1,19 @@
+# The web pages and MCP have no login; put them behind a private network (e.g. Tailscale Serve).
+# Only the ingest hook needs a credential: the bearer token INGEST_TOKEN.
+security:
+    providers:
+        ingest:
+            memory: ~
+
+    firewalls:
+        api:
+            pattern: ^/api/
+            stateless: true
+            provider: ingest
+            access_token:
+                token_handler: App\Infrastructure\Security\IngestTokenHandler
+        main:
+            security: false
+
+    access_control:
+        - { path: ^/api/, roles: ROLE_INGEST }

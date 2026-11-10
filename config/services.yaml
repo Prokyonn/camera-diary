@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+parameters:
+    app.timezone: '%env(APP_TIMEZONE)%'
+    app.data_dir: '%kernel.project_dir%/var/data'
+    # In a web request, Symfony Process hands a child process only the variables that are also in $_SERVER; the CLIs
+    # need these to find their login.
+    app.ai.cli_environment:
+        HOME: '%env(default::HOME)%'
+        USER: '%env(default::USER)%'
+        PATH: '%env(default::PATH)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+
+    # The client for AI_PLATFORM; the factory only instantiates that platform.
+    App\Infrastructure\Ai\Client\StructuredClientInterface:
+        factory: ['@App\Infrastructure\Ai\Client\StructuredClientFactory', 'create']
+
+    # Subscription platforms: they run the claude or codex CLI, logged in on the machine that runs the worker.
+    app.ai.platform.claude_code:
+        class: Symfony\AI\Platform\Platform
+        factory: ['Symfony\AI\Platform\Bridge\ClaudeCode\Factory', 'createPlatform']
+        arguments:
+            $workingDirectory: '%app.data_dir%'
+            $environment: '%app.ai.cli_environment%'
+            $modelCatalog: !service { class: App\Infrastructure\Ai\Client\CliModelCatalog, arguments: ['Symfony\AI\Platform\Bridge\ClaudeCode\ClaudeCode'] }
+            $logger: '@logger'
+
+    app.ai.platform.codex:
+        class: Symfony\AI\Platform\Platform
+        factory: ['Symfony\AI\Platform\Bridge\Codex\Factory', 'createPlatform']
+        arguments:
+            $workingDirectory: '%app.data_dir%'
+            $environment: '%app.ai.cli_environment%'
+            $modelCatalog: !service { class: App\Infrastructure\Ai\Client\CliModelCatalog, arguments: ['Symfony\AI\Platform\Bridge\Codex\Codex'] }
+            $logger: '@logger'
+
+when@test:
+    parameters:
+        app.data_dir: '%kernel.project_dir%/var/test/data'
+
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        App\Tests\Support\FakePlatform:
+            decorates: ai.platform.gemini
+            public: true
+
+        App\Tests\Support\FakeHomeAssistant:
+            public: true

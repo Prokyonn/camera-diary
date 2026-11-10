@@ -1,0 +1,17 @@
+.git
+.github
+.private
+.env.local
+.env.*.local
+.php-cs-fixer.cache
+.phpunit.cache
+Dockerfile
+compose.yaml
+docs
+tests
+addons/*/tests
+var
+vendor
+phpstan.dist.neon
+phpunit.dist.xml
+rector.php

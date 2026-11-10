@@ -1,0 +1,3 @@
+# Session-based tokens: behind Tailscale Serve the browser's Origin (https) need not match the proxied request.
+framework:
+    csrf_protection: true

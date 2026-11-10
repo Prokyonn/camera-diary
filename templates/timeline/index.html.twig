@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ day|date('D j M Y') }} · Camera events{% endblock %}
+
+{% block body %}
+    <h1>{{ day|date('l, j F Y') }}</h1>
+
+    <details class="filter-panel"{% if filterQuery is not empty %} open{% endif %}>
+        <summary>Filter</summary>
+        {{ form_start(form, {attr: {class: 'filters'}}) }}
+            {{ form_row(form.day, {label: 'Day'}) }}
+            {{ form_row(form.camera, {label: 'Camera'}) }}
+            {{ form_row(form.type, {label: 'Detection'}) }}
+            {{ form_row(form.falseAlarms) }}
+            <button type="submit">Show</button>
+        {{ form_end(form) }}
+    </details>
+
+    <nav class="day-nav" aria-label="Days">
+        <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('-1 day')|date('Y-m-d')})) }}" rel="prev">← Previous day</a>
+        {% if not isToday %}
+            <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('+1 day')|date('Y-m-d')})) }}" rel="next">Next day →</a>
+        {% endif %}
+    </nav>
+
+    {% if events is empty %}
+        <p class="empty">
+            No events on this day.
+            {% if latestBefore %}
+                The latest ones are from <a href="{{ path('timeline', filterQuery|merge({day: latestBefore.startedAt|date('Y-m-d')})) }}">{{ latestBefore.startedAt|date('l, j F') }}</a>.
+            {% endif %}
+        </p>
+    {% else %}
+        <ol class="cards">
+            {% for event in events %}
+                <li>{{ include('_event_card.html.twig', {event: event, lazy: loop.index > 3}) }}</li>
+            {% endfor %}
+        </ol>
+    {% endif %}
+
+    <p class="meta">AI calls today: {{ aiCallsToday }} of {{ aiDailyLimit }}.</p>
+{% endblock %}

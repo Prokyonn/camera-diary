@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ask · Camera events{% endblock %}
+
+{% block body %}
+    <h1>Ask</h1>
+
+    {{ form_start(form, {attr: {class: 'ask'}}) }}
+        {{ form_row(form.question) }}
+        <button type="submit">Ask</button>
+    {{ form_end(form) }}
+
+    {% if result %}
+        <section class="answer" aria-labelledby="answer-heading">
+            <h2 id="answer-heading">Answer</h2>
+            <p>{{ result.answer|nl2br }}</p>
+        </section>
+
+        {% if result.events is not empty %}
+            <ol class="cards">
+                {% for event in result.events %}
+                    <li>{{ include('_event_card.html.twig', {event: event, lazy: loop.index > 2, show_date: true}) }}</li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+    {% endif %}
+{% endblock %}
