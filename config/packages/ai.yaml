@@ -2,5 +2,8 @@ ai:
     platform:
         gemini:
             api_key: '%env(GEMINI_API_KEY)%'
+        # Vertex AI with an API key (global endpoint), e.g. to use the Google Cloud credits of a Google AI subscription
+        vertexai:
+            api_key: '%env(VERTEX_AI_API_KEY)%'
         ollama:
             endpoint: '%env(OLLAMA_HOST_URL)%'

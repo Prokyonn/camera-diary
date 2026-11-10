@@ -9,7 +9,7 @@ Your security cameras record everything and tell you nothing. Camera events turn
 Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [PHP MCP SDK](https://github.com/modelcontextprotocol/php-sdk).
 
 - **Any camera, any app.** Anything that can send a video or an image posts it to one hook. A Home Assistant add-on comes along, cutting frames from continuous recordings.
-- **Any AI, including your subscription.** Gemini or Ollama through their APIs, or Claude Code and Codex through the CLI you are already logged in to.
+- **Any AI, including your subscription.** Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the CLI you are already logged in to.
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light), where it happened, and a short description. You can correct both the label and the verdict.
 - **Questions with sources.** The AI turns the question into a search, then looks at the best matches' frames and answers with the events it relies on.
 - **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events.
@@ -58,6 +58,11 @@ AI_MODEL=gpt-6.1-sol
 AI_PLATFORM=gemini
 AI_MODEL=gemini-flash-latest
 GEMINI_API_KEY=...
+
+# or Gemini on Vertex AI (Google Cloud billing, e.g. a subscription's monthly credits)
+AI_PLATFORM=vertexai
+AI_MODEL=gemini-2.5-flash
+VERTEX_AI_API_KEY=...
 ```
 
 Then describe the events and start the web server:
@@ -72,11 +77,14 @@ symfony serve        # or: php -S 127.0.0.1:8000 -t public
 | `AI_PLATFORM` | How it runs | Needs |
 |---|---|---|
 | `gemini` | Gemini API with native image input and structured output | `GEMINI_API_KEY` |
+| `vertexai` | Gemini on Vertex AI, e.g. paid from the Google Cloud credits of a Google AI subscription; `AI_MODEL=gemini-2.5-flash` | `VERTEX_AI_API_KEY` |
 | `ollama` | Local model through the Ollama API | `OLLAMA_HOST_URL`, a model with vision |
 | `claude_code` | `claude -p` from your Claude subscription. It reads the frames with its Read tool and answers against `--json-schema` | the `claude` CLI, logged in |
 | `codex` | `codex exec` from your ChatGPT subscription, with `--image` and `--output-schema` | the `codex` CLI, logged in |
 
 The Symfony AI bridges for Claude Code and Codex only pass text. A small adapter (`src/Infrastructure/Ai/Client`) adds the images and the JSON schema that the API platforms get natively. Every provider returns the same structured output.
+
+For `vertexai`, create a Google Cloud project whose billing account holds the credits, enable the Vertex AI API, and create an API key restricted to it (APIs & Services, Credentials). Google AI Pro and Ultra include monthly Cloud credits through the Google Developer Program. They pay for Vertex AI, not for AI Studio keys.
 
 `AI_DAILY_CALL_LIMIT` caps the AI calls per day (default 500). Events over the cap wait for the next day. `AI_HOME_CONTEXT` is free text every prompt gets, e.g. "Our cat is called Luna."
 

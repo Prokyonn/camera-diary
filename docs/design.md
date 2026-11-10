@@ -73,7 +73,7 @@ An add-on is a Symfony bundle. It uses the core through three tagged interfaces 
 
 | Client | Platforms | Images | Schema |
 |---|---|---|---|
-| `PlatformStructuredClient` | `gemini`, `ollama` (AI bundle) | native | native structured output |
+| `PlatformStructuredClient` | `gemini`, `vertexai`, `ollama` (AI bundle) | native | native structured output |
 | `ClaudeCodeStructuredClient` | `claude_code` (`claude -p`) | listed as files, read with the Read tool (`--tools Read`, `--add-dir`) | `--json-schema` |
 | `CodexStructuredClient` | `codex` (`codex exec`) | `--image` | `--output-schema` file |
 
