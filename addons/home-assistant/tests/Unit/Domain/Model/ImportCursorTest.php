@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Unit\Domain\Model;
+namespace CameraDiary\HomeAssistant\Tests\Unit\Domain\Model;
 
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
+use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 

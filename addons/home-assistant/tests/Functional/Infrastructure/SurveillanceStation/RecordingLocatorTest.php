@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Functional\Infrastructure\SurveillanceStation;
+namespace CameraDiary\HomeAssistant\Tests\Functional\Infrastructure\SurveillanceStation;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation\Recording;
-use CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation\RecordingLocator;
-use CameraEvents\HomeAssistant\Tests\Support\RecordingFixture;
+use CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation\Recording;
+use CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation\RecordingLocator;
+use CameraDiary\HomeAssistant\Tests\Support\RecordingFixture;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +20,7 @@ final class RecordingLocatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->recordings = new RecordingFixture(sys_get_temp_dir().'/camera-events-recordings-'.bin2hex(random_bytes(4)));
+        $this->recordings = new RecordingFixture(sys_get_temp_dir().'/camera-diary-recordings-'.bin2hex(random_bytes(4)));
     }
 
     protected function tearDown(): void

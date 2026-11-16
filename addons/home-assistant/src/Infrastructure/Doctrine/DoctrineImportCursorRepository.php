@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\Doctrine;
+namespace CameraDiary\HomeAssistant\Infrastructure\Doctrine;
 
 use App\Infrastructure\Doctrine\Repository\FilterKeys;
-use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
-use CameraEvents\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
+use CameraDiary\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 

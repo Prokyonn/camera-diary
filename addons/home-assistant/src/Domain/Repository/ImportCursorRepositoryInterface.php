@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Domain\Repository;
+namespace CameraDiary\HomeAssistant\Domain\Repository;
 
-use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
+use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
 
 /**
  * @phpstan-type ImportCursorFilters array{name?: string}

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Support;
+namespace CameraDiary\HomeAssistant\Tests\Support;
 
 use App\Domain\Model\DetectionType;
-use CameraEvents\HomeAssistant\Application\Settings\CameraMapping;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SignalMapping;
+use CameraDiary\HomeAssistant\Application\Settings\CameraMapping;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Application\Settings\PushSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SignalMapping;
 
 /**
  * The same settings as tests/Fixtures/home-assistant.yaml.

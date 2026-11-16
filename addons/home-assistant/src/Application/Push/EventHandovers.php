@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Push;
+namespace CameraDiary\HomeAssistant\Application\Push;
 
 use App\Domain\Model\CameraEvent;
-use CameraEvents\HomeAssistant\Domain\Model\PushHandover;
-use CameraEvents\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Model\PushHandover;
+use CameraDiary\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
 
 /**
  * The pushes Home Assistant sent for an event's camera while the event lasted, oldest first.

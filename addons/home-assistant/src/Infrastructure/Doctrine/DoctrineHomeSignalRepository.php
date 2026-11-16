@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\Doctrine;
+namespace CameraDiary\HomeAssistant\Infrastructure\Doctrine;
 
 use App\Infrastructure\Doctrine\Repository\FilterKeys;
 use App\Infrastructure\Doctrine\Repository\OrderBy;
-use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
-use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
+use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 

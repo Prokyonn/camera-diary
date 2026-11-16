@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Import;
+namespace CameraDiary\HomeAssistant\Application\Import;
 
 use App\Application\Persistence\UnitOfWorkInterface;
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryInterface;
-use CameraEvents\HomeAssistant\Application\History\StateChange;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SignalMapping;
-use CameraEvents\HomeAssistant\Domain\Model\Detection;
-use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
-use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
-use CameraEvents\HomeAssistant\Domain\Model\PushHandover;
-use CameraEvents\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
-use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
-use CameraEvents\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
-use CameraEvents\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryInterface;
+use CameraDiary\HomeAssistant\Application\History\StateChange;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Application\Settings\PushSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SignalMapping;
+use CameraDiary\HomeAssistant\Domain\Model\Detection;
+use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
+use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
+use CameraDiary\HomeAssistant\Domain\Model\PushHandover;
+use CameraDiary\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
+use CameraDiary\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;

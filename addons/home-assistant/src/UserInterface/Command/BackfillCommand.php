@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\UserInterface\Command;
+namespace CameraDiary\HomeAssistant\UserInterface\Command;
 
 use App\Application\Clock\HomeTimeZone;
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Application\Import\HomeAssistantImport;
-use CameraEvents\HomeAssistant\Application\Import\ImportReport;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Application\Import\HomeAssistantImport;
+use CameraDiary\HomeAssistant\Application\Import\ImportReport;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;

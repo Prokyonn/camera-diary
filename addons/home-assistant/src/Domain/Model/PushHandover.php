@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Domain\Model;
+namespace CameraDiary\HomeAssistant\Domain\Model;
 
 use App\Domain\Model\Camera;
 use DateTimeImmutable;

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\Settings;
+namespace CameraDiary\HomeAssistant\Infrastructure\Settings;
 
 use App\Domain\Model\DetectionType;
-use CameraEvents\HomeAssistant\Application\Settings\CameraMapping;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Application\Settings\InvalidSettingsException;
-use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Application\Settings\SignalMapping;
+use CameraDiary\HomeAssistant\Application\Settings\CameraMapping;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Application\Settings\InvalidSettingsException;
+use CameraDiary\HomeAssistant\Application\Settings\PushSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Application\Settings\SignalMapping;
 use Symfony\Component\Config\Definition\Exception\Exception as ConfigException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;

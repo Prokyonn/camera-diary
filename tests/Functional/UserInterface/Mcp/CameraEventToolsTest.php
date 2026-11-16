@@ -42,7 +42,7 @@ final class CameraEventToolsTest extends KernelTestCase
         $result = $results[0];
         self::assertSame('2026-11-07T14:55:00+01:00', $result['started_at'] ?? null);
         self::assertSame('outside', $result['side'] ?? null);
-        self::assertSame('http://camera-events.test/events/'.$fence->getId(), $result['url'] ?? null);
+        self::assertSame('http://camera-diary.test/events/'.$fence->getId(), $result['url'] ?? null);
     }
 
     public function testGetsOneEvent(): void

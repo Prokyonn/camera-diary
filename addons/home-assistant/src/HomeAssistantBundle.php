@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant;
+namespace CameraDiary\HomeAssistant;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -22,7 +22,7 @@ final class HomeAssistantBundle extends AbstractBundle
                         'type' => 'attribute',
                         'is_bundle' => false,
                         'dir' => __DIR__.'/Domain/Model',
-                        'prefix' => 'CameraEvents\HomeAssistant\Domain\Model',
+                        'prefix' => 'CameraDiary\HomeAssistant\Domain\Model',
                         'alias' => 'HomeAssistant',
                     ],
                 ],
@@ -30,7 +30,7 @@ final class HomeAssistantBundle extends AbstractBundle
         ]);
 
         $builder->prependExtensionConfig('doctrine_migrations', [
-            'migrations_paths' => ['CameraEvents\HomeAssistant\Migrations' => __DIR__.'/../migrations'],
+            'migrations_paths' => ['CameraDiary\HomeAssistant\Migrations' => __DIR__.'/../migrations'],
         ]);
 
         $builder->prependExtensionConfig('framework', [

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Unit\Application\Import;
+namespace CameraDiary\HomeAssistant\Tests\Unit\Application\Import;
 
 use App\Application\Camera\CameraRegistry;
 use App\Application\Persistence\UnitOfWorkInterface;
@@ -12,10 +12,10 @@ use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Factory\CameraFactory;
-use CameraEvents\HomeAssistant\Application\Import\EventGrouper;
-use CameraEvents\HomeAssistant\Domain\Model\Detection;
-use CameraEvents\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
-use CameraEvents\HomeAssistant\Tests\Support\SettingsFactory;
+use CameraDiary\HomeAssistant\Application\Import\EventGrouper;
+use CameraDiary\HomeAssistant\Domain\Model\Detection;
+use CameraDiary\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
+use CameraDiary\HomeAssistant\Tests\Support\SettingsFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;

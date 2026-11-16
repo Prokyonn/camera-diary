@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Functional\Infrastructure\HomeAssistant;
+namespace CameraDiary\HomeAssistant\Tests\Functional\Infrastructure\HomeAssistant;
 
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Infrastructure\HomeAssistant\HomeAssistantHistory;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Infrastructure\HomeAssistant\HomeAssistantHistory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;

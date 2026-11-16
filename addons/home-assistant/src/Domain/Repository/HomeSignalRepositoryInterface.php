@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Domain\Repository;
+namespace CameraDiary\HomeAssistant\Domain\Repository;
 
-use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
+use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
 use DateTimeImmutable;
 
 /**

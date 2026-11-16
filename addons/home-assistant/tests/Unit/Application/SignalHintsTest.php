@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Unit\Application;
+namespace CameraDiary\HomeAssistant\Tests\Unit\Application;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Application\SignalHints;
-use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
-use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
-use CameraEvents\HomeAssistant\Tests\Support\SettingsFactory;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Application\SignalHints;
+use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
+use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
+use CameraDiary\HomeAssistant\Tests\Support\SettingsFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;

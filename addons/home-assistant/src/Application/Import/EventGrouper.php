@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Import;
+namespace CameraDiary\HomeAssistant\Application\Import;
 
 use App\Application\Camera\CameraRegistry;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Repository\CameraEventRepositoryInterface;
-use CameraEvents\HomeAssistant\Application\Settings\CameraMapping;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Domain\Model\GroupingRule;
-use CameraEvents\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
+use CameraDiary\HomeAssistant\Application\Settings\CameraMapping;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
+use CameraDiary\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
 use DateTimeImmutable;
 
 /**

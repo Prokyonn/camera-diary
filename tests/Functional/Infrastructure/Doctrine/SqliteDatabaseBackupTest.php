@@ -24,7 +24,7 @@ final class SqliteDatabaseBackupTest extends KernelTestCase
     {
         self::bootKernel();
         $this->resetStorage(self::getContainer());
-        $this->backupDir = sys_get_temp_dir().'/camera-events-backups-'.bin2hex(random_bytes(4));
+        $this->backupDir = sys_get_temp_dir().'/camera-diary-backups-'.bin2hex(random_bytes(4));
     }
 
     protected function tearDown(): void

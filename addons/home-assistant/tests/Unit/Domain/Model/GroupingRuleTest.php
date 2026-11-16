@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Unit\Domain\Model;
+namespace CameraDiary\HomeAssistant\Tests\Unit\Domain\Model;
 
 use App\Domain\Model\DetectionType;
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Domain\Model\GroupingRule;
+use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

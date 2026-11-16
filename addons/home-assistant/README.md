@@ -1,6 +1,6 @@
 # Home Assistant add-on
 
-Imports camera detections and context signals from the Home Assistant history. It cuts the frames from continuous recordings. Camera events describes and indexes the events like any other.
+Imports camera detections and context signals from the Home Assistant history. It cuts the frames from continuous recordings. Camera diary describes and indexes the events like any other.
 
 Use it when your cameras record around the clock (e.g. Synology Surveillance Station) and Home Assistant knows when something happened (e.g. the Reolink integration's person and animal sensors). If your camera system can send clips itself, use the [hook](../../README.md#the-hook) instead.
 
@@ -49,4 +49,4 @@ Mount the recordings read-only. Only the worker needs them.
 
 ## Removing it
 
-Remove `CameraEvents\HomeAssistant\HomeAssistantBundle` from `config/bundles.php` and `camera-events/home-assistant` from `composer.json`. The core does not depend on it.
+Remove `CameraDiary\HomeAssistant\HomeAssistantBundle` from `config/bundles.php` and `camera-diary/home-assistant` from `composer.json`. The core does not depend on it.

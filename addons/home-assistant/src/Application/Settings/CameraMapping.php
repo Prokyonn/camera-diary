@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Settings;
+namespace CameraDiary\HomeAssistant\Application\Settings;
 
 use App\Domain\Model\DetectionType;
 

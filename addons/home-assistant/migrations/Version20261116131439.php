@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Migrations;
+namespace CameraDiary\HomeAssistant\Migrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;

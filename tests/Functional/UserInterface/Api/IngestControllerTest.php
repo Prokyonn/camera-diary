@@ -40,7 +40,7 @@ final class IngestControllerTest extends WebTestCase
         $this->client = self::createClient();
         $this->client->disableReboot();
         $this->resetStorage(self::getContainer());
-        $this->mediaDir = sys_get_temp_dir().'/camera-events-media-'.bin2hex(random_bytes(4));
+        $this->mediaDir = sys_get_temp_dir().'/camera-diary-media-'.bin2hex(random_bytes(4));
         new Filesystem()->mkdir($this->mediaDir);
     }
 

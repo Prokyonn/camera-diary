@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation;
+namespace CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation;
 
 use App\Application\Clock\HomeTimeZone;
 use DateTimeImmutable;

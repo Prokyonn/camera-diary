@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Settings;
+namespace CameraDiary\HomeAssistant\Application\Settings;
 
 /**
  * Home Assistant hands its camera pushes over through an input_text; the AI verdict replaces them.

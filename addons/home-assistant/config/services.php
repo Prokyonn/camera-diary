@@ -9,6 +9,6 @@ return static function (ContainerConfigurator $container): void {
         ->defaults()
             ->autowire()
             ->autoconfigure()
-        ->load('CameraEvents\\HomeAssistant\\', '../src/')
+        ->load('CameraDiary\\HomeAssistant\\', '../src/')
             ->exclude(['../src/HomeAssistantBundle.php', '../src/Domain/Model/']);
 };

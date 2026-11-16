@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Import;
+namespace CameraDiary\HomeAssistant\Application\Import;
 
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
 use DateTimeImmutable;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\Lock\LockFactory;

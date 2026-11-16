@@ -7,7 +7,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && install-php-extensions intl opcache pdo_sqlite
 
-COPY docker/php.ini $PHP_INI_DIR/conf.d/zz-camera-events.ini
+COPY docker/php.ini $PHP_INI_DIR/conf.d/zz-camera-diary.ini
 
 ENV APP_ENV=prod \
     APP_DEBUG=0 \

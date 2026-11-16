@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\HomeAssistant;
+namespace CameraDiary\HomeAssistant\Infrastructure\HomeAssistant;
 
 use App\Application\Description\EventProcessor;
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractorInterface;
 use App\Application\Frame\FrameSourceInterface;
 use App\Domain\Model\CameraEvent;
-use CameraEvents\HomeAssistant\Application\Import\EventGrouper;
-use CameraEvents\HomeAssistant\Application\Push\EventHandovers;
-use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation\RecordingFrameSource;
+use CameraDiary\HomeAssistant\Application\Import\EventGrouper;
+use CameraDiary\HomeAssistant\Application\Push\EventHandovers;
+use CameraDiary\HomeAssistant\Application\Settings\PushSettings;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation\RecordingFrameSource;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
@@ -83,7 +83,7 @@ final readonly class ClipFrameSource implements FrameSourceInterface
                 return null;
             }
 
-            $file = new Filesystem()->tempnam(sys_get_temp_dir(), 'camera-events-push-', '.'.pathinfo($mediaPath, \PATHINFO_EXTENSION));
+            $file = new Filesystem()->tempnam(sys_get_temp_dir(), 'camera-diary-push-', '.'.pathinfo($mediaPath, \PATHINFO_EXTENSION));
             new Filesystem()->dumpFile($file, $response->getContent());
         } catch (ExceptionInterface $exception) {
             $this->logger->warning('Could not fetch {path} from Home Assistant: {message}', ['path' => $mediaPath, 'message' => $exception->getMessage()]);

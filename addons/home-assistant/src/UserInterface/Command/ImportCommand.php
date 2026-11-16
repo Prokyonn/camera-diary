@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\UserInterface\Command;
+namespace CameraDiary\HomeAssistant\UserInterface\Command;
 
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Application\Import\HomeAssistantImport;
-use CameraEvents\HomeAssistant\Application\Import\ImportReport;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Application\Import\HomeAssistantImport;
+use CameraDiary\HomeAssistant\Application\Import\ImportReport;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;

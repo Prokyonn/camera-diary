@@ -1,6 +1,6 @@
 {
-    "name": "camera-events/home-assistant",
-    "description": "Camera events add-on: imports detections and context signals from Home Assistant and cuts frames from continuous recordings.",
+    "name": "camera-diary/home-assistant",
+    "description": "Camera diary add-on: imports detections and context signals from Home Assistant and cuts frames from continuous recordings.",
     "type": "symfony-bundle",
     "license": "MIT",
     "version": "1.0.0",
@@ -12,13 +12,13 @@
     },
     "autoload": {
         "psr-4": {
-            "CameraEvents\\HomeAssistant\\": "src/",
-            "CameraEvents\\HomeAssistant\\Migrations\\": "migrations/"
+            "CameraDiary\\HomeAssistant\\": "src/",
+            "CameraDiary\\HomeAssistant\\Migrations\\": "migrations/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CameraEvents\\HomeAssistant\\Tests\\": "tests/"
+            "CameraDiary\\HomeAssistant\\Tests\\": "tests/"
         }
     }
 }

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ event.camera.name }} {{ event.startedAt|date('j M H:i') }} · Camera events{% endblock %}
+{% block title %}{{ event.camera.name }} {{ event.startedAt|date('j M H:i') }} · Camera diary{% endblock %}
 
 {% block body %}
     <p><a href="{{ path('timeline', {day: event.startedAt|date('Y-m-d')}) }}">← {{ event.startedAt|date('l, j F') }}</a></p>

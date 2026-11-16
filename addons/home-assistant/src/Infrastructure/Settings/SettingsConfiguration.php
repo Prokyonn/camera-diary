@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\Settings;
+namespace CameraDiary\HomeAssistant\Infrastructure\Settings;
 
 use App\Domain\Model\Camera;
 use App\Domain\Model\DetectionType;
@@ -68,7 +68,7 @@ final class SettingsConfiguration implements ConfigurationInterface
                         ->scalarNode('handover_entity')->isRequired()->cannotBeEmpty()->info('input_text the push script sets to "camera|epoch|mute 0/1|tag|group|file base|title|message"')->end()
                         ->scalarNode('notify_service')->isRequired()->cannotBeEmpty()->info('e.g. mobile_app_my_phone for notify.mobile_app_my_phone')->end()
                         ->scalarNode('url')->defaultNull()->info('Where tapping the push leads, e.g. /lovelace/cameras')->end()
-                        ->scalarNode('details_title')->defaultValue('Details')->info('Button that opens the event in Camera events')->end()
+                        ->scalarNode('details_title')->defaultValue('Details')->info('Button that opens the event in Camera diary')->end()
                         ->enumNode('loud_interruption_level')->values(['active', 'time-sensitive', 'critical'])->defaultValue('active')->info('For unusual events; all others update passively')->end()
                         ->arrayNode('mute_actions')
                             ->normalizeKeys(false)

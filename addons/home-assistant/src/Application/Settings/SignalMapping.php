@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Settings;
+namespace CameraDiary\HomeAssistant\Application\Settings;
 
 /**
  * A context entity whose state changes become hints, e.g. a cat flap or a door lock.

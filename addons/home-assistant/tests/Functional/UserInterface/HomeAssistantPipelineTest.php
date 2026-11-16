@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Functional\UserInterface;
+namespace CameraDiary\HomeAssistant\Tests\Functional\UserInterface;
 
 use App\Application\Description\HintCollector;
 use App\Application\Search\EventSearchInterface;
@@ -13,9 +13,9 @@ use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Support\FakeHomeAssistant;
 use App\Tests\Support\FakePlatform;
 use App\Tests\Support\ResetsStorage;
-use CameraEvents\HomeAssistant\Application\Import\HomeAssistantImport;
-use CameraEvents\HomeAssistant\Tests\Support\RecordingFixture;
-use CameraEvents\HomeAssistant\UserInterface\Command\ImportCommand;
+use CameraDiary\HomeAssistant\Application\Import\HomeAssistantImport;
+use CameraDiary\HomeAssistant\Tests\Support\RecordingFixture;
+use CameraDiary\HomeAssistant\UserInterface\Command\ImportCommand;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Support;
+namespace CameraDiary\HomeAssistant\Tests\Support;
 
 use App\Application\Clock\HomeTimeZone;
 use DateTimeImmutable;

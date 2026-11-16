@@ -1,5 +1,5 @@
 {
-    "camera-events/home-assistant": {
+    "camera-diary/home-assistant": {
         "version": "1.0.0"
     },
     "cmsig/seal-symfony-bundle": {

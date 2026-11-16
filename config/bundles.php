@@ -11,5 +11,5 @@ return [
     Symfony\Bundle\SecurityBundle\SecurityBundle::class => ['all' => true],
     Symfony\Bundle\DebugBundle\DebugBundle::class => ['dev' => true],
     CmsIg\Seal\Integration\Symfony\SealBundle::class => ['all' => true],
-    CameraEvents\HomeAssistant\HomeAssistantBundle::class => ['all' => true],
+    CameraDiary\HomeAssistant\HomeAssistantBundle::class => ['all' => true],
 ];

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Functional\Infrastructure\Settings;
+namespace CameraDiary\HomeAssistant\Tests\Functional\Infrastructure\Settings;
 
 use App\Domain\Model\DetectionType;
-use CameraEvents\HomeAssistant\Application\Settings\InvalidSettingsException;
-use CameraEvents\HomeAssistant\Infrastructure\Settings\SettingsConfiguration;
-use CameraEvents\HomeAssistant\Infrastructure\Settings\YamlSettingsProvider;
+use CameraDiary\HomeAssistant\Application\Settings\InvalidSettingsException;
+use CameraDiary\HomeAssistant\Infrastructure\Settings\SettingsConfiguration;
+use CameraDiary\HomeAssistant\Infrastructure\Settings\YamlSettingsProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -20,7 +20,7 @@ final class YamlSettingsProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->path = sys_get_temp_dir().'/camera-events-home-assistant-'.bin2hex(random_bytes(4)).'.yaml';
+        $this->path = sys_get_temp_dir().'/camera-diary-home-assistant-'.bin2hex(random_bytes(4)).'.yaml';
     }
 
     protected function tearDown(): void

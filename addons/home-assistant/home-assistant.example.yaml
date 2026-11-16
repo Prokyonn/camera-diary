@@ -1,7 +1,7 @@
 # Copy to the path in HOME_ASSISTANT_CONFIG (default var/data/home-assistant.yaml) and adapt.
 
 cameras:
-    # Camera slug in Camera events => its Home Assistant sensors
+    # Camera slug in Camera diary => its Home Assistant sensors
     garden:
         name: Garden
         scene: Back garden with a lawn and a hedge. The fence at the back is the property line; behind it runs a public path.
@@ -29,7 +29,7 @@ push:
     handover_entity: input_text.camera_push
     notify_service: mobile_app_my_phone   # notify.mobile_app_my_phone
     url: /lovelace/cameras                # where tapping the push leads
-    details_title: Details                # button that opens the event in Camera events
+    details_title: Details                # button that opens the event in Camera diary
     loud_interruption_level: active       # unusual events; all others update silently (passive)
     mute_actions:                         # buttons kept on pushes that had them (mute 1)
         CAMERA_MUTE_1H: "That's us, mute 1 h"

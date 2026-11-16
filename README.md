@@ -1,6 +1,6 @@
-# Camera events
+# Camera diary
 
-Your security cameras record everything and tell you nothing. Camera events turns each clip into a searchable diary entry: an AI looks at the frames and writes down what happened, and you ask in plain words.
+Your security cameras record everything and tell you nothing. Camera diary turns each clip into a searchable diary entry: an AI looks at the frames and writes down what happened, and you ask in plain words.
 
 > When was the strange grey cat here?
 > Was anyone behind the fence last night?
@@ -22,7 +22,7 @@ The demo loads five openly licensed clips: a badger in a garden at night, fox cu
 ### With Docker
 
 ```
-git clone <this repository> camera-events && cd camera-events
+git clone <this repository> camera-diary && cd camera-diary
 export GEMINI_API_KEY=...        # free key: https://aistudio.google.com/apikey
 docker compose up --build
 ```

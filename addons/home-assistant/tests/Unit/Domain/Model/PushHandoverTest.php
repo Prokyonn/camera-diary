@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Unit\Domain\Model;
+namespace CameraDiary\HomeAssistant\Tests\Unit\Domain\Model;
 
-use CameraEvents\HomeAssistant\Domain\Model\PushHandover;
+use CameraDiary\HomeAssistant\Domain\Model\PushHandover;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

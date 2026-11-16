@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application\Import;
+namespace CameraDiary\HomeAssistant\Application\Import;
 
 final readonly class ImportResult
 {

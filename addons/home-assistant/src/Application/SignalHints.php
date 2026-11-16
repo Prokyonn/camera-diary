@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Application;
+namespace CameraDiary\HomeAssistant\Application;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\HintProviderInterface;
 use App\Domain\Model\CameraEvent;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
 
 /**
  * Hints from the signals around an event, e.g. "07:16:20 Luna came in through the cat flap".

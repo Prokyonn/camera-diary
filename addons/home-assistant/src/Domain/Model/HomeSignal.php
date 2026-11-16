@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Domain\Model;
+namespace CameraDiary\HomeAssistant\Domain\Model;
 
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\UserInterface\Scheduler;
+namespace CameraDiary\HomeAssistant\UserInterface\Scheduler;
 
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Application\Import\HomeAssistantImport;
-use CameraEvents\HomeAssistant\Application\Import\ImportReport;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Application\Import\HomeAssistantImport;
+use CameraDiary\HomeAssistant\Application\Import\ImportReport;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 

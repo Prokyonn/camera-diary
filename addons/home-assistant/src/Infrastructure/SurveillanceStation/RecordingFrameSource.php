@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation;
+namespace CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation;
 
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractorInterface;
 use App\Application\Frame\FrameSourceInterface;
 use App\Domain\Model\CameraEvent;
-use CameraEvents\HomeAssistant\Application\Import\EventGrouper;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Application\Import\EventGrouper;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
 

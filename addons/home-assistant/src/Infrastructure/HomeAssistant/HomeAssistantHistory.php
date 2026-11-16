@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Infrastructure\HomeAssistant;
+namespace CameraDiary\HomeAssistant\Infrastructure\HomeAssistant;
 
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryInterface;
-use CameraEvents\HomeAssistant\Application\History\HomeHistoryUnavailableException;
-use CameraEvents\HomeAssistant\Application\History\StateChange;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryInterface;
+use CameraDiary\HomeAssistant\Application\History\HomeHistoryUnavailableException;
+use CameraDiary\HomeAssistant\Application\History\StateChange;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;

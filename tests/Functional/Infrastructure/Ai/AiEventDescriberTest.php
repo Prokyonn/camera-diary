@@ -38,7 +38,7 @@ final class AiEventDescriberTest extends TestCase
     protected function setUp(): void
     {
         CameraFactory::reset();
-        $this->framesDir = sys_get_temp_dir().'/camera-events-frames-'.bin2hex(random_bytes(4));
+        $this->framesDir = sys_get_temp_dir().'/camera-diary-frames-'.bin2hex(random_bytes(4));
         $image = imagecreatetruecolor(4, 4);
         self::assertNotFalse($image);
         new Filesystem()->mkdir($this->framesDir.'/terrace');

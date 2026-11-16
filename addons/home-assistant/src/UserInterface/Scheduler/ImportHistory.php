@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\UserInterface\Scheduler;
+namespace CameraDiary\HomeAssistant\UserInterface\Scheduler;
 
 final readonly class ImportHistory
 {

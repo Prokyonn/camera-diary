@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CameraEvents\HomeAssistant\Tests\Functional\Infrastructure\SurveillanceStation;
+namespace CameraDiary\HomeAssistant\Tests\Functional\Infrastructure\SurveillanceStation;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractionFailedException;
 use App\Infrastructure\Media\FfmpegFrameExtractor;
 use App\Tests\Factory\CameraEventFactory;
-use CameraEvents\HomeAssistant\Application\Import\EventGrouper;
-use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
-use CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation\RecordingFrameSource;
-use CameraEvents\HomeAssistant\Infrastructure\SurveillanceStation\RecordingLocator;
-use CameraEvents\HomeAssistant\Tests\Support\RecordingFixture;
-use CameraEvents\HomeAssistant\Tests\Support\SettingsFactory;
+use CameraDiary\HomeAssistant\Application\Import\EventGrouper;
+use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
+use CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation\RecordingFrameSource;
+use CameraDiary\HomeAssistant\Infrastructure\SurveillanceStation\RecordingLocator;
+use CameraDiary\HomeAssistant\Tests\Support\RecordingFixture;
+use CameraDiary\HomeAssistant\Tests\Support\SettingsFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -36,9 +36,9 @@ final class RecordingFrameSourceTest extends TestCase
         }
 
         $suffix = bin2hex(random_bytes(4));
-        $this->recordings = new RecordingFixture(sys_get_temp_dir().'/camera-events-recordings-'.$suffix);
+        $this->recordings = new RecordingFixture(sys_get_temp_dir().'/camera-diary-recordings-'.$suffix);
         new Filesystem()->mkdir($this->recordings->dir);
-        $this->frame = sys_get_temp_dir().'/camera-events-frame-'.$suffix.'.jpg';
+        $this->frame = sys_get_temp_dir().'/camera-diary-frame-'.$suffix.'.jpg';
     }
 
     protected function tearDown(): void
