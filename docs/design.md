@@ -41,13 +41,14 @@ add-on (e.g. Home Assistant) ──► CameraEvent (open) ──► closed ─�
 
 ## Extension points
 
-An add-on is a Symfony bundle. It uses the core through three tagged interfaces and the core use cases:
+An add-on is a Symfony bundle. It uses the core through these extension points and the core use cases:
 
 | Interface | For |
 |---|---|
 | `FrameSourceInterface` | Events opened without frames get them later, e.g. cut from continuous recordings. Without a source such an event ends as `no_footage`. |
 | `HintProviderInterface` | Adds context lines to every event, e.g. "07:16:20 Front door opened". |
 | Open events | `new CameraEvent(..., open: true)` takes more detections until the add-on calls `close()`. Only closed events are described. |
+| `EventDescribed` | Dispatched after an event's description is stored and indexed, e.g. to send a notification. |
 
 `CameraRegistry` creates cameras on first use.
 
@@ -63,7 +64,7 @@ An add-on is a Symfony bundle. It uses the core through three tagged interfaces 
 - `PendingEventRunner` runs every minute under the lock `camera-event-description`. It takes up to 20 closed, pending, due events, newest first.
 - `EventProcessor` gets the frames from the event's frame source if the event has none. It then checks the budget, describes the event, stores the result, and indexes it.
 - Retries: an AI or ffmpeg failure retries every 10 minutes, and gives `failed` after 8 attempts. Missing footage waits up to an hour, then gives `no_footage`.
-- The AI gets the camera's scene, `AI_HOME_CONTEXT`, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, summary.
+- The AI gets the camera's scene, `AI_HOME_CONTEXT`, `AI_UNUSUAL_RULE`, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, summary, and whether the event is unusual.
 - Daily budget: `AI_DAILY_CALL_LIMIT` calls per local day, counted atomically in `ai_usage`. Over the limit, events stay pending with their frames, and questions fall back to plain search.
 - Manual corrections: a free-text label and a verdict override. The effective verdict is the override, else the AI's.
 

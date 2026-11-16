@@ -43,6 +43,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $output->side,
             $output->subject,
             $output->summary,
+            $output->unusual,
             $this->client->modelName(),
         );
     }
@@ -59,6 +60,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             The frames are in time order; the subject may only appear in a later frame.
             Common false alarms: a spider web or a single thread swinging in front of the lens (often lit by the infrared light at night), insects close to the lens, rain or snow, headlights or sun reflections, moving shadows, plants moving in the wind.
             Describe people neutrally and never guess their names. Hints from the home are given when available; they may be unrelated to what the frames show.
+            Unusual events: {$this->homeContext->unusualRule()}
             {$notes}
             PROMPT);
     }

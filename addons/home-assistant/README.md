@@ -28,6 +28,19 @@ Every minute (`home-assistant:import` runs it once):
 4. **Closing:** an event is closed once the import is 2 minutes past its end. The core worker then asks this add-on for frames, at 1, 2 and 3 s after the first detection. The subject often appears only a moment after the camera reacts.
 5. **Signals:** state changes of the configured entities become hints for every event within 3 minutes, e.g. "07:17:02 Luna came in through the cat flap". With `time_attribute`, the attribute's time is used instead of the state's, for entities that report late.
 
+## Push with the verdict
+
+If a Home Assistant script already sends a push with a snapshot and a clip for each detection, the add-on replaces it with the AI verdict, usually within two to three minutes:
+
+1. After its push, the script sets an `input_text` (max 255 characters) to `camera|epoch|mute 0/1|tag|group|file base|title|message`, e.g. `garden|1793945800|1|garden-2026-11-06_07-16-40-person|cameras-garden|motion/garden/2026-11-06_07-16-40_person|Person in the garden|Person at 07:16:40.`
+   - `file base` is the path of the snapshot (`.jpg`) and the clip (`.mp4`) under Home Assistant's `/media/local`, without the extension.
+   - `mute 1` means the push had the buttons listed under `mute_actions`.
+2. The import reads the value with the other state changes. The event's frames come from the snapshot and the clip, so it does not wait for the continuous recording, which it still uses when the files are gone.
+3. After the description, the add-on calls `notify.<notify_service>` with the same title, tag, group and clip. The message is the original one plus the AI's description. A "Details" button opens the event, and the mute buttons stay.
+4. The update is silent (`passive`) unless the AI flags the event as unusual (`AI_UNUSUAL_RULE`); then it uses `loud_interruption_level`. Pushes older than an hour are not updated.
+
+Configure it under `push` in the YAML file, see [home-assistant.example.yaml](home-assistant.example.yaml).
+
 ## Recordings
 
 The locator expects Synology Surveillance Station's layout: `<RECORDINGS_DIR>/<recording_folder>/<YYYYMMDD><AM|PM>/<name>-<YYYYMMDD>-<HHMMSS>-<epoch_ms>-<n>.mp4`. Files cover up to 30 minutes, and the epoch in the name is their start. If the recording is not there yet, the core retries every 10 minutes for an hour.

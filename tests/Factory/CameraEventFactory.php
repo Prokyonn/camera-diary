@@ -55,7 +55,7 @@ final class CameraEventFactory
         ?int $id = null,
     ): CameraEvent {
         $event = self::withFrames($startedAt, $camera, $id);
-        $event->describe($verdict, $falseAlarmCause, $side, $subject, $summary, 'test-model', self::utc($startedAt)->modify('+5 minutes'));
+        $event->describe($verdict, $falseAlarmCause, $side, $subject, $summary, false, 'test-model', self::utc($startedAt)->modify('+5 minutes'));
 
         return $event;
     }

@@ -53,7 +53,7 @@ final class AiEventDescriberTest extends TestCase
 
     public function testSendsTheFramesAndReadsTheStructuredAnswer(): void
     {
-        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","summary":"A grey cat drags the doormat."}');
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","summary":"A grey cat drags the doormat.","unusual":true}');
         CameraFactory::get('terrace', 'Terrace with the cat flap on the left.');
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
         $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
@@ -64,6 +64,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertSame(FalseAlarmCause::None, $description->falseAlarmCause);
         self::assertSame(Side::OurProperty, $description->side);
         self::assertSame(Subject::Cat, $description->subject);
+        self::assertTrue($description->unusual);
         self::assertSame('test-model', $description->model);
 
         $call = $this->platform->calls()[0] ?? self::fail('The AI was not called.');
@@ -73,6 +74,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('Luna came in', $input);
         self::assertStringContainsString('cat flap on the left', $input, 'The prompt describes the scene.');
         self::assertStringContainsString('Our cat is called Luna.', $input, 'The prompt carries the home context.');
+        self::assertStringContainsString('Unusual events: A stranger on our property.', $input, 'The prompt carries the rule for unusual events.');
         self::assertStringContainsString('spider_web', json_encode($call['options'], \JSON_THROW_ON_ERROR), 'The JSON schema lists the false-alarm causes.');
     }
 
@@ -95,7 +97,7 @@ final class AiEventDescriberTest extends TestCase
             new PlatformStructuredClient($this->platform, 'test-model'),
             new FilesystemFrameStorage($this->framesDir, $homeTimeZone),
             $homeTimeZone,
-            new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), 'Our cat is called Luna.'),
+            new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), 'Our cat is called Luna.', 'A stranger on our property.'),
         );
     }
 }

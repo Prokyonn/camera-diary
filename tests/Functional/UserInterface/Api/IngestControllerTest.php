@@ -74,7 +74,7 @@ final class IngestControllerTest extends WebTestCase
         self::assertSame([320, 180], [$event->getFrameWidth(), $event->getFrameHeight()]);
 
         self::getContainer()->get(FakePlatform::class)->respondWith(
-            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","summary":"A courier in a yellow jacket leaves a parcel at the door."}',
+            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","summary":"A courier in a yellow jacket leaves a parcel at the door.","unusual":false}',
         );
         self::assertSame(['described' => 1], self::getContainer()->get(PendingEventRunner::class)->run());
         self::assertSame(EventStatus::Described, $event->getStatus());

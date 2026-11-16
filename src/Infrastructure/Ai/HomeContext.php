@@ -17,7 +17,14 @@ final readonly class HomeContext
         private CameraRepositoryInterface $cameras,
         #[Autowire(env: 'AI_HOME_CONTEXT')]
         private string $notes,
+        #[Autowire(env: 'AI_UNUSUAL_RULE')]
+        private string $unusualRule,
     ) {
+    }
+
+    public function unusualRule(): string
+    {
+        return trim($this->unusualRule);
     }
 
     public function notes(): string

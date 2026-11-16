@@ -84,9 +84,11 @@ symfony serve        # or: php -S 127.0.0.1:8000 -t public
 
 The Symfony AI bridges for Claude Code and Codex only pass text. A small adapter (`src/Infrastructure/Ai/Client`) adds the images and the JSON schema that the API platforms get natively. Every provider returns the same structured output.
 
-For `vertexai`, create a Google Cloud project whose billing account holds the credits, enable the Vertex AI API, and create an API key restricted to it (APIs & Services, Credentials). Google AI Pro and Ultra include monthly Cloud credits through the Google Developer Program. They pay for Vertex AI, not for AI Studio keys.
+Google AI Pro and Ultra include monthly Google Cloud credits through the Google Developer Program. They pay for the Gemini API too: apply them to a billing account, link it to the project of your AI Studio key, and set up prepay in AI Studio's billing page. The free trial credit of a new Cloud account does not cover the Gemini API.
 
-`AI_DAILY_CALL_LIMIT` caps the AI calls per day (default 500). Events over the cap wait for the next day. `AI_HOME_CONTEXT` is free text every prompt gets, e.g. "Our cat is called Luna."
+For `vertexai`, enable the Agent Platform API (formerly Vertex AI) in a project with billing, and create an API key bound to a service account with the role `aiplatform.user`. Google's default organization policy blocks such keys for private accounts, so `gemini` is the simpler choice there.
+
+`AI_DAILY_CALL_LIMIT` caps the AI calls per day (default 500). Events over the cap wait for the next day. `AI_HOME_CONTEXT` is free text every prompt gets, e.g. "Our cat is called Luna." `AI_UNUSUAL_RULE` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
 
 The CLI providers run on the machine that runs the worker. The Docker image does not contain them.
 
@@ -123,7 +125,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 
 ## Home Assistant add-on
 
-[addons/home-assistant](addons/home-assistant/README.md) imports detections (e.g. Reolink person and animal sensors) from the Home Assistant history. It groups them into events and cuts frames 1, 2 and 3 s after each detection from continuous recordings, e.g. Synology Surveillance Station. It also turns state changes such as a cat flap or a door lock into hints. It is a separate Symfony bundle: the core only knows three extension points (frames, hints, open events).
+[addons/home-assistant](addons/home-assistant/README.md) imports detections (e.g. Reolink person and animal sensors) from the Home Assistant history. It groups them into events and cuts frames 1, 2 and 3 s after each detection from continuous recordings, e.g. Synology Surveillance Station. It also turns state changes such as a cat flap or a door lock into hints. It can also replace your camera push with the AI verdict a minute or two later. It is a separate Symfony bundle: the core only knows its extension points (frames, hints, open events, a hook after each description).
 
 ## Assistants (MCP)
 

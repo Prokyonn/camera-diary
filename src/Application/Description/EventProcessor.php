@@ -15,6 +15,7 @@ use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
 use App\Domain\Model\CameraEvent;
 use Psr\Clock\ClockInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -40,6 +41,7 @@ final readonly class EventProcessor
         private HintCollector $hints,
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
+        private EventDispatcherInterface $eventDispatcher,
         private ClockInterface $clock,
         private LoggerInterface $logger,
     ) {
@@ -50,6 +52,9 @@ final readonly class EventProcessor
         $outcome = $this->advance($event);
         $this->unitOfWork->flush();
         $this->indexer->index($event);
+        if (ProcessOutcome::Described === $outcome) {
+            $this->eventDispatcher->dispatch(new EventDescribed($event));
+        }
 
         return $outcome;
     }
@@ -126,6 +131,7 @@ final readonly class EventProcessor
             $description->side,
             $description->subject,
             $description->summary,
+            $description->unusual,
             $description->model,
             $this->clock->now(),
         );

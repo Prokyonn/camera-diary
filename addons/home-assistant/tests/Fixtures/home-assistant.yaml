@@ -25,3 +25,11 @@ signals:
         states:
             on: Front door opened
             off: Front door closed
+
+push:
+    handover_entity: input_text.camera_push
+    notify_service: mobile_app_phone
+    url: /lovelace/cameras
+    details_title: Analysis
+    mute_actions:
+        CAMERA_MUTE_1H: "That's us, mute 1 h"

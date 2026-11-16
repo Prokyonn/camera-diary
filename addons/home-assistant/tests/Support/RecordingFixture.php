@@ -43,7 +43,11 @@ final readonly class RecordingFixture
      */
     public function video(string $folder, DateTimeImmutable $startedAt, int $seconds = 10): string
     {
-        $path = $this->pathFor($folder, $startedAt);
+        return self::videoFile($this->pathFor($folder, $startedAt), $seconds);
+    }
+
+    public static function videoFile(string $path, int $seconds = 10): string
+    {
         new Filesystem()->mkdir(\dirname($path));
         $process = new Process([
             self::ffmpeg() ?? throw new RuntimeException('ffmpeg is missing.'),

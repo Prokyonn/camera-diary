@@ -8,6 +8,7 @@ use App\Domain\Model\DetectionType;
 use CameraEvents\HomeAssistant\Application\Settings\CameraMapping;
 use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
 use CameraEvents\HomeAssistant\Application\Settings\InvalidSettingsException;
+use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
 use CameraEvents\HomeAssistant\Application\Settings\SettingsProviderInterface;
 use CameraEvents\HomeAssistant\Application\Settings\SignalMapping;
 use Symfony\Component\Config\Definition\Exception\Exception as ConfigException;
@@ -34,7 +35,7 @@ final readonly class YamlSettingsProvider implements SettingsProviderInterface
         }
 
         try {
-            /** @var array{cameras: array<string, array{name: ?string, scene: ?string, sensor_prefix: string, detections: list<string>, recording_folder: ?string}>, signals: array<string, array{time_attribute: ?string, states: array<string, string>}>} $config */
+            /** @var array{cameras: array<string, array{name: ?string, scene: ?string, sensor_prefix: string, detections: list<string>, recording_folder: ?string}>, signals: array<string, array{time_attribute: ?string, states: array<string, string>}>, push?: array{handover_entity: string, notify_service: string, url: ?string, details_title: string, loud_interruption_level: string, mute_actions: array<string, string>}} $config */
             $config = new Processor()->processConfiguration(new SettingsConfiguration(), [Yaml::parseFile($this->path) ?? []]);
         } catch (ParseException|ConfigException $exception) {
             throw new InvalidSettingsException(\sprintf('Invalid Home Assistant settings in "%s": %s', $this->path, $exception->getMessage()), 0, $exception);
@@ -57,6 +58,15 @@ final readonly class YamlSettingsProvider implements SettingsProviderInterface
             $signals[] = new SignalMapping($entityId, $signal['states'], $signal['time_attribute']);
         }
 
-        return new HomeAssistantSettings($cameras, $signals);
+        $push = $config['push'] ?? null;
+
+        return new HomeAssistantSettings($cameras, $signals, null === $push ? null : new PushSettings(
+            $push['handover_entity'],
+            $push['notify_service'],
+            $push['url'],
+            $push['details_title'],
+            $push['loud_interruption_level'],
+            $push['mute_actions'],
+        ));
     }
 }

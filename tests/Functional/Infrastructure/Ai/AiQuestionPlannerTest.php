@@ -33,7 +33,7 @@ final class AiQuestionPlannerTest extends TestCase
         $planner = new AiQuestionPlanner(
             new PlatformStructuredClient($platform, 'test-model'),
             new HomeTimeZone('Europe/Vienna'),
-            new HomeContext($cameras->reveal(), ''),
+            new HomeContext($cameras->reveal(), '', ''),
             new MockClock('2026-11-08 10:00:00', 'UTC'),
         );
 

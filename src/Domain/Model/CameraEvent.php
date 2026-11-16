@@ -78,6 +78,9 @@ class CameraEvent
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $summary = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $unusual = false;
+
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $model = null;
 
@@ -236,6 +239,11 @@ class CameraEvent
         return $this->summary;
     }
 
+    public function isUnusual(): bool
+    {
+        return $this->unusual;
+    }
+
     public function getModel(): ?string
     {
         return $this->model;
@@ -322,6 +330,7 @@ class CameraEvent
         Side $side,
         Subject $subject,
         string $summary,
+        bool $unusual,
         string $model,
         DateTimeImmutable $describedAt,
     ): void {
@@ -330,6 +339,7 @@ class CameraEvent
         $this->side = $side;
         $this->subject = $subject;
         $this->summary = $summary;
+        $this->unusual = $unusual;
         $this->model = $model;
         $this->describedAt = $describedAt;
         $this->status = EventStatus::Described;

@@ -15,6 +15,7 @@ final readonly class HomeAssistantSettings
     public function __construct(
         public array $cameras = [],
         public array $signals = [],
+        public ?PushSettings $push = null,
     ) {
     }
 

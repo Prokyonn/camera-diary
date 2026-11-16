@@ -44,6 +44,19 @@ final class YamlSettingsProviderTest extends TestCase
         $frontDoor = $settings->signal('lock.front_door');
         self::assertNotNull($frontDoor);
         self::assertNull($frontDoor->describe('jammed'));
+        $push = $settings->push;
+        self::assertNotNull($push);
+        self::assertSame('input_text.camera_push', $push->handoverEntity);
+        self::assertSame('mobile_app_my_phone', $push->notifyService);
+        self::assertSame('active', $push->loudInterruptionLevel);
+        self::assertSame(['CAMERA_MUTE_1H' => "That's us, mute 1 h"], $push->muteActions);
+    }
+
+    public function testPushIsOptional(): void
+    {
+        new Filesystem()->dumpFile($this->path, "cameras:\n    garden:\n        sensor_prefix: binary_sensor.garden\n");
+
+        self::assertNull(new YamlSettingsProvider($this->path)->settings()->push);
     }
 
     public function testIsEmptyWithoutAFile(): void

@@ -26,6 +26,8 @@ final readonly class EventDescriptionOutput
         public Subject $subject,
         #[Schema(description: 'One or two neutral sentences in English: what is visible, colours, clothing, what the subject does. No guessed names.', maxLength: 400)]
         public string $summary,
+        #[Schema(description: 'true only if the event matches the rule for unusual events in the instructions')]
+        public bool $unusual,
     ) {
     }
 }

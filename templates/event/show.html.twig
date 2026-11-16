@@ -34,7 +34,7 @@
             <dd>{{ event.summary }}</dd>
             <dt>Verdict</dt>
             <dd>
-                {{ event.effectiveVerdict.label }}
+                {{ event.effectiveVerdict.label }}{% if event.unusual and not event.falseAlarm %}, unusual{% endif %}
                 {% if event.falseAlarm and event.falseAlarmCause and event.falseAlarmCause.value != 'none' %}({{ event.falseAlarmCause.label }}){% endif %}
                 {% if event.verdictOverride %}<small>set by hand; the AI said {{ event.verdict.label|default('nothing') }}</small>{% endif %}
             </dd>

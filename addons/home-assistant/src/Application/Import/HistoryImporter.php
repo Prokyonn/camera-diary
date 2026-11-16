@@ -8,16 +8,20 @@ use App\Application\Persistence\UnitOfWorkInterface;
 use CameraEvents\HomeAssistant\Application\History\HomeHistoryInterface;
 use CameraEvents\HomeAssistant\Application\History\StateChange;
 use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
+use CameraEvents\HomeAssistant\Application\Settings\PushSettings;
 use CameraEvents\HomeAssistant\Application\Settings\SignalMapping;
 use CameraEvents\HomeAssistant\Domain\Model\Detection;
 use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
 use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
+use CameraEvents\HomeAssistant\Domain\Model\PushHandover;
 use CameraEvents\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
 use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
 use CameraEvents\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
+use CameraEvents\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  * Copies camera detections and context signals from the Home Assistant history into the database.
@@ -34,7 +38,9 @@ final readonly class HistoryImporter
         private DetectionRepositoryInterface $detections,
         private HomeSignalRepositoryInterface $signals,
         private ImportCursorRepositoryInterface $cursors,
+        private PushHandoverRepositoryInterface $pushHandovers,
         private UnitOfWorkInterface $unitOfWork,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -62,6 +68,7 @@ final readonly class HistoryImporter
             $this->importDetections($settings, $from, $to),
             $this->importSignals($settings, $from, $to),
         );
+        $this->importPushHandovers($settings, $from, $to);
 
         $cursor = $this->cursor();
         if ($cursor instanceof ImportCursor) {
@@ -142,6 +149,30 @@ final readonly class HistoryImporter
         }
 
         return $imported;
+    }
+
+    private function importPushHandovers(HomeAssistantSettings $settings, DateTimeImmutable $from, DateTimeImmutable $to): void
+    {
+        if (!$settings->push instanceof PushSettings) {
+            return;
+        }
+
+        foreach ($this->history->fetch([$settings->push->handoverEntity], $from, $to, false) as $change) {
+            if (\in_array($change->state, ['', 'unknown', 'unavailable'], true)) {
+                continue;
+            }
+
+            $handover = PushHandover::fromHandoverValue($change->state);
+            if (!$handover instanceof PushHandover) {
+                $this->logger->warning('Ignored the push handover "{value}": expected "camera|epoch|mute 0/1|tag|group|file base|title|message".', ['value' => $change->state]);
+
+                continue;
+            }
+
+            if ([] === $this->pushHandovers->findBy(['tag' => $handover->getTag()])) {
+                $this->pushHandovers->add($handover);
+            }
+        }
     }
 
     /**

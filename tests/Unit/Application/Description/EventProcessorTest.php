@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Application\Description;
 
 use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Ai\AiRequestFailedException;
+use App\Application\Description\EventDescribed;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
 use App\Application\Description\EventProcessor;
@@ -31,6 +32,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\Clock\MockClock;
 
@@ -60,6 +62,9 @@ final class EventProcessorTest extends TestCase
     /** @var ObjectProphecy<UnitOfWorkInterface> */
     private ObjectProphecy $unitOfWork;
 
+    /** @var ObjectProphecy<EventDispatcherInterface> */
+    private ObjectProphecy $eventDispatcher;
+
     private MockClock $clock;
 
     protected function setUp(): void
@@ -82,6 +87,7 @@ final class EventProcessorTest extends TestCase
         $this->budget->tryConsume()->willReturn(true);
         $this->indexer = $this->prophesize(EventIndexerInterface::class);
         $this->unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
+        $this->eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
         $this->clock = new MockClock('2026-11-06 06:30:00', 'UTC');
     }
 
@@ -95,13 +101,15 @@ final class EventProcessorTest extends TestCase
 
         $this->hints->hintsFor($event)->willReturn(['07:17:02 Luna came in through the cat flap']);
         $this->describer->describe($event, ['Doorbell rang', '07:17:02 Luna came in through the cat flap'])->willReturn(
-            new EventDescription(Verdict::Real, FalseAlarmCause::None, Side::OurProperty, Subject::Cat, 'A grey cat drags the doormat to the door.', 'test-model'),
+            new EventDescription(Verdict::Real, FalseAlarmCause::None, Side::OurProperty, Subject::Cat, 'A grey cat drags the doormat to the door.', true, 'test-model'),
         );
         $this->unitOfWork->flush()->shouldBeCalledOnce();
         $this->indexer->index($event)->shouldBeCalledOnce();
+        $this->eventDispatcher->dispatch(new EventDescribed($event))->shouldBeCalledOnce()->willReturnArgument(0);
 
         self::assertSame(ProcessOutcome::Described, $this->processor()->process($event));
         self::assertSame(EventStatus::Described, $event->getStatus());
+        self::assertTrue($event->isUnusual());
         self::assertSame(['terrace/2026/11/06/1-0.jpg', 'terrace/2026/11/06/1-1.jpg', 'terrace/2026/11/06/1-2.jpg'], $event->getFramePaths());
         self::assertSame([640, 360], [$event->getFrameWidth(), $event->getFrameHeight()]);
         self::assertSame('test-model', $event->getModel());
@@ -112,6 +120,7 @@ final class EventProcessorTest extends TestCase
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
         $this->grabber->supports($event)->willReturn(false);
         $this->budget->tryConsume()->shouldNotBeCalled();
+        $this->eventDispatcher->dispatch(Argument::any())->shouldNotBeCalled();
 
         self::assertSame(ProcessOutcome::NoFootage, $this->processor()->process($event));
         self::assertSame(EventStatus::NoFootage, $event->getStatus());
@@ -169,6 +178,7 @@ final class EventProcessorTest extends TestCase
         $this->budget->tryConsume()->willReturn(false);
         $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
         $this->unitOfWork->flush()->shouldBeCalledOnce();
+        $this->eventDispatcher->dispatch(Argument::any())->shouldNotBeCalled();
 
         self::assertSame(ProcessOutcome::OverBudget, $this->processor()->process($event));
         self::assertCount(3, $event->getFramePaths());
@@ -185,6 +195,7 @@ final class EventProcessorTest extends TestCase
             new HintCollector([$this->hints->reveal()]),
             $this->indexer->reveal(),
             $this->unitOfWork->reveal(),
+            $this->eventDispatcher->reveal(),
             $this->clock,
             new NullLogger(),
         );

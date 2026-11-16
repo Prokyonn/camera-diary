@@ -17,6 +17,7 @@ final readonly class EventDescription
         public Side $side,
         public Subject $subject,
         public string $summary,
+        public bool $unusual,
         public string $model,
     ) {
     }

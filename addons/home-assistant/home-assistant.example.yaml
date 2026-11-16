@@ -22,3 +22,14 @@ signals:
         states:
             locked: Front door locked
             unlocked: Front door unlocked
+
+# Optional: the AI verdict replaces the camera push your Home Assistant script sent (see the README)
+push:
+    # input_text the script sets after its push to "camera|epoch|mute 0/1|tag|group|file base|title|message"
+    handover_entity: input_text.camera_push
+    notify_service: mobile_app_my_phone   # notify.mobile_app_my_phone
+    url: /lovelace/cameras                # where tapping the push leads
+    details_title: Details                # button that opens the event in Camera events
+    loud_interruption_level: active       # unusual events; all others update silently (passive)
+    mute_actions:                         # buttons kept on pushes that had them (mute 1)
+        CAMERA_MUTE_1H: "That's us, mute 1 h"

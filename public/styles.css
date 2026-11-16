@@ -309,6 +309,12 @@ form small {
     border-color: var(--color-warn);
     color: var(--color-warn);
   }
+
+  &.is-unusual {
+    border-color: var(--color-warn);
+    background: var(--color-warn);
+    color: var(--color-bg);
+  }
 }
 
 /* Event page */

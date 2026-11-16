@@ -14,14 +14,17 @@ use CameraEvents\HomeAssistant\Application\Settings\HomeAssistantSettings;
 use CameraEvents\HomeAssistant\Domain\Model\Detection;
 use CameraEvents\HomeAssistant\Domain\Model\HomeSignal;
 use CameraEvents\HomeAssistant\Domain\Model\ImportCursor;
+use CameraEvents\HomeAssistant\Domain\Model\PushHandover;
 use CameraEvents\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
 use CameraEvents\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
 use CameraEvents\HomeAssistant\Domain\Repository\ImportCursorRepositoryInterface;
+use CameraEvents\HomeAssistant\Domain\Repository\PushHandoverRepositoryInterface;
 use CameraEvents\HomeAssistant\Tests\Support\SettingsFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\NullLogger;
 
 #[CoversClass(HistoryImporter::class)]
 final class HistoryImporterTest extends TestCase
@@ -43,6 +46,16 @@ final class HistoryImporterTest extends TestCase
             new StateChange('binary_sensor.luna', 'on', CameraEventFactory::utc('2026-11-06 06:19:00'), ['since' => '2026-11-06T06:17:02.512+00:00']),
             new StateChange('lock.front_door', 'unavailable', CameraEventFactory::utc('2026-11-06 06:20:00')),
         ]);
+        $history->fetch(['input_text.camera_push'], $from, $to, false)->willReturn([
+            new StateChange('input_text.camera_push', 'garden|1793945800|1|garden-2026-11-06_07-16-40-person|reolink-garden|motion/garden/2026-11-06_07-16-40_person|Person in the garden|Person at 07:16:40.', CameraEventFactory::utc('2026-11-06 06:16:58')),
+            new StateChange('input_text.camera_push', 'garden|1793945900|1|garden-2026-11-06_07-18-20-person|reolink-garden|motion/garden/2026-11-06_07-18-20_person|Person in the garden|Already imported.', CameraEventFactory::utc('2026-11-06 06:18:38')),
+            new StateChange('input_text.camera_push', 'not a handover', CameraEventFactory::utc('2026-11-06 06:19:00')),
+        ]);
+        $pushHandovers = $this->prophesize(PushHandoverRepositoryInterface::class);
+        $pushHandovers->findBy(['tag' => 'garden-2026-11-06_07-16-40-person'])->willReturn([]);
+        $pushHandovers->findBy(['tag' => 'garden-2026-11-06_07-18-20-person'])->willReturn([$this->prophesize(PushHandover::class)->reveal()]);
+        $pushHandovers->add(Argument::that(static fn (PushHandover $handover): bool => 'garden-2026-11-06_07-16-40-person' === $handover->getTag()
+            && '2026-11-06 06:16:40' === $handover->getPushedAt()->format('Y-m-d H:i:s')))->shouldBeCalledOnce();
 
         $existing = new Detection('terrace', DetectionType::Animal, CameraEventFactory::utc('2026-11-06 06:17:20'));
         $detections = $this->prophesize(DetectionRepositoryInterface::class);
@@ -61,7 +74,7 @@ final class HistoryImporterTest extends TestCase
         $unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
         $unitOfWork->flush()->shouldBeCalledOnce();
 
-        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $unitOfWork->reveal());
+        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $pushHandovers->reveal(), $unitOfWork->reveal(), new NullLogger());
         $result = $importer->importRange(SettingsFactory::create(), $from, $to);
 
         self::assertSame(1, $result->detections);
@@ -71,7 +84,7 @@ final class HistoryImporterTest extends TestCase
     public function testSplitsLongRangesIntoSixHourChunks(): void
     {
         $history = $this->prophesize(HomeHistoryInterface::class);
-        $history->fetch(Argument::cetera())->willReturn([])->shouldBeCalledTimes(4);
+        $history->fetch(Argument::cetera())->willReturn([])->shouldBeCalledTimes(6);
         $detections = $this->prophesize(DetectionRepositoryInterface::class);
         $detections->findBy(Argument::cetera())->willReturn([]);
         $signals = $this->prophesize(HomeSignalRepositoryInterface::class);
@@ -81,7 +94,7 @@ final class HistoryImporterTest extends TestCase
         $cursors->findOneBy(Argument::cetera())->willReturn($cursor);
         $unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
 
-        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $unitOfWork->reveal());
+        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $this->prophesize(PushHandoverRepositoryInterface::class)->reveal(), $unitOfWork->reveal(), new NullLogger());
         $importer->importRange(SettingsFactory::create(), CameraEventFactory::utc('2026-11-06 00:00:00'), CameraEventFactory::utc('2026-11-06 07:00:00'));
 
         self::assertEquals(CameraEventFactory::utc('2026-11-06 07:00:00'), $cursor->getImportedUntil());
@@ -100,7 +113,9 @@ final class HistoryImporterTest extends TestCase
             $this->prophesize(DetectionRepositoryInterface::class)->reveal(),
             $this->prophesize(HomeSignalRepositoryInterface::class)->reveal(),
             $cursors->reveal(),
+            $this->prophesize(PushHandoverRepositoryInterface::class)->reveal(),
             $this->prophesize(UnitOfWorkInterface::class)->reveal(),
+            new NullLogger(),
         );
 
         $result = $importer->importRange(new HomeAssistantSettings(), CameraEventFactory::utc('2026-11-06 00:00:00'), CameraEventFactory::utc('2026-11-06 01:00:00'));
