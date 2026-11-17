@@ -78,6 +78,10 @@ class CameraEvent
     #[ORM\Column(length: 32, nullable: true)]
     private ?string $subject = null;
 
+    /** the name of a known individual the subject is, e.g. the household's cat */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $individual = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $summary = null;
 
@@ -237,6 +241,11 @@ class CameraEvent
         return $this->subject;
     }
 
+    public function getIndividual(): ?string
+    {
+        return $this->individual;
+    }
+
     public function getSummary(): ?string
     {
         return $this->summary;
@@ -336,6 +345,7 @@ class CameraEvent
         ?string $falseAlarmCause,
         Side $side,
         string $subject,
+        ?string $individual,
         string $summary,
         bool $unusual,
         string $model,
@@ -345,6 +355,7 @@ class CameraEvent
         $this->falseAlarmCause = Verdict::FalseAlarm === $verdict && null !== $falseAlarmCause ? $this->termName($falseAlarmCause) : null;
         $this->side = $side;
         $this->subject = $this->termName($subject);
+        $this->individual = null === $individual ? null : $this->termName($individual);
         $this->summary = $summary;
         $this->unusual = $unusual;
         $this->model = $model;
@@ -393,7 +404,7 @@ class CameraEvent
     private function termName(string $name): string
     {
         if (!TermName::isValid($name)) {
-            throw new InvalidArgumentException(\sprintf('"%s" is no valid name for a detection type, subject or cause.', $name));
+            throw new InvalidArgumentException(\sprintf('"%s" is no valid name for a detection type, subject, cause or individual.', $name));
         }
 
         return $name;

@@ -31,6 +31,7 @@ final class EventControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Terrace');
         self::assertSelectorTextContains('.facts', 'A grey cat drags the doormat.');
+        self::assertSelectorTextContains('.facts', 'Other cat', 'Luna is a known cat in the test settings; this one is not her.');
         self::assertSame('/events/'.$event->getId().'/frames/0.jpg?v='.$event->getStartedAt()->format('U'), $crawler->filter('.frames img')->attr('src'));
     }
 

@@ -85,11 +85,12 @@ final class CameraEventTest extends TestCase
         $event = CameraEventFactory::create();
         $describedAt = CameraEventFactory::utc('2026-11-06 06:20:00');
 
-        $event->describe(Verdict::Real, 'insect', Side::OurProperty, 'cat', 'A grey cat drags the doormat.', true, 'test-model', $describedAt);
+        $event->describe(Verdict::Real, 'insect', Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat.', true, 'test-model', $describedAt);
 
         self::assertSame(EventStatus::Described, $event->getStatus());
         self::assertSame(Verdict::Real, $event->getEffectiveVerdict());
         self::assertNull($event->getFalseAlarmCause(), 'A real event has no false-alarm cause.');
+        self::assertSame('luna', $event->getIndividual());
         self::assertSame('A grey cat drags the doormat.', $event->getSummary());
         self::assertTrue($event->isUnusual());
         self::assertSame($describedAt, $event->getDescribedAt());

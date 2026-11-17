@@ -39,8 +39,11 @@ final readonly class SettingsCommand
             ['Detection types', $this->terms($settings->detectionTypes)],
             ['Subjects', $this->terms($settings->subjects)],
             ['False-alarm causes', $this->terms($settings->falseAlarmCauses)],
-            ['AI calls per day', (string) $settings->ai->dailyCallLimit],
         ];
+        foreach ($settings->individuals as $individual) {
+            $rows[] = [\sprintf('Individual "%s"', $individual->name), \sprintf('%s, a %s, %d reference photos', $individual->label, $individual->subject, \count($individual->photos))];
+        }
+        $rows[] = ['AI calls per day', (string) $settings->ai->dailyCallLimit];
         foreach ($settings->ai->callPools as $pool) {
             $rows[] = [\sprintf('Pool "%s"', $pool->name), \sprintf('%d per day for %s', $pool->dailyCallLimit, implode(', ', $pool->detectionTypes))];
         }

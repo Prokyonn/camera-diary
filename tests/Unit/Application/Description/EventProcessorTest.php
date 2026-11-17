@@ -103,7 +103,7 @@ final class EventProcessorTest extends TestCase
 
         $this->hints->hintsFor($event)->willReturn(['07:17:02 Luna came in through the cat flap']);
         $this->describer->describe($event, ['Doorbell rang', '07:17:02 Luna came in through the cat flap'])->willReturn(
-            new EventDescription(Verdict::Real, null, Side::OurProperty, 'cat', 'A grey cat drags the doormat to the door.', true, 'test-model'),
+            new EventDescription(Verdict::Real, null, Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat to the door.', true, 'test-model'),
         );
         $this->unitOfWork->flush()->shouldBeCalledOnce();
         $this->indexer->index($event)->shouldBeCalledOnce();
@@ -112,6 +112,7 @@ final class EventProcessorTest extends TestCase
         self::assertSame(ProcessOutcome::Described, $this->processor()->process($event));
         self::assertSame(EventStatus::Described, $event->getStatus());
         self::assertTrue($event->isUnusual());
+        self::assertSame('luna', $event->getIndividual());
         self::assertSame(['terrace/2026/11/06/1-0.jpg', 'terrace/2026/11/06/1-1.jpg', 'terrace/2026/11/06/1-2.jpg'], $event->getFramePaths());
         self::assertSame([640, 360], [$event->getFrameWidth(), $event->getFrameHeight()]);
         self::assertSame('test-model', $event->getModel());

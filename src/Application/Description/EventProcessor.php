@@ -124,6 +124,7 @@ final readonly class EventProcessor
             $description->falseAlarmCause,
             $description->side,
             $description->subject,
+            $description->individual,
             $description->summary,
             $description->unusual,
             $description->model,

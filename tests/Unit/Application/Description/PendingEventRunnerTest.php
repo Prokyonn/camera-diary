@@ -53,7 +53,7 @@ final class PendingEventRunnerTest extends TestCase
         $this->budget = $this->prophesize(AiCallBudgetInterface::class);
         $this->describer = $this->prophesize(EventDescriberInterface::class);
         $this->describer->describe(Argument::cetera())->willReturn(
-            new EventDescription(Verdict::Real, null, Side::OurProperty, 'person', 'The postman at the door.', false, 'test-model'),
+            new EventDescription(Verdict::Real, null, Side::OurProperty, 'person', null, 'The postman at the door.', false, 'test-model'),
         );
     }
 

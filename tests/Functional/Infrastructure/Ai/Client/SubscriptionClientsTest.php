@@ -27,7 +27,7 @@ use Symfony\AI\Platform\Test\MockPlatformFactory;
 #[CoversClass(Prompt::class)]
 final class SubscriptionClientsTest extends TestCase
 {
-    private const string ANSWER = '{"verdict":"false_alarm","falseAlarmCause":"spider_web","side":"unclear","subject":"nothing","summary":"A web thread swings in front of the lens.","unusual":false}';
+    private const string ANSWER = '{"verdict":"false_alarm","falseAlarmCause":"spider_web","side":"unclear","subject":"nothing","individual":"unknown","summary":"A web thread swings in front of the lens.","unusual":false}';
 
     /** @var list<array{input: mixed, options: array<mixed>}> */
     private array $calls = [];

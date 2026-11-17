@@ -36,6 +36,7 @@ final readonly class DescribeCommand
             ['Verdict' => $event->getVerdict()->value ?? '-'],
             ['Side' => $event->getSide()->value ?? '-'],
             ['Subject' => $event->getSubject() ?? '-'],
+            ['Individual' => $event->getIndividual() ?? '-'],
             ['Summary' => $event->getSummary() ?? '-'],
         );
 

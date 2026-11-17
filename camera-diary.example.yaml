@@ -35,6 +35,15 @@ subjects:
 false_alarm_causes:
     snow: { label: Snow, description: snowflakes close to the lens }
 
+# Known individuals: the AI compares the subject with the reference photos (relative to this file) and names one
+# only on a clear match. Events show "Luna", other cats "Other cat". Crops that show the animal large work best.
+# individuals:
+#     luna:
+#         label: Luna
+#         subject: cat
+#         description: our cat; grey-brown tabby with a striped tail and white paws
+#         photos: [individuals/luna-day.jpg, individuals/luna-night.jpg]
+
 description:
     # Seconds after the start of an event at which a frame source (e.g. continuous recordings) cuts the frames
     frame_offsets: [1, 2, 3]

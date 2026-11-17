@@ -1,3 +1,8 @@
 ai:
     daily_call_limit: 100
     home_context: Our cat is called Luna.
+individuals:
+    luna:
+        subject: cat
+        description: grey-brown tabby with white paws
+        photos: [individuals/luna.jpg]

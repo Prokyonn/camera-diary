@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Infrastructure\Settings;
 
 use App\Application\Settings\CallPool;
 use App\Application\Settings\InvalidSettingsException;
+use App\Application\Settings\VocabularyKind;
 use App\Infrastructure\Settings\SettingsBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -63,6 +64,23 @@ final class SettingsBuilderTest extends TestCase
         self::assertSame(['People and vehicles', 'Animals'], array_map(static fn (CallPool $pool): string => $pool->label(), $ai->callPools));
     }
 
+    public function testReadsKnownIndividualsWithPhotosRelativeToTheSettingsFile(): void
+    {
+        $fixtures = \dirname(__DIR__, 3).'/Fixtures';
+        $settings = new SettingsBuilder()->build([
+            'individuals' => ['luna' => ['subject' => 'cat', 'description' => 'grey-brown tabby', 'photos' => ['individuals/luna.jpg']]],
+        ], $fixtures);
+
+        $luna = $settings->individual('luna') ?? self::fail('Luna is missing.');
+        self::assertSame('Luna', $luna->label);
+        self::assertSame([$fixtures.'/individuals/luna.jpg'], $luna->photos);
+        self::assertSame(['luna'], $settings->vocabulary(VocabularyKind::Individuals)->names());
+        self::assertSame('Luna', $settings->subjectLabel('cat', 'luna'));
+        self::assertSame('Other cat', $settings->subjectLabel('cat', null));
+        self::assertSame('Dog', $settings->subjectLabel('dog', null));
+        self::assertSame('Gone cat', $settings->subjectLabel('cat', 'gone_cat'), 'Individuals no longer configured read as words.');
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>}>
      */
@@ -75,6 +93,10 @@ final class SettingsBuilderTest extends TestCase
         yield 'pool with an unknown type' => [['ai' => ['call_pools' => ['ghosts' => ['detection_types' => ['ghost'], 'daily_call_limit' => 1]]]]];
         yield 'nightly time' => [['maintenance' => ['nightly_at' => '25:00']]];
         yield 'negative limit' => [['ai' => ['daily_call_limit' => -1]]];
+        yield 'individual of an unknown subject' => [['individuals' => ['luna' => ['subject' => 'unicorn', 'photos' => [__FILE__]]]]];
+        yield 'reserved individual' => [['individuals' => ['unknown' => ['subject' => 'cat', 'photos' => [__FILE__]]]]];
+        yield 'individual without photos' => [['individuals' => ['luna' => ['subject' => 'cat', 'photos' => []]]]];
+        yield 'missing photo' => [['individuals' => ['luna' => ['subject' => 'cat', 'photos' => ['/nowhere/luna.jpg']]]]];
     }
 
     /**

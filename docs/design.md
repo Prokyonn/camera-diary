@@ -33,7 +33,8 @@ Repositories only offer `add`, `remove`, `findBy`, `findOneBy`, `getOneBy` and `
 
 - **Vocabularies:** detection types, subjects and false-alarm causes are configured `Term`s (name, label, hint for the AI). Events store the names; the domain only checks their form (`TermName`). Verdict, side and status stay enums because the code branches on them.
 - **AI output:** fields marked `#[VocabularyChoice]` get the configured names as their JSON schema `enum`, through `VocabularyResponseFormatFactory`, which decorates Symfony AI's response format factory. The CLI clients use the same factory.
-- **Labels:** `{{ name|term_label('subjects') }}` in Twig; names no longer configured read as words.
+- **Known individuals:** `individuals` are configured `Individual`s (name, label, subject, description, reference photo paths, resolved against the settings file's folder). They form the `Individuals` vocabulary, so the AI output field `individual` takes its `enum` the same way, plus the reserved `unknown`.
+- **Labels:** `{{ name|term_label('subjects') }}` in Twig; names no longer configured read as words. `{{ subject_label(event) }}` reads "Luna", "Other cat" (a subject with known individuals) or the subject's label; the search index uses the same text.
 
 ## Data flow
 
@@ -73,7 +74,7 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 - `PendingEventRunner` runs every minute under the lock `camera-event-description`. It takes up to `description.batch_size` (20) closed, pending, due events, newest first.
 - `EventProcessor` gets the frames from the event's frame source if the event has none. It then checks the budget, describes the event, stores the result, and indexes it.
 - Retries: an AI or ffmpeg failure retries every 10 minutes, and gives `failed` after 8 attempts. Missing footage waits up to an hour, then gives `no_footage`. All three are settings (`description.*`).
-- The AI gets the camera's scene, the settings' home context, unusual rule and false-alarm causes, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, summary, and whether the event is unusual.
+- The AI gets the camera's scene, the settings' home context, unusual rule and false-alarm causes, the reference photos of the known individuals, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, the known individual (or `unknown`), summary, and whether the event is unusual. An individual of another subject than the answer's is dropped.
 - Daily budget: `ai.daily_call_limit` calls per local day, counted atomically in `ai_usage`. An event in a call pool (the first pool with one of its detection types) also needs room in that pool, counted in `ai_pool_usage`; the runner skips such events and goes on with the others. Over the daily limit, events stay pending with their frames, and questions fall back to plain search.
 - Manual corrections: a free-text label and a verdict override. The effective verdict is the override, else the AI's.
 

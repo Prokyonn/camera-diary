@@ -35,6 +35,14 @@ final class YamlSettingsProviderTest extends TestCase
         self::assertTrue($settings->subjects->has('fox'));
     }
 
+    public function testResolvesPhotosRelativeToTheFile(): void
+    {
+        $fixtures = \dirname(__DIR__, 3).'/Fixtures';
+        $settings = new YamlSettingsProvider($fixtures.'/camera-diary.yaml')->settings();
+
+        self::assertSame([$fixtures.'/individuals/luna.jpg'], $settings->individual('luna')?->photos);
+    }
+
     public function testUsesTheDefaultsWithoutAFile(): void
     {
         self::assertSame(500, new YamlSettingsProvider($this->path)->settings()->ai->dailyCallLimit);

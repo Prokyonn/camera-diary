@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Ai\Output;
 
+use App\Application\Settings\Individual;
 use App\Application\Settings\VocabularyKind;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
@@ -28,7 +29,10 @@ final readonly class EventDescriptionOutput
         #[Schema(description: 'The main subject')]
         #[VocabularyChoice(VocabularyKind::Subjects)]
         public string $subject,
-        #[Schema(description: 'One or two neutral sentences in English: what is visible, colours, clothing, what the subject does. No guessed names.', maxLength: 400)]
+        #[Schema(description: 'The known individual the subject clearly matches by its reference photos; unknown if none matches or you are not sure')]
+        #[VocabularyChoice(VocabularyKind::Individuals, extra: [Individual::UNKNOWN => 'none of the known individuals, or not sure'])]
+        public string $individual,
+        #[Schema(description: 'One or two neutral sentences in English: what is visible, colours, clothing, what the subject does. No names, except a known individual you identified.', maxLength: 400)]
         public string $summary,
         #[Schema(description: 'true only if the event matches the rule for unusual events in the instructions')]
         public bool $unusual,

@@ -55,6 +55,7 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->append($this->vocabulary('detection_types', 'What cameras report, e.g. person or animal.'))
                 ->append($this->vocabulary('subjects', 'What the AI may name as the main subject of an event.'))
                 ->append($this->vocabulary('false_alarm_causes', 'What the AI may name as the cause of a false alarm ("none" is reserved for real events).'))
+                ->append($this->individuals())
                 ->append($this->description())
                 ->append($this->questions())
                 ->append($this->maintenance())
@@ -100,6 +101,30 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->children()
                     ->scalarNode('label')->defaultNull()->info('Shown in the app; default: the name as words')->end()
                     ->scalarNode('description')->defaultNull()->info('Hint for the AI')->end()
+                ->end()
+            ->end();
+
+        return $node;
+    }
+
+    private function individuals(): ArrayNodeDefinition
+    {
+        $node = new ArrayNodeDefinition('individuals');
+        $node
+            ->info('Known individuals, e.g. your cat: the AI compares the subject with their reference photos ("unknown" is reserved)')
+            ->normalizeKeys(false)
+            ->useAttributeAsKey('name')
+            ->arrayPrototype()
+                ->children()
+                    ->scalarNode('label')->defaultNull()->info('Shown in the app; default: the name as words')->end()
+                    ->scalarNode('subject')->isRequired()->cannotBeEmpty()->info('What it is, a name from subjects, e.g. cat')->end()
+                    ->scalarNode('description')->defaultNull()->info('What tells it apart, for the AI')->end()
+                    ->arrayNode('photos')
+                        ->info('Reference photos, relative to the settings file; crops that show the individual large work best')
+                        ->isRequired()
+                        ->requiresAtLeastOneElement()
+                        ->scalarPrototype()->cannotBeEmpty()->end()
+                    ->end()
                 ->end()
             ->end();
 

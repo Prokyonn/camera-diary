@@ -68,7 +68,7 @@ final class HomeAssistantPipelineTest extends KernelTestCase
         $homeAssistant->addState('binary_sensor.luna', 'on', '2026-11-06T06:19:30+00:00', ['since' => '2026-11-06T06:17:02+00:00']);
         $this->recordings->video('Terrace', CameraEventFactory::utc('2026-11-06 06:16:35'));
         self::getContainer()->get(FakePlatform::class)->respondWith(
-            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","summary":"A strange grey cat drags the doormat from the cat flap to the door.","unusual":false}',
+            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","individual":"unknown","summary":"A strange grey cat drags the doormat from the cat flap to the door.","unusual":false}',
         );
 
         $import = new CommandTester($this->application->find('home-assistant:import'));
@@ -102,7 +102,7 @@ final class HomeAssistantPipelineTest extends KernelTestCase
         $homeAssistant->addMedia('motion/garden/2026-11-06_07-16-40_person.jpg', $this->snapshot());
         $homeAssistant->addMedia('motion/garden/2026-11-06_07-16-40_person.mp4', (string) file_get_contents(RecordingFixture::videoFile($this->recordings->dir.'/clip.mp4')));
         self::getContainer()->get(FakePlatform::class)->respondWith(
-            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","summary":"A man in a dark hood looks into the shed.","unusual":true}',
+            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","individual":"unknown","summary":"A man in a dark hood looks into the shed.","unusual":true}',
         );
 
         new CommandTester($this->application->find('home-assistant:import'))->execute([]);
@@ -134,7 +134,7 @@ final class HomeAssistantPipelineTest extends KernelTestCase
         ]], $homeAssistant->notifications(), 'The same push, with the verdict and a sound for an unusual event.');
 
         self::getContainer()->get(FakePlatform::class)->respondWith(
-            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","summary":"A man looks into the shed.","unusual":true}',
+            '{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","individual":"unknown","summary":"A man looks into the shed.","unusual":true}',
         );
         new CommandTester($this->application->find('app:describe'))->execute(['id' => (string) $event->getId()]);
         self::assertCount(1, $homeAssistant->notifications(), 'A push is replaced only once.');

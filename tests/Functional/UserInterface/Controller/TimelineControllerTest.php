@@ -27,7 +27,8 @@ final class TimelineControllerTest extends WebTestCase
         $this->resetStorage(self::getContainer());
         $this->storeEvents(
             self::getContainer(),
-            CameraEventFactory::described('A person walks along the gravel path.', '2026-11-07 13:55:00', 'garden'),
+            CameraEventFactory::described('A person walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: 'person'),
+            CameraEventFactory::described('Luna crosses the lawn.', '2026-11-07 12:00:00', 'garden', individual: 'luna'),
             CameraEventFactory::described('A web thread.', '2026-11-07 03:00:00', 'garden', Verdict::FalseAlarm),
             CameraEventFactory::create('2026-11-06 06:16:40'),
         );
@@ -37,9 +38,11 @@ final class TimelineControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Saturday, 7 November 2026');
         self::assertInputValueSame('day', '2026-11-07');
-        self::assertCount(1, $crawler->filter('.cards article'));
-        self::assertSelectorTextContains('.cards article', '14:55:00', 'Times are shown in Vienna time.');
-        self::assertSelectorTextContains('.cards article', 'A person walks along the gravel path.');
+        $cards = $crawler->filter('.cards article');
+        self::assertCount(2, $cards);
+        self::assertStringContainsString('14:55:00', $cards->eq(0)->text(), 'Times are shown in Vienna time.');
+        self::assertStringContainsString('A person walks along the gravel path.', $cards->eq(0)->text());
+        self::assertStringContainsString('Luna', $cards->eq(1)->filter('.badges')->text(), 'Known individuals are named.');
     }
 
     public function testFiltersByDayAndShowsFalseAlarmsOnRequest(): void

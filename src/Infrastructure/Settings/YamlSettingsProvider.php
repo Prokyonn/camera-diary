@@ -36,7 +36,7 @@ final class YamlSettingsProvider implements SettingsProviderInterface
         }
 
         try {
-            $settings = $this->builder->build(false === $version ? [] : $this->read());
+            $settings = $this->builder->build(false === $version ? [] : $this->read(), \dirname($this->path));
         } catch (InvalidSettingsException $exception) {
             throw $this->invalid($exception->getMessage(), $exception);
         }

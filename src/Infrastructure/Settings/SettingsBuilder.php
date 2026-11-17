@@ -7,6 +7,7 @@ namespace App\Infrastructure\Settings;
 use App\Application\Settings\AiSettings;
 use App\Application\Settings\CallPool;
 use App\Application\Settings\DescriptionSettings;
+use App\Application\Settings\Individual;
 use App\Application\Settings\InvalidSettingsException;
 use App\Application\Settings\MaintenanceSettings;
 use App\Application\Settings\QuestionSettings;
@@ -16,6 +17,7 @@ use App\Application\Settings\Vocabulary;
 use App\Domain\Model\TermName;
 use Symfony\Component\Config\Definition\Exception\Exception as ConfigException;
 use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Filesystem\Path;
 
 /**
  * Validates raw settings against SettingsConfiguration and fills in the defaults.
@@ -26,6 +28,7 @@ use Symfony\Component\Config\Definition\Processor;
  *     detection_types: VocabularyConfig,
  *     subjects: VocabularyConfig,
  *     false_alarm_causes: VocabularyConfig,
+ *     individuals: array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>}>,
  *     description: array{frame_offsets: non-empty-list<int>, retry_delay: int, max_attempts: int, footage_grace: int, batch_size: int},
  *     questions: array{search_results: int, answer_events: int, frames_per_event: int},
  *     maintenance: array{nightly_at: string, false_alarm_frame_days: int, backups_kept: int},
@@ -34,11 +37,13 @@ use Symfony\Component\Config\Definition\Processor;
 final readonly class SettingsBuilder
 {
     /**
+     * @param ?string $directory the settings file's directory, which relative photo paths start from
+     *
      * @throws InvalidSettingsException
      */
-    public function build(mixed $raw): Settings
+    public function build(mixed $raw, ?string $directory = null): Settings
     {
-        return $this->settings($this->process($raw));
+        return $this->settings($this->process($raw), $directory);
     }
 
     /**
@@ -57,7 +62,7 @@ final readonly class SettingsBuilder
     /**
      * @param Config $config
      */
-    private function settings(array $config): Settings
+    private function settings(array $config, ?string $directory): Settings
     {
         $detectionTypes = $this->vocabulary('detection_types', SettingsConfiguration::DEFAULT_DETECTION_TYPES, $config['detection_types']);
         $falseAlarmCauses = $this->vocabulary('false_alarm_causes', SettingsConfiguration::DEFAULT_FALSE_ALARM_CAUSES, $config['false_alarm_causes']);
@@ -65,6 +70,7 @@ final readonly class SettingsBuilder
             throw new InvalidSettingsException('"none" is reserved for real events and cannot be a false-alarm cause.');
         }
 
+        $subjects = $this->vocabulary('subjects', SettingsConfiguration::DEFAULT_SUBJECTS, $config['subjects']);
         $ai = $config['ai'];
         $description = $config['description'];
         $questions = $config['questions'];
@@ -73,8 +79,9 @@ final readonly class SettingsBuilder
 
         return new Settings(
             $detectionTypes,
-            $this->vocabulary('subjects', SettingsConfiguration::DEFAULT_SUBJECTS, $config['subjects']),
+            $subjects,
             $falseAlarmCauses,
+            $this->individuals($config['individuals'], $subjects, $directory),
             new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule'])),
             new DescriptionSettings($description['frame_offsets'], $description['retry_delay'], $description['max_attempts'], $description['footage_grace'], $description['batch_size']),
             new QuestionSettings($questions['search_results'], $questions['answer_events'], $questions['frames_per_event']),
@@ -116,6 +123,45 @@ final readonly class SettingsBuilder
         }
 
         return new Vocabulary($terms);
+    }
+
+    /**
+     * @param array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>}> $configured
+     *
+     * @return list<Individual>
+     */
+    private function individuals(array $configured, Vocabulary $subjects, ?string $directory): array
+    {
+        $individuals = [];
+        foreach ($configured as $name => $individual) {
+            if (!TermName::isValid($name) || Individual::UNKNOWN === $name) {
+                throw new InvalidSettingsException(\sprintf('"%s" in individuals: use lower-case letters, digits and "_", starting with a letter, at most 32 characters; "%s" is reserved.', $name, Individual::UNKNOWN));
+            }
+
+            if (!$subjects->has($individual['subject'])) {
+                throw new InvalidSettingsException(\sprintf('Individual "%s": unknown subject "%s". Known: %s.', $name, $individual['subject'], implode(', ', $subjects->names())));
+            }
+
+            $individuals[] = new Individual(
+                $name,
+                $individual['label'] ?? Vocabulary::humanize($name),
+                $individual['subject'],
+                $individual['description'],
+                array_map(fn (string $photo): string => $this->photo($name, $photo, $directory), $individual['photos']),
+            );
+        }
+
+        return $individuals;
+    }
+
+    private function photo(string $individual, string $photo, ?string $directory): string
+    {
+        $path = null === $directory ? $photo : Path::makeAbsolute($photo, $directory);
+        if (!is_file($path) || !is_readable($path)) {
+            throw new InvalidSettingsException(\sprintf('Individual "%s": cannot read the photo "%s".', $individual, $path));
+        }
+
+        return $path;
     }
 
     /**

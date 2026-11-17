@@ -9,6 +9,7 @@ use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
 use App\Application\Frame\FrameStorageInterface;
+use App\Application\Settings\Individual;
 use App\Application\Settings\SettingsProviderInterface;
 use App\Application\Settings\Term;
 use App\Domain\Model\CameraEvent;
@@ -36,7 +37,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         );
 
         $output = $this->client->request(
-            new Prompt($this->instructions($event), [$this->context($event, $hints), ...$images]),
+            new Prompt($this->instructions($event), [...$this->references(), $this->context($event, $hints), ...$images]),
             EventDescriptionOutput::class,
         );
 
@@ -45,6 +46,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $this->falseAlarmCause($output),
             $output->side,
             $this->subject($output),
+            $this->individual($output),
             $output->summary,
             $output->unusual,
             $this->client->modelName(),
@@ -63,9 +65,43 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             The frames are in time order; the subject may only appear in a later frame.
             Common false alarms: {$this->commonFalseAlarms()}.
             Describe people neutrally and never guess their names. Hints from the home are given when available; they may be unrelated to what the frames show.
+            {$this->knownIndividuals()}
             Unusual events: {$this->homeContext->unusualRule()}
             {$notes}
             PROMPT);
+    }
+
+    private function knownIndividuals(): string
+    {
+        if ([] === $this->settings->settings()->individuals) {
+            return '';
+        }
+
+        return 'Known individuals: their reference photos come before the event. Name one only if the subject clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt.';
+    }
+
+    /**
+     * Reference photos of the known individuals, each after a line that names it.
+     *
+     * @return list<string|PromptImage>
+     */
+    private function references(): array
+    {
+        $parts = [];
+        foreach ($this->settings->settings()->individuals as $individual) {
+            $parts[] = \sprintf(
+                'Reference photos of the known individual "%s" (%s, a %s)%s. Not part of the event.',
+                $individual->name,
+                $individual->label,
+                strtolower($this->settings->settings()->subjects->label($individual->subject)),
+                null === $individual->description ? '' : ': '.$individual->description,
+            );
+            foreach ($individual->photos as $photo) {
+                $parts[] = new PromptImage($photo);
+            }
+        }
+
+        return $parts;
     }
 
     /**
@@ -100,6 +136,23 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         }
 
         return $output->subject;
+    }
+
+    /**
+     * The identified individual; null when the AI did not recognise one, or named one of another subject.
+     */
+    private function individual(EventDescriptionOutput $output): ?string
+    {
+        if (Individual::UNKNOWN === $output->individual) {
+            return null;
+        }
+
+        $individual = $this->settings->settings()->individual($output->individual);
+        if (!$individual instanceof Individual) {
+            throw new AiRequestFailedException(\sprintf('The AI named the unknown individual "%s".', $output->individual));
+        }
+
+        return $individual->subject === $output->subject ? $individual->name : null;
     }
 
     private function falseAlarmCause(EventDescriptionOutput $output): ?string

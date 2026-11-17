@@ -41,7 +41,7 @@
             <dt>Side</dt>
             <dd>{{ event.side.label }}</dd>
             <dt>Subject</dt>
-            <dd>{{ event.subject|term_label('subjects') }}</dd>
+            <dd>{{ subject_label(event) }}</dd>
         {% endif %}
         {% if hints is not empty %}
             <dt>Hints</dt>

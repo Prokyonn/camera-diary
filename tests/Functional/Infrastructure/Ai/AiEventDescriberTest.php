@@ -46,6 +46,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertNotFalse($image);
         new Filesystem()->mkdir($this->framesDir.'/terrace');
         imagejpeg($image, $this->framesDir.'/terrace/frame-0.jpg');
+        imagejpeg($image, $this->framesDir.'/luna.jpg');
         $this->platform = new FakePlatform(new VocabularyResponseFormatFactory(new ResponseFormatFactory(), $this->settings()));
     }
 
@@ -56,7 +57,7 @@ final class AiEventDescriberTest extends TestCase
 
     public function testSendsTheFramesAndReadsTheStructuredAnswer(): void
     {
-        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","summary":"A grey cat drags the doormat.","unusual":true}');
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","individual":"luna","summary":"Luna drags the doormat.","unusual":true}');
         CameraFactory::get('terrace', 'Terrace with the cat flap on the left.');
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
         $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
@@ -67,6 +68,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertNull($description->falseAlarmCause);
         self::assertSame(Side::OurProperty, $description->side);
         self::assertSame('cat', $description->subject);
+        self::assertSame('luna', $description->individual);
         self::assertTrue($description->unusual);
         self::assertSame('test-model', $description->model);
 
@@ -82,11 +84,24 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('"enum":["none","spider_web","insect","rain","light","nothing","other","snail"]', $options, 'The JSON schema lists the false-alarm causes.');
         self::assertStringContainsString('fox: a red fox', $options, 'The JSON schema lists configured subjects with their hints.');
         self::assertStringContainsString('a spider web or a single thread', $input, 'The prompt names the configured false-alarm causes.');
+        self::assertStringContainsString('Reference photos of the known individual \\"luna\\" (Luna, a cat): grey-brown tabby. Not part of the event.', $input, 'The reference photos come with the event.');
+        self::assertStringContainsString('"enum":["unknown","luna"]', $options, 'The JSON schema lists the known individuals.');
+        self::assertSame(2, substr_count($input, '"type":"image_url"'), 'The reference photo and the frame.');
+        self::assertLessThan(strpos($input, 'The camera reported'), strpos($input, 'Reference photos'), 'The reference photos come before the event.');
+    }
+
+    public function testDropsAnIndividualOfAnotherSubject(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"dog","individual":"luna","summary":"A dog.","unusual":false}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        self::assertNull($this->describer()->describe($event, [])->individual);
     }
 
     public function testAcceptsAConfiguredSubjectAndCause(): void
     {
-        $this->platform->respondWith('{"verdict":"false_alarm","falseAlarmCause":"snail","side":"our_property","subject":"nothing","summary":"A snail crosses the lens.","unusual":false}');
+        $this->platform->respondWith('{"verdict":"false_alarm","falseAlarmCause":"snail","side":"our_property","subject":"nothing","individual":"unknown","summary":"A snail crosses the lens.","unusual":false}');
         $event = CameraEventFactory::create(id: 1);
         $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
 
@@ -97,7 +112,18 @@ final class AiEventDescriberTest extends TestCase
 
     public function testRejectsASubjectOutsideTheVocabulary(): void
     {
-        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"unicorn","summary":"A unicorn.","unusual":false}');
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"unicorn","individual":"unknown","summary":"A unicorn.","unusual":false}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        $this->expectException(AiRequestFailedException::class);
+
+        $this->describer()->describe($event, []);
+    }
+
+    public function testRejectsAnIndividualOutsideTheSettings(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","individual":"garfield","summary":"A cat.","unusual":false}');
         $event = CameraEventFactory::create(id: 1);
         $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
 
@@ -136,6 +162,7 @@ final class AiEventDescriberTest extends TestCase
             'ai' => ['home_context' => 'Our cat is called Luna.', 'unusual_rule' => 'A stranger on our property.'],
             'subjects' => ['fox' => ['description' => 'a red fox']],
             'false_alarm_causes' => ['snail' => null],
+            'individuals' => ['luna' => ['subject' => 'cat', 'description' => 'grey-brown tabby', 'photos' => [$this->framesDir.'/luna.jpg']]],
         ]);
     }
 }
