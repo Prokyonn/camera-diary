@@ -14,11 +14,12 @@ final class LabelData
         #[Assert\Length(max: 120)]
         public ?string $label = null,
         public ?Verdict $verdictOverride = null,
+        public ?string $individualOverride = null,
     ) {
     }
 
     public static function fromEvent(CameraEvent $event): self
     {
-        return new self($event->getLabel(), $event->getVerdictOverride());
+        return new self($event->getLabel(), $event->getVerdictOverride(), $event->getIndividualOverride());
     }
 }

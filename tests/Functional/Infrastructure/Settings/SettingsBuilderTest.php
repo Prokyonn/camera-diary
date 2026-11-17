@@ -95,7 +95,7 @@ final class SettingsBuilderTest extends TestCase
         yield 'negative limit' => [['ai' => ['daily_call_limit' => -1]]];
         yield 'individual of an unknown subject' => [['individuals' => ['luna' => ['subject' => 'unicorn', 'photos' => [__FILE__]]]]];
         yield 'reserved individual' => [['individuals' => ['unknown' => ['subject' => 'cat', 'photos' => [__FILE__]]]]];
-        yield 'individual without photos' => [['individuals' => ['luna' => ['subject' => 'cat', 'photos' => []]]]];
+        yield 'individual for an unknown detection type' => [['individuals' => ['luna' => ['subject' => 'cat', 'detection_types' => ['ghost']]]]];
         yield 'missing photo' => [['individuals' => ['luna' => ['subject' => 'cat', 'photos' => ['/nowhere/luna.jpg']]]]];
     }
 

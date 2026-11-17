@@ -20,9 +20,9 @@ final readonly class CameraEventLabeler
     ) {
     }
 
-    public function relabel(CameraEvent $event, ?string $label, ?Verdict $verdictOverride): void
+    public function relabel(CameraEvent $event, ?string $label, ?Verdict $verdictOverride, ?string $individualOverride): void
     {
-        $event->relabel($label, $verdictOverride);
+        $event->relabel($label, $verdictOverride, $individualOverride);
         $this->unitOfWork->flush();
         $this->indexer->index($event);
     }

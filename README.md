@@ -12,7 +12,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **Any AI, including your subscription.** Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the CLI you are already logged in to.
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light), where it happened, and a short description. You can correct both the label and the verdict.
 - **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI and the app use it.
-- **Your cat by name.** Give a known individual a few reference photos, and events show "Luna" or "Other cat".
+- **Your cat by name.** Name the known individuals, your cat or the people who live with you, and add reference photos straight from event frames. Events then show "Luna" or "Other cat".
 - **Questions with sources.** The AI turns the question into a search, then looks at the best matches' frames and answers with the events it relies on.
 - **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events.
 - **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
@@ -99,7 +99,7 @@ Everything an installation may want to change lives in one YAML file, `var/data/
 - **AI limits:** `ai.daily_call_limit` (default 500) caps the calls per day; events over it wait for the next day. `ai.call_pools` gives detection types a share of it, e.g. 75 calls for animals, so a spider web in front of the lens cannot use up the calls for people.
 - **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Luna." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
 - **Vocabularies:** `detection_types`, `subjects` and `false_alarm_causes` merge with the defaults. Add a name with a label and a hint for the AI, or remove one with `name: false`. The AI's output schema takes its allowed values from these lists.
-- **Known individuals:** `individuals` names, e.g., your cat, with its subject, a short description and reference photos (paths relative to the settings file). The AI gets the photos with every event and names the individual only on a clear match; events then show "Luna", and other cats "Other cat". Crops that show the animal large work best; add a night shot if your cameras switch to infrared.
+- **Known individuals:** `individuals` names, e.g., your cat or the people who live with you, with the subject, a short description and optionally reference photos (paths relative to the settings file). More photos come from the app: on an event's page, drag a box around the animal or person and save it; the "Known" page lists and removes them. The AI gets the photos with an event and names an individual only on a clear match; events then show "Luna", and other cats "Other cat". `detection_types` limits whose photos go with which events (the cat's with `animal`), and `ai.reference_photos` (6) caps them per individual. Crops that show the animal or person large work best, from different days and, for people, in different clothes. Only add people who agree to it. A wrong answer can be corrected on the event page.
 - **Timings:** frame offsets, retries, batch size, question limits, the nightly clean-up time and how long false-alarm frames and backups are kept.
 
 ## The hook

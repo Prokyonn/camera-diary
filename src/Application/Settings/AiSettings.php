@@ -8,12 +8,14 @@ final readonly class AiSettings
 {
     /**
      * @param list<CallPool> $callPools
+     * @param int            $referencePhotos reference photos per known individual the AI gets with an event
      */
     public function __construct(
         public int $dailyCallLimit,
         public array $callPools,
         public string $homeContext,
         public string $unusualRule,
+        public int $referencePhotos,
     ) {
     }
 

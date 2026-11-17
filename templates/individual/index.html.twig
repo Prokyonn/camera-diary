@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Known individuals · Camera diary{% endblock %}
+
+{% block body %}
+    <h1>Known individuals</h1>
+    <p class="meta">The AI compares each event with these photos and names an individual only on a clear match. Add photos on an event's page; the settings file lists who is known.</p>
+
+    {% for entry in individuals %}
+        {% set individual = entry.individual %}
+        <section aria-labelledby="individual-{{ individual.name }}">
+            <h2 id="individual-{{ individual.name }}">{{ individual.label }}</h2>
+            <p>{{ individual.subject|term_label('subjects') }}{% if individual.description %}: {{ individual.description }}{% endif %}</p>
+            {% if entry.photos is empty %}
+                <p class="empty">No reference photos yet.</p>
+            {% else %}
+                <ul class="reference-photos">
+                    {% for photo in entry.photos %}
+                        <li>
+                            <img src="{{ path('individual_photo', {name: individual.name, index: loop.index0}) }}" alt="Reference photo {{ loop.index }} of {{ individual.label }}" loading="lazy">
+                            {% if photo.stored %}
+                                <form method="post" action="{{ path('individual_photo_remove', {name: individual.name, id: photo.storedId}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('remove-reference') }}">
+                                    <button type="submit">Remove</button>
+                                </form>
+                            {% else %}
+                                <small>from the settings</small>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+    {% else %}
+        <p class="empty">No known individuals. Add them under <code>individuals</code> in the settings file.</p>
+    {% endfor %}
+{% endblock %}

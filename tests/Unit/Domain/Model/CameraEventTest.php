@@ -101,7 +101,7 @@ final class CameraEventTest extends TestCase
     {
         $event = CameraEventFactory::described('Something moves in front of the lens.', verdict: Verdict::Real);
 
-        $event->relabel('  spider web  ', Verdict::FalseAlarm);
+        $event->relabel('  spider web  ', Verdict::FalseAlarm, null);
 
         self::assertSame('spider web', $event->getLabel());
         self::assertSame(Verdict::FalseAlarm, $event->getEffectiveVerdict());
@@ -112,7 +112,7 @@ final class CameraEventTest extends TestCase
     {
         $event = CameraEventFactory::create();
 
-        $event->relabel('   ', null);
+        $event->relabel('   ', null, null);
 
         self::assertNull($event->getLabel());
         self::assertNull($event->getEffectiveVerdict());
@@ -146,5 +146,21 @@ final class CameraEventTest extends TestCase
         $this->expectException(LogicException::class);
 
         CameraEventFactory::create()->getId();
+    }
+
+    public function testAHandSetIndividualWinsOverTheAis(): void
+    {
+        $event = CameraEventFactory::described('A cat.', individual: 'luna');
+        self::assertSame('luna', $event->getEffectiveIndividual());
+
+        $event->relabel(null, null, 'tiger');
+        self::assertSame('tiger', $event->getEffectiveIndividual());
+        self::assertSame('luna', $event->getIndividual(), 'The AI\'s answer stays.');
+
+        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL);
+        self::assertNull($event->getEffectiveIndividual());
+
+        $event->relabel(null, null, null);
+        self::assertSame('luna', $event->getEffectiveIndividual());
     }
 }

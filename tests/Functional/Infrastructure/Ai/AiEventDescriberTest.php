@@ -6,6 +6,8 @@ namespace App\Tests\Functional\Infrastructure\Ai;
 
 use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Individual\ReferencePhotos;
+use App\Application\Individual\ReferencePhotoStoreInterface;
 use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
@@ -146,13 +148,17 @@ final class AiEventDescriberTest extends TestCase
     private function describer(): AiEventDescriber
     {
         $homeTimeZone = new HomeTimeZone('Europe/Vienna');
+        $frameStorage = new FilesystemFrameStorage($this->framesDir, $homeTimeZone);
+        $store = $this->prophesize(ReferencePhotoStoreInterface::class);
+        $store->findBy('luna')->willReturn([]);
 
         return new AiEventDescriber(
             new PlatformStructuredClient($this->platform, 'test-model'),
-            new FilesystemFrameStorage($this->framesDir, $homeTimeZone),
+            $frameStorage,
             $homeTimeZone,
             new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), $this->settings()),
             $this->settings(),
+            new ReferencePhotos($this->settings(), $store->reveal(), $frameStorage),
         );
     }
 

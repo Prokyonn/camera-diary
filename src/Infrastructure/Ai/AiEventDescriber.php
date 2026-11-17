@@ -9,6 +9,8 @@ use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
 use App\Application\Frame\FrameStorageInterface;
+use App\Application\Individual\IndividualReferences;
+use App\Application\Individual\ReferencePhotos;
 use App\Application\Settings\Individual;
 use App\Application\Settings\SettingsProviderInterface;
 use App\Application\Settings\Term;
@@ -26,6 +28,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         private HomeTimeZone $homeTimeZone,
         private HomeContext $homeContext,
         private SettingsProviderInterface $settings,
+        private ReferencePhotos $referencePhotos,
     ) {
     }
 
@@ -36,8 +39,9 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $event->getFramePaths(),
         );
 
+        $references = $this->referencePhotos->forEvent($event);
         $output = $this->client->request(
-            new Prompt($this->instructions($event), [...$this->references(), $this->context($event, $hints), ...$images]),
+            new Prompt($this->instructions($event, $references), [...$this->references($references), $this->context($event, $hints), ...$images]),
             EventDescriptionOutput::class,
         );
 
@@ -53,7 +57,10 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         );
     }
 
-    private function instructions(CameraEvent $event): string
+    /**
+     * @param list<IndividualReferences> $references
+     */
+    private function instructions(CameraEvent $event, array $references): string
     {
         $notes = $this->homeContext->notes();
 
@@ -65,15 +72,18 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             The frames are in time order; the subject may only appear in a later frame.
             Common false alarms: {$this->commonFalseAlarms()}.
             Describe people neutrally and never guess their names. Hints from the home are given when available; they may be unrelated to what the frames show.
-            {$this->knownIndividuals()}
+            {$this->knownIndividuals($references)}
             Unusual events: {$this->homeContext->unusualRule()}
             {$notes}
             PROMPT);
     }
 
-    private function knownIndividuals(): string
+    /**
+     * @param list<IndividualReferences> $references
+     */
+    private function knownIndividuals(array $references): string
     {
-        if ([] === $this->settings->settings()->individuals) {
+        if ([] === $references) {
             return '';
         }
 
@@ -83,12 +93,15 @@ final readonly class AiEventDescriber implements EventDescriberInterface
     /**
      * Reference photos of the known individuals, each after a line that names it.
      *
+     * @param list<IndividualReferences> $references
+     *
      * @return list<string|PromptImage>
      */
-    private function references(): array
+    private function references(array $references): array
     {
         $parts = [];
-        foreach ($this->settings->settings()->individuals as $individual) {
+        foreach ($references as $reference) {
+            $individual = $reference->individual;
             $parts[] = \sprintf(
                 'Reference photos of the known individual "%s" (%s, a %s)%s. Not part of the event.',
                 $individual->name,
@@ -96,7 +109,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
                 strtolower($this->settings->settings()->subjects->label($individual->subject)),
                 null === $individual->description ? '' : ': '.$individual->description,
             );
-            foreach ($individual->photos as $photo) {
+            foreach ($reference->photos as $photo) {
                 $parts[] = new PromptImage($photo);
             }
         }

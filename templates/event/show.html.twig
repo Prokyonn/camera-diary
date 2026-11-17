@@ -41,7 +41,10 @@
             <dt>Side</dt>
             <dd>{{ event.side.label }}</dd>
             <dt>Subject</dt>
-            <dd>{{ subject_label(event) }}</dd>
+            <dd>
+                {{ subject_label(event) }}
+                {% if event.individualOverride %}<small>set by hand; the AI said {{ event.individual ? event.individual|term_label('individuals') : 'nobody we know' }}</small>{% endif %}
+            </dd>
         {% endif %}
         {% if hints is not empty %}
             <dt>Hints</dt>
@@ -60,9 +63,76 @@
         {{ form_start(form) }}
             {{ form_row(form.label) }}
             {{ form_row(form.verdictOverride) }}
+            {% if form.individualOverride is defined %}{{ form_row(form.individualOverride) }}{% endif %}
             <button type="submit">Save</button>
         {{ form_end(form) }}
     </section>
+
+    {% if reference_form %}
+        <section aria-labelledby="reference-heading">
+            <h2 id="reference-heading">Reference photo</h2>
+            <p class="meta">Pick a frame and drag a box around the animal or person; without a box the whole frame is used. The AI compares later events with it (<a href="{{ path('individuals') }}">all reference photos</a>).</p>
+            {{ form_start(reference_form, {attr: {class: 'reference-form'}}) }}
+                {{ form_row(reference_form.frame) }}
+                <div class="crop" data-crop data-frames="{{ event.framePaths|map((path, index) => path('event_frame', {id: event.id, index: index, v: event.startedAt|date('U')}))|json_encode }}">
+                    <img src="{{ path('event_frame', {id: event.id, index: 0, v: event.startedAt|date('U')}) }}" alt="The chosen frame; drag a box on it" width="{{ event.frameWidth }}" height="{{ event.frameHeight }}" draggable="false">
+                    <div class="crop-box" hidden></div>
+                </div>
+                {{ form_row(reference_form.individual) }}
+                {{ form_widget(reference_form.crop) }}
+                <button type="submit">Save reference photo</button>
+            {{ form_end(reference_form) }}
+        </section>
+        <script>
+            {
+                const area = document.querySelector('[data-crop]');
+                const image = area.querySelector('img');
+                const box = area.querySelector('.crop-box');
+                const input = document.getElementById('{{ reference_form.crop.vars.id }}');
+                const frames = JSON.parse(area.dataset.frames);
+                let start = null;
+
+                const point = (event) => {
+                    const rect = image.getBoundingClientRect();
+                    return {
+                        x: Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1),
+                        y: Math.min(Math.max((event.clientY - rect.top) / rect.height, 0), 1),
+                    };
+                };
+                const show = (from, to) => {
+                    const x = Math.min(from.x, to.x), y = Math.min(from.y, to.y);
+                    const width = Math.abs(to.x - from.x), height = Math.abs(to.y - from.y);
+                    Object.assign(box.style, {left: `${x * 100}%`, top: `${y * 100}%`, width: `${width * 100}%`, height: `${height * 100}%`});
+                    box.hidden = false;
+                    input.value = width > 0.01 && height > 0.01 ? [x, y, width, height].map((value) => value.toFixed(4)).join(',') : '';
+                };
+                const reset = () => {
+                    box.hidden = true;
+                    input.value = '';
+                };
+
+                area.addEventListener('pointerdown', (event) => {
+                    start = point(event);
+                    area.setPointerCapture(event.pointerId);
+                });
+                area.addEventListener('pointermove', (event) => start && show(start, point(event)));
+                area.addEventListener('pointerup', (event) => {
+                    if (start) {
+                        show(start, point(event));
+                        start = null;
+                    }
+                });
+                area.addEventListener('pointercancel', () => {
+                    start = null;
+                    reset();
+                });
+                document.querySelectorAll('input[name="{{ reference_form.frame.vars.full_name }}"]').forEach((radio) => radio.addEventListener('change', () => {
+                    image.src = frames[Number(radio.value)];
+                    reset();
+                }));
+            }
+        </script>
+    {% endif %}
 
     {% if event.describedAt %}
         <p class="meta">Described by {{ event.model }} on {{ event.describedAt|date('j M Y, H:i') }}.</p>

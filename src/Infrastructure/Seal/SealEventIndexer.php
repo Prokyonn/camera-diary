@@ -44,7 +44,7 @@ final readonly class SealEventIndexer implements EventIndexerInterface
             'id' => (string) $event->getId(),
             'label' => $event->getLabel() ?? '',
             'summary' => $event->getSummary() ?? '',
-            'subject' => null === $subject ? '' : $settings->subjectLabel($subject, $event->getIndividual()),
+            'subject' => null === $subject ? '' : $settings->subjectLabel($subject, $event->getEffectiveIndividual()),
             'falseAlarmCause' => null === $cause ? '' : $settings->falseAlarmCauses->label($cause),
             'hints' => $this->hints->hintsFor($event),
             'camera' => $event->getCamera()->getSlug(),

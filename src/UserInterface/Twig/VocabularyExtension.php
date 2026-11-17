@@ -34,6 +34,6 @@ final readonly class VocabularyExtension
     {
         $subject = $event->getSubject();
 
-        return null === $subject ? '' : $this->settings->settings()->subjectLabel($subject, $event->getIndividual());
+        return null === $subject ? '' : $this->settings->settings()->subjectLabel($subject, $event->getEffectiveIndividual());
     }
 }

@@ -23,6 +23,9 @@ class CameraEvent
     public const int MAX_HINTS = 20;
     public const int MAX_HINT_LENGTH = 300;
 
+    /** The answer, or correction, that the subject is none of the known individuals. */
+    public const string NO_KNOWN_INDIVIDUAL = 'unknown';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -81,6 +84,10 @@ class CameraEvent
     /** the name of a known individual the subject is, e.g. the household's cat */
     #[ORM\Column(length: 32, nullable: true)]
     private ?string $individual = null;
+
+    /** set by hand: the name of a known individual, or NO_KNOWN_INDIVIDUAL */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $individualOverride = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $summary = null;
@@ -246,6 +253,23 @@ class CameraEvent
         return $this->individual;
     }
 
+    public function getIndividualOverride(): ?string
+    {
+        return $this->individualOverride;
+    }
+
+    /**
+     * The individual set by hand, else the AI's; null when the subject is none of the known individuals.
+     */
+    public function getEffectiveIndividual(): ?string
+    {
+        if (self::NO_KNOWN_INDIVIDUAL === $this->individualOverride) {
+            return null;
+        }
+
+        return $this->individualOverride ?? $this->individual;
+    }
+
     public function getSummary(): ?string
     {
         return $this->summary;
@@ -382,11 +406,15 @@ class CameraEvent
         $this->nextAttemptAt = null;
     }
 
-    public function relabel(?string $label, ?Verdict $verdictOverride): void
+    /**
+     * @param ?string $individualOverride the name of a known individual, NO_KNOWN_INDIVIDUAL, or null for the AI's answer
+     */
+    public function relabel(?string $label, ?Verdict $verdictOverride, ?string $individualOverride): void
     {
         $label = null !== $label ? trim($label) : null;
         $this->label = '' === $label ? null : $label;
         $this->verdictOverride = $verdictOverride;
+        $this->individualOverride = null === $individualOverride ? null : $this->termName($individualOverride);
     }
 
     /**

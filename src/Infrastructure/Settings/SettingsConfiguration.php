@@ -84,6 +84,7 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('home_context')->defaultValue('')->info('Free text every prompt gets, e.g. "Our cat is called Luna."')->end()
                 ->scalarNode('unusual_rule')->defaultValue(self::DEFAULT_UNUSUAL_RULE)->info('Which events the AI flags as unusual')->end()
+                ->integerNode('reference_photos')->min(1)->defaultValue(6)->info('Reference photos per known individual the AI gets with an event: the settings\' ones first, then the newest added in the app')->end()
             ->end();
 
         return $node;
@@ -120,9 +121,11 @@ final class SettingsConfiguration implements ConfigurationInterface
                     ->scalarNode('subject')->isRequired()->cannotBeEmpty()->info('What it is, a name from subjects, e.g. cat')->end()
                     ->scalarNode('description')->defaultNull()->info('What tells it apart, for the AI')->end()
                     ->arrayNode('photos')
-                        ->info('Reference photos, relative to the settings file; crops that show the individual large work best')
-                        ->isRequired()
-                        ->requiresAtLeastOneElement()
+                        ->info('Reference photos, relative to the settings file; more can be added in the app. Crops that show the individual large work best')
+                        ->scalarPrototype()->cannotBeEmpty()->end()
+                    ->end()
+                    ->arrayNode('detection_types')
+                        ->info('Only events with one of these detection types get the photos, e.g. [animal] for a cat; default: all')
                         ->scalarPrototype()->cannotBeEmpty()->end()
                     ->end()
                 ->end()

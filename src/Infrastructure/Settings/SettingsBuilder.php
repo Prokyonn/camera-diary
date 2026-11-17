@@ -24,11 +24,11 @@ use Symfony\Component\Filesystem\Path;
  *
  * @phpstan-type VocabularyConfig array<string, array{enabled: bool, label: ?string, description: ?string}>
  * @phpstan-type Config array{
- *     ai: array{daily_call_limit: int, call_pools: array<string, array{detection_types: list<string>, daily_call_limit: int}>, home_context: string, unusual_rule: string},
+ *     ai: array{daily_call_limit: int, call_pools: array<string, array{detection_types: list<string>, daily_call_limit: int}>, home_context: string, unusual_rule: string, reference_photos: int},
  *     detection_types: VocabularyConfig,
  *     subjects: VocabularyConfig,
  *     false_alarm_causes: VocabularyConfig,
- *     individuals: array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>}>,
+ *     individuals: array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>, detection_types: list<string>}>,
  *     description: array{frame_offsets: non-empty-list<int>, retry_delay: int, max_attempts: int, footage_grace: int, batch_size: int},
  *     questions: array{search_results: int, answer_events: int, frames_per_event: int},
  *     maintenance: array{nightly_at: string, false_alarm_frame_days: int, backups_kept: int},
@@ -81,8 +81,8 @@ final readonly class SettingsBuilder
             $detectionTypes,
             $subjects,
             $falseAlarmCauses,
-            $this->individuals($config['individuals'], $subjects, $directory),
-            new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule'])),
+            $this->individuals($config['individuals'], $subjects, $detectionTypes, $directory),
+            new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule']), $ai['reference_photos']),
             new DescriptionSettings($description['frame_offsets'], $description['retry_delay'], $description['max_attempts'], $description['footage_grace'], $description['batch_size']),
             new QuestionSettings($questions['search_results'], $questions['answer_events'], $questions['frames_per_event']),
             new MaintenanceSettings((int) substr($nightlyAt, 0, 2), (int) substr($nightlyAt, 3, 2), $maintenance['false_alarm_frame_days'], $maintenance['backups_kept']),
@@ -126,11 +126,11 @@ final readonly class SettingsBuilder
     }
 
     /**
-     * @param array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>}> $configured
+     * @param array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>, detection_types: list<string>}> $configured
      *
      * @return list<Individual>
      */
-    private function individuals(array $configured, Vocabulary $subjects, ?string $directory): array
+    private function individuals(array $configured, Vocabulary $subjects, Vocabulary $detectionTypes, ?string $directory): array
     {
         $individuals = [];
         foreach ($configured as $name => $individual) {
@@ -142,12 +142,19 @@ final readonly class SettingsBuilder
                 throw new InvalidSettingsException(\sprintf('Individual "%s": unknown subject "%s". Known: %s.', $name, $individual['subject'], implode(', ', $subjects->names())));
             }
 
+            foreach ($individual['detection_types'] as $type) {
+                if (!$detectionTypes->has($type)) {
+                    throw new InvalidSettingsException(\sprintf('Individual "%s": unknown detection type "%s". Known: %s.', $name, $type, implode(', ', $detectionTypes->names())));
+                }
+            }
+
             $individuals[] = new Individual(
                 $name,
                 $individual['label'] ?? Vocabulary::humanize($name),
                 $individual['subject'],
                 $individual['description'],
                 array_map(fn (string $photo): string => $this->photo($name, $photo, $directory), $individual['photos']),
+                array_values(array_unique($individual['detection_types'])),
             );
         }
 

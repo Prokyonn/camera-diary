@@ -37,7 +37,7 @@ final readonly class EventPresenter
             'verdict' => $event->getEffectiveVerdict()?->value,
             'side' => $event->getSide()?->value,
             'subject' => $event->getSubject(),
-            'individual' => $event->getIndividual(),
+            'individual' => $event->getEffectiveIndividual(),
             'summary' => $event->getSummary(),
             'label' => $event->getLabel(),
             'hints' => $this->hints->hintsFor($event),

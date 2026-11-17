@@ -13,6 +13,7 @@
             <nav aria-label="Main">
                 <a href="{{ path('timeline') }}"{% if app.current_route == 'timeline' %} aria-current="page"{% endif %}>Timeline</a>
                 <a href="{{ path('ask') }}"{% if app.current_route == 'ask' %} aria-current="page"{% endif %}>Ask</a>
+                <a href="{{ path('individuals') }}"{% if app.current_route == 'individuals' %} aria-current="page"{% endif %}>Known</a>
             </nav>
         </header>
         <main>
