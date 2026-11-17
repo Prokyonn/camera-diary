@@ -22,7 +22,7 @@ final class SettingsCommandTest extends KernelTestCase
         $output = $tester->getDisplay();
         self::assertStringContainsString('tests/Fixtures/camera-diary.yaml', $output);
         self::assertStringContainsString('person, animal, vehicle, motion', $output);
-        self::assertStringContainsString('Luna, a cat, 1 reference photos', $output);
+        self::assertStringContainsString('Luna, a cat, 1 reference photos in the settings', $output);
         self::assertStringContainsString('The settings are valid.', $output);
     }
 }

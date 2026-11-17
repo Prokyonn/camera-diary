@@ -41,7 +41,7 @@ final readonly class SettingsCommand
             ['False-alarm causes', $this->terms($settings->falseAlarmCauses)],
         ];
         foreach ($settings->individuals as $individual) {
-            $rows[] = [\sprintf('Individual "%s"', $individual->name), \sprintf('%s, a %s, %d reference photos', $individual->label, $individual->subject, \count($individual->photos))];
+            $rows[] = [\sprintf('Individual "%s"', $individual->name), \sprintf('%s, a %s, %d reference photos in the settings', $individual->label, $individual->subject, \count($individual->photos))];
         }
         $rows[] = ['AI calls per day', (string) $settings->ai->dailyCallLimit];
         foreach ($settings->ai->callPools as $pool) {
