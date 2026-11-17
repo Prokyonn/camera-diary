@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 
 /**
  * Adds the configured vocabularies to the JSON schema of AI outputs: fields marked with #[VocabularyChoice] get the
- * names as their allowed values, and the labels and hints in their description.
+ * names as their allowed values (for lists, their items'), and the labels and hints in their description.
  */
 #[AsDecorator('ai.platform.response_format_factory')]
 final readonly class VocabularyResponseFormatFactory implements ResponseFormatFactoryInterface
@@ -58,7 +58,16 @@ final readonly class VocabularyResponseFormatFactory implements ResponseFormatFa
             $choices[$term->name] = $this->meaning($term);
         }
 
-        $schema['enum'] = array_keys($choices);
+        if ([] === $choices) {
+            return $schema;
+        }
+
+        if ('array' === ($schema['type'] ?? null) && \is_array($schema['items'] ?? null)) {
+            $schema['items']['enum'] = array_keys($choices);
+        } else {
+            $schema['enum'] = array_keys($choices);
+        }
+
         $explained = implode('; ', array_map(
             static fn (string $name, string $meaning): string => '' === $meaning ? $name : \sprintf('%s: %s', $name, $meaning),
             array_keys($choices),

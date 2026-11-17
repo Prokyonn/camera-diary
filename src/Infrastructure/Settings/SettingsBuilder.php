@@ -30,7 +30,7 @@ use Symfony\Component\Filesystem\Path;
  *     false_alarm_causes: VocabularyConfig,
  *     individuals: array<string, array{label: ?string, subject: string, description: ?string, photos: list<string>, detection_types: list<string>}>,
  *     description: array{frame_offsets: non-empty-list<int>, retry_delay: int, max_attempts: int, footage_grace: int, batch_size: int},
- *     questions: array{search_results: int, answer_events: int, frames_per_event: int},
+ *     questions: array{search_results: int, answer_events: int, frames_per_event: int, context_events: int},
  *     maintenance: array{nightly_at: string, false_alarm_frame_days: int, backups_kept: int},
  * }
  */
@@ -84,7 +84,7 @@ final readonly class SettingsBuilder
             $this->individuals($config['individuals'], $subjects, $detectionTypes, $directory),
             new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule']), $ai['reference_photos']),
             new DescriptionSettings($description['frame_offsets'], $description['retry_delay'], $description['max_attempts'], $description['footage_grace'], $description['batch_size']),
-            new QuestionSettings($questions['search_results'], $questions['answer_events'], $questions['frames_per_event']),
+            new QuestionSettings($questions['search_results'], $questions['answer_events'], $questions['frames_per_event'], $questions['context_events']),
             new MaintenanceSettings((int) substr($nightlyAt, 0, 2), (int) substr($nightlyAt, 3, 2), $maintenance['false_alarm_frame_days'], $maintenance['backups_kept']),
         );
     }

@@ -164,6 +164,7 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->integerNode('search_results')->min(1)->defaultValue(12)->info('Events a question searches for')->end()
                 ->integerNode('answer_events')->min(1)->defaultValue(6)->info('Top events the AI gets to answer')->end()
                 ->integerNode('frames_per_event')->min(0)->defaultValue(2)->info('Frames per event the AI gets to answer')->end()
+                ->integerNode('context_events')->min(1)->defaultValue(200)->info('For a question with a time range of at most this many events, the AI reads all of them as text instead of only the keyword matches')->end()
             ->end();
 
         return $node;

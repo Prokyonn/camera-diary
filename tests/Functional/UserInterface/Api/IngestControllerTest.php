@@ -79,7 +79,7 @@ final class IngestControllerTest extends WebTestCase
         self::assertSame(['described' => 1], self::getContainer()->get(PendingEventRunner::class)->run());
         self::assertSame(EventStatus::Described, $event->getStatus());
         $found = self::getContainer()->get(EventSearchInterface::class)->search(new SearchCriteria(text: 'courier parcel'));
-        self::assertSame($event->getId(), ($found[0] ?? null)?->getId());
+        self::assertSame($event->getId(), ($found->events[0] ?? null)?->getId());
     }
 
     public function testStoresImagesAndAnswersARepeatWithTheStoredEvent(): void

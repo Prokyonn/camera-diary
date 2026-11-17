@@ -44,7 +44,9 @@ final readonly class SealEventIndexer implements EventIndexerInterface
             'id' => (string) $event->getId(),
             'label' => $event->getLabel() ?? '',
             'summary' => $event->getSummary() ?? '',
-            'subject' => null === $subject ? '' : $settings->subjectLabel($subject, $event->getEffectiveIndividual()),
+            'subject' => null === $subject ? '' : $this->subjectText($subject, $event->getEffectiveIndividual()),
+            'subjectName' => $subject ?? '',
+            'individual' => $event->getEffectiveIndividual() ?? '',
             'falseAlarmCause' => null === $cause ? '' : $settings->falseAlarmCauses->label($cause),
             'hints' => $this->hints->hintsFor($event),
             'camera' => $event->getCamera()->getSlug(),
@@ -54,5 +56,16 @@ final readonly class SealEventIndexer implements EventIndexerInterface
             'status' => $event->getStatus()->value,
             'startedAt' => $event->getStartedAt()->format(DateTimeInterface::ATOM),
         ];
+    }
+
+    /**
+     * "Anna Person" for a known individual, so a search for either finds the event; else "Other cat" or "Cat".
+     */
+    private function subjectText(string $subject, ?string $individual): string
+    {
+        $settings = $this->settings->settings();
+        $label = $settings->subjectLabel($subject, $individual);
+
+        return null === $individual ? $label : $label.' '.$settings->subjects->label($subject);
     }
 }

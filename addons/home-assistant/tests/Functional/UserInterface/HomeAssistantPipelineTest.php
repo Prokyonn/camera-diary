@@ -7,6 +7,7 @@ namespace CameraDiary\HomeAssistant\Tests\Functional\UserInterface;
 use App\Application\Description\HintCollector;
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
+use App\Domain\Model\CameraEvent;
 use App\Domain\Model\EventStatus;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
@@ -89,7 +90,7 @@ final class HomeAssistantPipelineTest extends KernelTestCase
         self::assertSame(['07:17:02 Luna came in through the cat flap'], self::getContainer()->get(HintCollector::class)->hintsFor($event));
 
         $found = self::getContainer()->get(EventSearchInterface::class)->search(new SearchCriteria(text: 'grey cat'));
-        self::assertSame([$event->getId()], array_map(static fn ($match): int => $match->getId(), $found));
+        self::assertSame([$event->getId()], array_map(static fn (CameraEvent $match): int => $match->getId(), $found->events));
         self::assertSame([], $homeAssistant->notifications(), 'Without a handover there is no push to replace.');
     }
 

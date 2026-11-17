@@ -27,16 +27,22 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
     ) {
     }
 
-    public function answer(string $question, array $events): Answer
+    public function answer(string $question, array $events, int $total): Answer
     {
-        $parts = ['Question: '.$question];
-        foreach (\array_slice($events, 0, $this->settings->settings()->questions->answerEvents) as $event) {
-            array_push($parts, ...$this->eventParts($event));
+        $parts = [
+            'Question: '.$question,
+            \count($events) < $total
+                ? \sprintf('%d events match; here are the %d most relevant.', $total, \count($events))
+                : \sprintf('These are all %d events that match.', $total),
+        ];
+        $withFrames = $this->settings->settings()->questions->answerEvents;
+        foreach ($events as $index => $event) {
+            array_push($parts, ...$this->eventParts($event, $index < $withFrames));
         }
 
         $output = $this->client->request(new Prompt(<<<'PROMPT'
-            You answer questions about camera events at home. Use only the events and frames given; each event lists its frames right after its text.
-            Manual labels are reliable and override the description. Say clearly when the events do not answer the question.
+            You answer questions about camera events at home. Use only the events and frames given; the first events list their frames right after their text.
+            Manual labels and corrections are reliable and override the description. Several events often show the same person or animal; count individuals, not events, when asked how many. Say clearly when the events do not answer the question.
             Answer in a few plain sentences without Markdown.
             PROMPT, $parts), AnswerOutput::class);
 
@@ -46,7 +52,7 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
     /**
      * @return list<string|PromptImage>
      */
-    private function eventParts(CameraEvent $event): array
+    private function eventParts(CameraEvent $event, bool $withFrames): array
     {
         $lines = [
             \sprintf(
@@ -61,6 +67,10 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
         if (null !== $event->getLabel()) {
             $lines[] = 'Label: '.$event->getLabel();
         }
+        $subject = $event->getSubject();
+        if (null !== $subject) {
+            $lines[] = 'Subject: '.$this->settings->settings()->subjectLabel($subject, $event->getEffectiveIndividual());
+        }
         if (null !== $event->getSummary()) {
             $lines[] = \sprintf('Description: %s (verdict %s, side %s)', $event->getSummary(), $event->getEffectiveVerdict()?->value, $event->getSide()?->value);
         }
@@ -69,6 +79,10 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
         }
 
         $parts = [implode("\n", $lines)];
+        if (!$withFrames) {
+            return $parts;
+        }
+
         foreach (\array_slice($event->getFramePaths(), 0, $this->settings->settings()->questions->framesPerEvent) as $framePath) {
             $parts[] = new PromptImage($this->frameStorage->absolutePath($framePath));
         }

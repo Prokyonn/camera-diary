@@ -10,11 +10,12 @@ use App\Domain\Model\CameraEvent;
 interface AnswerWriterInterface
 {
     /**
-     * Answers $question from the top of $events (questions.answer_events in the settings) and their frames.
+     * Answers $question from $events as text, with frames of the first ones (questions.answer_events).
      *
      * @param list<CameraEvent> $events best match first
+     * @param int               $total  all events that match, $events may be fewer
      *
      * @throws AiRequestFailedException
      */
-    public function answer(string $question, array $events): Answer;
+    public function answer(string $question, array $events, int $total): Answer;
 }

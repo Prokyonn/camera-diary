@@ -101,9 +101,9 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 
 ## Questions
 
-1. The AI turns the question into a search plan: keywords, cameras, time range, side, and whether to include false alarms. It knows the cameras and the current local time.
-2. `EventSearch` runs the plan and returns 12 results.
-3. The AI gets the question and the top 6 events (text plus 2 frames each). It returns the answer and the ids of the events it relies on, which are listed first.
+1. The AI turns the question into a search plan: subjects and known individuals (from the settings, as exact filters), keywords for further details, cameras, time range, side, and whether to include false alarms. It knows the cameras and the current local time.
+2. With a time range of at most `questions.context_events` (200) events, all of them are read, the keyword matches first, so wording cannot hide an event. Otherwise `EventSearch` returns the 12 best keyword matches. Either way the search reports the total.
+3. The AI gets the question, the total and every event as text (subject, description, label, hints), with 2 frames each for the first 6. It returns the answer and the ids of the events it relies on, which are listed first; the page shows 12.
 
 ## Schedule
 

@@ -63,7 +63,7 @@ final readonly class CameraEventTools
             to: $this->parseTime($to),
             includeFalseAlarms: $includeFalseAlarms,
             limit: max(1, min(self::MAX_LIMIT, $limit)),
-        ));
+        ))->events;
 
         return array_map($this->presenter->present(...), $events);
     }

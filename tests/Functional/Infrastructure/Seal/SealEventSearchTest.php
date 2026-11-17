@@ -39,7 +39,7 @@ final class SealEventSearchTest extends KernelTestCase
 
         $this->greyCat = CameraEventFactory::described('A grey cat drags the doormat from the cat flap to the door.', '2026-11-06 06:16:40');
         $this->luna = CameraEventFactory::described('A cat sits right in front of the lens.', '2026-11-06 16:53:53', 'garden');
-        $this->luna->relabel('Luna', null, null);
+        $this->luna->relabel('Luna', null, 'luna');
         $this->fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: 'person', side: Side::Outside);
         $this->web = CameraEventFactory::described('A thin thread swings across the lens.', '2026-11-06 16:36:00', 'garden', Verdict::FalseAlarm, 'nothing', Side::Unclear, 'spider_web');
 
@@ -87,6 +87,17 @@ final class SealEventSearchTest extends KernelTestCase
         self::assertSame([$this->web], $this->search(new SearchCriteria(text: 'spider web', includeFalseAlarms: true)));
     }
 
+    public function testFiltersBySubjectAndKnownIndividualAndCountsAllMatches(): void
+    {
+        $cats = self::getContainer()->get(EventSearchInterface::class)->search(new SearchCriteria(limit: 1, subjects: ['cat']));
+        self::assertSame([$this->luna], $cats->events, 'Newest first.');
+        self::assertSame(2, $cats->total, 'The total counts beyond the limit.');
+
+        self::assertSame([$this->luna], $this->search(new SearchCriteria(individuals: ['luna'])));
+        self::assertSame([$this->fence], $this->search(new SearchCriteria(subjects: ['person'])));
+        self::assertSame([$this->luna], $this->search(new SearchCriteria(text: 'cat', individuals: ['luna'])), 'A known individual is also found by its subject.');
+    }
+
     public function testListsNewestFirstWithinATimeRange(): void
     {
         $events = $this->search(new SearchCriteria(
@@ -102,6 +113,6 @@ final class SealEventSearchTest extends KernelTestCase
      */
     private function search(SearchCriteria $criteria): array
     {
-        return self::getContainer()->get(EventSearchInterface::class)->search($criteria);
+        return self::getContainer()->get(EventSearchInterface::class)->search($criteria)->events;
     }
 }

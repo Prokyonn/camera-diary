@@ -13,7 +13,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light), where it happened, and a short description. You can correct both the label and the verdict.
 - **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI and the app use it.
 - **Your cat by name.** Name the known individuals, your cat or the people who live with you, and add reference photos straight from event frames. Events then show "Luna" or "Other cat".
-- **Questions with sources.** The AI turns the question into a search, then looks at the best matches' frames and answers with the events it relies on.
+- **Questions with sources.** The AI turns the question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on.
 - **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events.
 - **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
 

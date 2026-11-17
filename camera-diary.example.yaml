@@ -65,10 +65,13 @@ description:
     batch_size: 20
 
 questions:
-    # Events a question searches for, the top ones the AI gets, and their frames each
+    # Keyword matches for a question without a time range (and events shown with an answer), the ones the AI also
+    # gets frames of, and how many frames each
     search_results: 12
     answer_events: 6
     frames_per_event: 2
+    # A question with a time range of at most this many events lets the AI read all of them as text
+    context_events: 200
 
 maintenance:
     # Local time (APP_TIMEZONE) of the nightly clean-up and database backup

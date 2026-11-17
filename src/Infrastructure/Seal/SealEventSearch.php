@@ -6,6 +6,7 @@ namespace App\Infrastructure\Seal;
 
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
+use App\Application\Search\SearchResult;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
@@ -31,7 +32,7 @@ final readonly class SealEventSearch implements EventSearchInterface
     ) {
     }
 
-    public function search(SearchCriteria $criteria): array
+    public function search(SearchCriteria $criteria): SearchResult
     {
         $builder = $this->engine->createSearchBuilder(SealEventIndexer::INDEX)->limit(max(1, $criteria->limit));
 
@@ -54,6 +55,14 @@ final readonly class SealEventSearch implements EventSearchInterface
             $builder->addFilter(Condition::lessThanEqual('startedAt', $criteria->to->format(DateTimeInterface::ATOM)));
         }
 
+        if ([] !== $criteria->subjects) {
+            $builder->addFilter(Condition::in('subjectName', $criteria->subjects));
+        }
+
+        if ([] !== $criteria->individuals) {
+            $builder->addFilter(Condition::in('individual', $criteria->individuals));
+        }
+
         if ($criteria->side instanceof Side) {
             $builder->addFilter(Condition::in('side', [$criteria->side->value, Side::Both->value]));
         }
@@ -62,15 +71,16 @@ final readonly class SealEventSearch implements EventSearchInterface
             $builder->addFilter(Condition::notEqual('verdict', Verdict::FalseAlarm->value));
         }
 
+        $result = $builder->getResult();
         $ids = [];
-        foreach ($builder->getResult() as $document) {
+        foreach ($result as $document) {
             $id = $document['id'] ?? null;
             if (is_numeric($id)) {
                 $ids[] = (int) $id;
             }
         }
 
-        return $this->inOrder($ids, [] === $ids ? [] : $this->events->findBy(['ids' => $ids]));
+        return new SearchResult($this->inOrder($ids, [] === $ids ? [] : $this->events->findBy(['ids' => $ids])), $result->total());
     }
 
     /**
