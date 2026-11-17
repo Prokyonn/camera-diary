@@ -11,7 +11,6 @@ use App\Domain\Model\CameraEvent;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use CameraDiary\HomeAssistant\Application\Settings\CameraMapping;
 use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
-use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 use CameraDiary\HomeAssistant\Domain\Repository\DetectionRepositoryInterface;
 use DateTimeImmutable;
 
@@ -28,7 +27,6 @@ final readonly class EventGrouper
         private CameraEventRepositoryInterface $events,
         private CameraRegistry $cameras,
         private UnitOfWorkInterface $unitOfWork,
-        private GroupingRule $rule = new GroupingRule(),
     ) {
     }
 
@@ -49,7 +47,7 @@ final readonly class EventGrouper
                 $event = $new;
             }
 
-            if ($event instanceof CameraEvent && $event->canTakeDetections() && $this->rule->joins($event, $detectedAt)) {
+            if ($event instanceof CameraEvent && $event->canTakeDetections() && $settings->grouping->joins($event, $detectedAt)) {
                 $event->addDetection($detection->getType(), $detectedAt);
             } else {
                 $event = new CameraEvent($this->camera($settings, $slug), $detectedAt, [$detection->getType()], self::SOURCE, open: true);
@@ -69,12 +67,12 @@ final readonly class EventGrouper
     /**
      * @return int the number of closed events
      */
-    public function closeSettled(DateTimeImmutable $importedUntil): int
+    public function closeSettled(HomeAssistantSettings $settings, DateTimeImmutable $importedUntil): int
     {
         $settled = $this->events->findBy([
             'source' => self::SOURCE,
             'open' => true,
-            'endedBefore' => $this->rule->closedBefore($importedUntil),
+            'endedBefore' => $settings->grouping->closedBefore($importedUntil),
         ]);
         foreach ($settled as $event) {
             $event->close();

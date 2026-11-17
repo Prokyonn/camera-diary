@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Scheduler;
 
+use App\Application\Settings\SettingsProviderInterface;
 use DateTimeZone;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
@@ -17,6 +18,7 @@ final readonly class MainSchedule implements ScheduleProviderInterface
 {
     public function __construct(
         private CacheInterface $cache,
+        private SettingsProviderInterface $settings,
         #[Autowire(param: 'app.timezone')]
         private string $timezone,
     ) {
@@ -24,10 +26,12 @@ final readonly class MainSchedule implements ScheduleProviderInterface
 
     public function getSchedule(): Schedule
     {
+        $maintenance = $this->settings->settings()->maintenance;
+
         return new Schedule()
             ->stateful($this->cache)
             ->processOnlyLastMissedRun(true)
             ->add(RecurringMessage::every('1 minute', new DescribePendingEvents()))
-            ->add(RecurringMessage::cron('30 3 * * *', new RunNightlyMaintenance(), new DateTimeZone($this->timezone)));
+            ->add(RecurringMessage::cron(\sprintf('%d %d * * *', $maintenance->nightlyMinute, $maintenance->nightlyHour), new RunNightlyMaintenance(), new DateTimeZone($this->timezone)));
     }
 }

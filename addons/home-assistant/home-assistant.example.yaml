@@ -5,10 +5,11 @@ cameras:
     garden:
         name: Garden
         scene: Back garden with a lawn and a hedge. The fence at the back is the property line; behind it runs a public path.
-        # binary_sensor.garden_person, binary_sensor.garden_animal turning "on" are detections (e.g. the Reolink integration)
+        # binary_sensor.garden_person etc. turning "on" are detections (e.g. the Reolink integration). The types come
+        # from detection_types in the Camera diary settings (default: person, animal, vehicle, motion).
         sensor_prefix: binary_sensor.garden
-        detections: [person, animal]
-        # Optional: folder of continuous recordings under RECORDINGS_DIR; frames are cut 1, 2 and 3 s after the detection
+        detections: [person, animal, vehicle]
+        # Optional: folder of continuous recordings under RECORDINGS_DIR; frames are cut at the settings' frame_offsets
         recording_folder: Garden
 
 signals:
@@ -23,6 +24,12 @@ signals:
             locked: Front door locked
             unlocked: Front door unlocked
 
+# Optional, with the defaults
+import:
+    max_gap: 120        # seconds between detections that still join one event
+    max_duration: 600   # seconds an event lasts at most
+    hint_window: 180    # seconds before and after an event in which signals become its hints
+
 # Optional: the AI verdict replaces the camera push your Home Assistant script sent (see the README)
 push:
     # input_text the script sets after its push to "camera|epoch|mute 0/1|tag|group|file base|title|message"
@@ -33,3 +40,7 @@ push:
     loud_interruption_level: active       # unusual events; all others update silently (passive)
     mute_actions:                         # buttons kept on pushes that had them (mute 1)
         CAMERA_MUTE_1H: "That's us, mute 1 h"
+    max_age: 3600                         # seconds after which a push is no longer updated
+    # Per frame of an event (frame_offsets): "snapshot", or the second in the clip. The script's snapshot is taken at
+    # the detection, its clip starts about four seconds later.
+    frames: [snapshot, 0.5, 3.5]

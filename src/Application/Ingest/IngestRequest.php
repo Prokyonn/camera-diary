@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Ingest;
 
-use App\Domain\Model\DetectionType;
 use DateTimeImmutable;
 
 /**
@@ -15,9 +14,9 @@ final readonly class IngestRequest
     public const int MAX_IMAGES = 3;
 
     /**
-     * @param list<DetectionType> $detectionTypes
-     * @param list<string>        $hints
-     * @param list<string>        $imagePaths
+     * @param list<string> $detectionTypes names from the detection types vocabulary
+     * @param list<string> $hints
+     * @param list<string> $imagePaths
      */
     public function __construct(
         public string $cameraSlug,

@@ -13,6 +13,7 @@ use App\Application\Question\QuestionPlannerInterface;
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
 use App\Tests\Factory\CameraEventFactory;
+use App\Tests\Support\ProvidesSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -24,6 +25,7 @@ use Psr\Log\NullLogger;
 final class QuestionAnswererTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     /** @var ObjectProphecy<QuestionPlannerInterface> */
     private ObjectProphecy $planner;
@@ -51,7 +53,7 @@ final class QuestionAnswererTest extends TestCase
         $criteria = new SearchCriteria(text: 'grey cat');
         $first = CameraEventFactory::described('A black cat.', id: 1);
         $second = CameraEventFactory::described('A grey cat drags the doormat.', id: 2);
-        $this->planner->plan('When was the grey cat here?', QuestionAnswerer::SEARCH_LIMIT)->willReturn($criteria);
+        $this->planner->plan('When was the grey cat here?', 12)->willReturn($criteria);
         $this->search->search($criteria)->willReturn([$first, $second]);
         $this->writer->answer('When was the grey cat here?', [$first, $second])->willReturn(new Answer('On 6 November at 07:16.', [2]));
 
@@ -106,6 +108,6 @@ final class QuestionAnswererTest extends TestCase
 
     private function answerer(): QuestionAnswerer
     {
-        return new QuestionAnswerer($this->planner->reveal(), $this->writer->reveal(), $this->search->reveal(), $this->budget->reveal(), new NullLogger());
+        return new QuestionAnswerer($this->planner->reveal(), $this->writer->reveal(), $this->search->reveal(), $this->budget->reveal(), $this->settingsProvider(), new NullLogger());
     }
 }

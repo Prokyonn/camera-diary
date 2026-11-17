@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace CameraDiary\HomeAssistant\Infrastructure\HomeAssistant;
 
-use App\Application\Description\EventProcessor;
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractorInterface;
 use App\Application\Frame\FrameSourceInterface;
+use App\Application\Settings\SettingsProviderInterface as CoreSettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
 use CameraDiary\HomeAssistant\Application\Import\EventGrouper;
 use CameraDiary\HomeAssistant\Application\Push\EventHandovers;
@@ -24,19 +24,15 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Frames for events Home Assistant sent a push for, from the push's snapshot and clip; seconds after the detection,
- * long before the continuous recording is readable. Falls back to the recording when the files are gone.
+ * long before the continuous recording is readable. Falls back to the recording when the files are gone, or when the
+ * push settings name no frame for an offset.
  */
 #[AsTaggedItem(priority: 10)]
 final readonly class ClipFrameSource implements FrameSourceInterface
 {
-    /**
-     * Per frame: the file and the position in it. The snapshot is taken at the detection; the clip starts about four
-     * seconds later.
-     */
-    private const array CUTS = [['jpg', null], ['mp4', 0.5], ['mp4', 3.5]];
-
     public function __construct(
         private SettingsProviderInterface $settings,
+        private CoreSettingsProviderInterface $coreSettings,
         private EventHandovers $handovers,
         private FrameExtractorInterface $extractor,
         private RecordingFrameSource $recordings,
@@ -56,10 +52,16 @@ final readonly class ClipFrameSource implements FrameSourceInterface
     public function grab(CameraEvent $event, DateTimeImmutable $at, string $targetPath): void
     {
         $handover = $this->handovers->forEvent($event)[0] ?? throw new FootageNotFoundException('The push handover is gone.');
-        $index = array_search($at->getTimestamp() - $event->getStartedAt()->getTimestamp(), EventProcessor::FRAME_OFFSETS_SECONDS, true);
-        [$extension, $position] = self::CUTS[false === $index ? 0 : $index];
+        $frames = $this->settings->settings()->push->frames ?? [];
+        $index = array_search($at->getTimestamp() - $event->getStartedAt()->getTimestamp(), $this->coreSettings->settings()->description->frameOffsets, true);
+        if (false === $index || !\array_key_exists($index, $frames)) {
+            $this->fallBackToRecording($event, $at, $targetPath);
 
-        $file = $this->download($handover->getFileBase().'.'.$extension);
+            return;
+        }
+
+        $position = $frames[$index];
+        $file = $this->download($handover->getFileBase().(null === $position ? '.jpg' : '.mp4'));
         if (null === $file) {
             $this->fallBackToRecording($event, $at, $targetPath);
 

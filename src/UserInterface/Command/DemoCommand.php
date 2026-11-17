@@ -9,7 +9,6 @@ use App\Application\Clock\HomeTimeZone;
 use App\Application\Ingest\EventIngester;
 use App\Application\Ingest\IngestRequest;
 use App\Application\Ingest\InvalidIngestException;
-use App\Domain\Model\DetectionType;
 use DateTimeImmutable;
 use DateTimeZone;
 use Psr\Clock\ClockInterface;
@@ -71,7 +70,7 @@ final readonly class DemoCommand
                     startedAt: $startedAt,
                     videoPath: $isVideo ? $clip : null,
                     imagePaths: $isVideo ? [] : [$clip],
-                    detectionTypes: array_map(DetectionType::from(...), $event['detections']),
+                    detectionTypes: $event['detections'],
                     hints: $event['hints'],
                     source: self::SOURCE,
                     externalId: $key,

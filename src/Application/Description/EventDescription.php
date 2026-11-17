@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace App\Application\Description;
 
-use App\Domain\Model\FalseAlarmCause;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 
 final readonly class EventDescription
 {
+    /**
+     * @param ?string $falseAlarmCause a name from the false-alarm causes vocabulary; null for real events
+     * @param string  $subject         a name from the subjects vocabulary
+     */
     public function __construct(
         public Verdict $verdict,
-        public FalseAlarmCause $falseAlarmCause,
+        public ?string $falseAlarmCause,
         public Side $side,
-        public Subject $subject,
+        public string $subject,
         public string $summary,
         public bool $unusual,
         public string $model,

@@ -15,12 +15,12 @@ use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Model\EventStatus;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Factory\CameraFactory;
+use App\Tests\Support\ProvidesSettings;
 use LogicException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -34,6 +34,7 @@ use ReflectionProperty;
 final class EventIngesterTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     /** @var ObjectProphecy<CameraEventRepositoryInterface> */
     private ObjectProphecy $events;
@@ -89,7 +90,7 @@ final class EventIngesterTest extends TestCase
             'garden',
             CameraEventFactory::utc('2026-11-10 07:16:20'),
             videoPath: '/tmp/clip.mp4',
-            detectionTypes: [DetectionType::Person],
+            detectionTypes: ['person'],
             hints: ['Doorbell rang'],
             externalId: 'abc',
         ));
@@ -172,6 +173,7 @@ final class EventIngesterTest extends TestCase
         yield 'four images' => [new IngestRequest('garden', $at, imagePaths: ['/tmp/a.jpg', '/tmp/b.jpg', '/tmp/c.jpg', '/tmp/d.jpg'])];
         yield 'invalid camera' => [new IngestRequest('Front Door', $at, imagePaths: ['/tmp/a.jpg'])];
         yield 'ends before it starts' => [new IngestRequest('garden', $at, imagePaths: ['/tmp/a.jpg'], endedAt: $at->modify('-1 second'))];
+        yield 'unknown detection type' => [new IngestRequest('garden', $at, imagePaths: ['/tmp/a.jpg'], detectionTypes: ['unicorn'])];
     }
 
     #[DataProvider('invalidRequests')]
@@ -195,6 +197,7 @@ final class EventIngesterTest extends TestCase
             $this->storage->reveal(),
             $this->indexer->reveal(),
             $unitOfWork,
+            $this->settingsProvider(),
         );
     }
 }

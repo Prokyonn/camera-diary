@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Infrastructure\Doctrine;
 
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Settings\CallPool;
 use App\Infrastructure\Doctrine\DbalAiCallBudget;
+use App\Tests\Support\ProvidesSettings;
 use App\Tests\Support\ResetsStorage;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(DbalAiCallBudget::class)]
 final class DbalAiCallBudgetTest extends KernelTestCase
 {
+    use ProphecyTrait;
+    use ProvidesSettings;
     use ResetsStorage;
 
     private Connection $connection;
@@ -53,8 +58,40 @@ final class DbalAiCallBudgetTest extends KernelTestCase
         self::assertFalse($this->budget(new MockClock(), 0)->tryConsume());
     }
 
+    public function testCountsPoolCallsTowardsTheDailyLimitAndStopsAtThePoolLimit(): void
+    {
+        $budget = $this->budget(new MockClock('2026-11-08 12:00:00', 'UTC'), 3);
+        $animals = new CallPool('animals', ['animal'], 1);
+
+        self::assertTrue($budget->tryConsume($animals));
+        self::assertFalse($budget->tryConsume($animals));
+        self::assertTrue($budget->tryConsume());
+        self::assertTrue($budget->tryConsume());
+        self::assertFalse($budget->tryConsume());
+        self::assertSame([3, 1], [$budget->usedToday(), $budget->usedToday($animals)]);
+        self::assertFalse($budget->hasCallsLeftToday());
+    }
+
+    public function testAPoolCallNeedsRoomInTheDailyLimit(): void
+    {
+        $budget = $this->budget(new MockClock('2026-11-08 12:00:00', 'UTC'), 1);
+        $animals = new CallPool('animals', ['animal'], 5);
+
+        self::assertTrue($budget->tryConsume());
+        self::assertFalse($budget->tryConsume($animals));
+        self::assertSame(0, $budget->usedToday($animals), 'A refused call leaves the pool untouched.');
+    }
+
+    public function testAZeroPoolLimitAllowsNoCallsInIt(): void
+    {
+        $budget = $this->budget(new MockClock('2026-11-08 12:00:00', 'UTC'), 5);
+
+        self::assertFalse($budget->tryConsume(new CallPool('animals', ['animal'], 0)));
+        self::assertTrue($budget->tryConsume());
+    }
+
     private function budget(MockClock $clock, int $limit): DbalAiCallBudget
     {
-        return new DbalAiCallBudget($this->connection, $clock, new HomeTimeZone('Europe/Vienna'), $limit);
+        return new DbalAiCallBudget($this->connection, $clock, new HomeTimeZone('Europe/Vienna'), $this->settingsProvider(['ai' => ['daily_call_limit' => $limit]]));
     }
 }

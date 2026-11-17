@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace CameraDiary\HomeAssistant\Tests\Unit\Application\Import;
 
 use App\Application\Persistence\UnitOfWorkInterface;
-use App\Domain\Model\DetectionType;
 use App\Tests\Factory\CameraEventFactory;
 use CameraDiary\HomeAssistant\Application\History\HomeHistoryInterface;
 use CameraDiary\HomeAssistant\Application\History\StateChange;
 use CameraDiary\HomeAssistant\Application\Import\HistoryImporter;
 use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
 use CameraDiary\HomeAssistant\Domain\Model\Detection;
+use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
 use CameraDiary\HomeAssistant\Domain\Model\ImportCursor;
 use CameraDiary\HomeAssistant\Domain\Model\PushHandover;
@@ -57,7 +57,7 @@ final class HistoryImporterTest extends TestCase
         $pushHandovers->add(Argument::that(static fn (PushHandover $handover): bool => 'garden-2026-11-06_07-16-40-person' === $handover->getTag()
             && '2026-11-06 06:16:40' === $handover->getPushedAt()->format('Y-m-d H:i:s')))->shouldBeCalledOnce();
 
-        $existing = new Detection('terrace', DetectionType::Animal, CameraEventFactory::utc('2026-11-06 06:17:20'));
+        $existing = new Detection('terrace', 'animal', CameraEventFactory::utc('2026-11-06 06:17:20'));
         $detections = $this->prophesize(DetectionRepositoryInterface::class);
         $detections->findBy(['detectedAtOrAfter' => $from, 'detectedAtOrBefore' => $to])->willReturn([$existing]);
         $detections->add(Argument::that(static fn (Detection $detection): bool => 'terrace' === $detection->getCamera() && '2026-11-06 06:16:40' === $detection->getDetectedAt()->format('Y-m-d H:i:s')))
@@ -118,7 +118,7 @@ final class HistoryImporterTest extends TestCase
             new NullLogger(),
         );
 
-        $result = $importer->importRange(new HomeAssistantSettings(), CameraEventFactory::utc('2026-11-06 00:00:00'), CameraEventFactory::utc('2026-11-06 01:00:00'));
+        $result = $importer->importRange(new HomeAssistantSettings([], [], new GroupingRule(120, 600), 180), CameraEventFactory::utc('2026-11-06 00:00:00'), CameraEventFactory::utc('2026-11-06 01:00:00'));
 
         self::assertSame(0, $result->detections + $result->signals);
     }

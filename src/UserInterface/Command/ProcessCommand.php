@@ -19,7 +19,7 @@ final readonly class ProcessCommand
     ) {
     }
 
-    public function __invoke(SymfonyStyle $io, #[Option('How many events to describe')] int $limit = PendingEventRunner::BATCH_SIZE): int
+    public function __invoke(SymfonyStyle $io, #[Option('How many events to describe (default: the batch size from the settings)')] ?int $limit = null): int
     {
         $outcomes = $this->runner->run($limit);
         if (null === $outcomes) {

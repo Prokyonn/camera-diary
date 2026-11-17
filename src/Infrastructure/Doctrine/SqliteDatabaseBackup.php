@@ -6,6 +6,7 @@ namespace App\Infrastructure\Doctrine;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Maintenance\DatabaseBackupInterface;
+use App\Application\Settings\SettingsProviderInterface;
 use Doctrine\DBAL\Connection;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -17,12 +18,11 @@ use Symfony\Component\Finder\Finder;
  */
 final readonly class SqliteDatabaseBackup implements DatabaseBackupInterface
 {
-    public const int KEEP = 14;
-
     public function __construct(
         private Connection $connection,
         private ClockInterface $clock,
         private HomeTimeZone $homeTimeZone,
+        private SettingsProviderInterface $settings,
         #[Autowire('%app.data_dir%/backups')]
         private string $backupDir,
         private Filesystem $filesystem = new Filesystem(),
@@ -51,6 +51,6 @@ final readonly class SqliteDatabaseBackup implements DatabaseBackupInterface
             false,
         );
 
-        $this->filesystem->remove(\array_slice($backups, self::KEEP));
+        $this->filesystem->remove(\array_slice($backups, $this->settings->settings()->maintenance->backupsKept));
     }
 }

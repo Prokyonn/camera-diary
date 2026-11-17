@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Form;
 
-use App\Domain\Model\DetectionType;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -21,6 +20,7 @@ final class TimelineFilterType extends AbstractType
 {
     public function __construct(
         private readonly CameraRepositoryInterface $cameras,
+        private readonly SettingsProviderInterface $settings,
     ) {
     }
 
@@ -33,11 +33,10 @@ final class TimelineFilterType extends AbstractType
                 'required' => false,
                 'placeholder' => 'All cameras',
             ])
-            ->add('type', EnumType::class, [
-                'class' => DetectionType::class,
+            ->add('type', ChoiceType::class, [
+                'choices' => $this->detectionTypeChoices(),
                 'required' => false,
                 'placeholder' => 'Everything',
-                'choice_label' => static fn (DetectionType $type): string => ucfirst($type->value),
             ])
             ->add('falseAlarms', CheckboxType::class, ['required' => false, 'label' => 'Show false alarms']);
     }
@@ -54,6 +53,19 @@ final class TimelineFilterType extends AbstractType
     public function getBlockPrefix(): string
     {
         return '';
+    }
+
+    /**
+     * @return array<string, string> label => name
+     */
+    private function detectionTypeChoices(): array
+    {
+        $choices = [];
+        foreach ($this->settings->settings()->detectionTypes->terms as $type) {
+            $choices[$type->label] = $type->name;
+        }
+
+        return $choices;
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Application\Frame\FrameExtractorInterface;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Repository\CameraEventRepositoryInterface;
@@ -32,6 +33,7 @@ final readonly class EventIngester
         private FrameStorageInterface $frameStorage,
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
+        private SettingsProviderInterface $settings,
     ) {
     }
 
@@ -102,6 +104,13 @@ final readonly class EventIngester
 
         if ($request->endedAt instanceof DateTimeImmutable && $request->endedAt < $request->startedAt) {
             throw new InvalidIngestException('The event cannot end before it starts.');
+        }
+
+        $detectionTypes = $this->settings->settings()->detectionTypes;
+        foreach ($request->detectionTypes as $type) {
+            if (!$detectionTypes->has($type)) {
+                throw new InvalidIngestException(\sprintf('Unknown detection type "%s". Known: %s.', $type, implode(', ', $detectionTypes->names())));
+            }
         }
     }
 

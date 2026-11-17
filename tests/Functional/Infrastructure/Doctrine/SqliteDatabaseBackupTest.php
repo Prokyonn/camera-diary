@@ -6,9 +6,11 @@ namespace App\Tests\Functional\Infrastructure\Doctrine;
 
 use App\Application\Clock\HomeTimeZone;
 use App\Infrastructure\Doctrine\SqliteDatabaseBackup;
+use App\Tests\Support\ProvidesSettings;
 use App\Tests\Support\ResetsStorage;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Filesystem\Filesystem;
@@ -16,6 +18,8 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(SqliteDatabaseBackup::class)]
 final class SqliteDatabaseBackupTest extends KernelTestCase
 {
+    use ProphecyTrait;
+    use ProvidesSettings;
     use ResetsStorage;
 
     private string $backupDir;
@@ -44,6 +48,7 @@ final class SqliteDatabaseBackupTest extends KernelTestCase
             self::getContainer()->get(Connection::class),
             new MockClock('2026-11-08 02:30:00', 'UTC'),
             new HomeTimeZone('Europe/Vienna'),
+            $this->settingsProvider(['maintenance' => ['backups_kept' => 14]]),
             $this->backupDir,
         );
 

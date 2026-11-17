@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\UserInterface\Mcp;
 
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Support\ResetsStorage;
 use App\Tests\Support\StoresEvents;
@@ -33,7 +32,7 @@ final class CameraEventToolsTest extends KernelTestCase
 
     public function testSearchesEventsWithLocalTimesAndLinks(): void
     {
-        $fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: Subject::Person, side: Side::Outside);
+        $fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: 'person', side: Side::Outside);
         $this->storeEvents(self::getContainer(), $fence, CameraEventFactory::described('A grey cat.'));
 
         $results = $this->tools->search(query: 'person gravel path', camera: 'garden', from: '2026-11-07T00:00:00');

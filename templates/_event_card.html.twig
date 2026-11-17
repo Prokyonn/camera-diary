@@ -16,7 +16,7 @@
                 {{ event.camera.name }}
             </h3>
             <p class="badges">
-                {% for type in event.detectionTypes %}<span class="badge">{{ type.value }}</span>{% endfor %}
+                {% for type in event.detectionTypes %}<span class="badge">{{ type|term_label('detection_types') }}</span>{% endfor %}
                 {% if event.effectiveVerdict %}<span class="badge verdict-{{ event.effectiveVerdict.value }}">{{ event.effectiveVerdict.label }}</span>{% endif %}
                 {% if event.unusual and not event.falseAlarm %}<span class="badge is-unusual">Unusual</span>{% endif %}
                 {% if event.side and event.side.value != 'unclear' %}<span class="badge">{{ event.side.label }}</span>{% endif %}

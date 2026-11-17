@@ -7,6 +7,7 @@ namespace App\Infrastructure\Ai\Client;
 use App\Application\Ai\AiRequestFailedException;
 use JsonException;
 use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactoryInterface;
 use Symfony\AI\Platform\StructuredOutput\Serializer;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 
@@ -17,7 +18,7 @@ use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExcep
 final readonly class OutputDecoder
 {
     public function __construct(
-        private ResponseFormatFactory $responseFormats = new ResponseFormatFactory(),
+        private ResponseFormatFactoryInterface $responseFormats = new ResponseFormatFactory(),
         private Serializer $serializer = new Serializer(),
     ) {
     }

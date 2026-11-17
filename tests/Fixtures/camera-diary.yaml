@@ -1,0 +1,3 @@
+ai:
+    daily_call_limit: 100
+    home_context: Our cat is called Luna.

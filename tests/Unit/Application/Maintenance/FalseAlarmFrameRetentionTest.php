@@ -11,6 +11,7 @@ use App\Application\Search\EventIndexerInterface;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
+use App\Tests\Support\ProvidesSettings;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -21,6 +22,7 @@ use Symfony\Component\Clock\MockClock;
 final class FalseAlarmFrameRetentionTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     public function testRemovesFramesOfFalseAlarmsOlderThanThirtyDays(): void
     {
@@ -38,7 +40,7 @@ final class FalseAlarmFrameRetentionTest extends TestCase
         $unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
         $unitOfWork->flush()->shouldBeCalledOnce();
 
-        $retention = new FalseAlarmFrameRetention($events->reveal(), $storage->reveal(), $indexer->reveal(), $unitOfWork->reveal(), new MockClock('2026-12-08 03:30:00', 'UTC'));
+        $retention = new FalseAlarmFrameRetention($events->reveal(), $storage->reveal(), $indexer->reveal(), $unitOfWork->reveal(), $this->settingsProvider(['maintenance' => ['false_alarm_frame_days' => 30]]), new MockClock('2026-12-08 03:30:00', 'UTC'));
 
         self::assertSame(1, $retention->run());
         self::assertSame([], $web->getFramePaths());

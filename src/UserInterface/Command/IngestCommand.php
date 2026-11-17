@@ -8,7 +8,6 @@ use App\Application\Clock\HomeTimeZone;
 use App\Application\Ingest\EventIngester;
 use App\Application\Ingest\IngestRequest;
 use App\Application\Ingest\InvalidIngestException;
-use App\Domain\Model\DetectionType;
 use DateTimeImmutable;
 use Exception;
 use Psr\Clock\ClockInterface;
@@ -18,7 +17,6 @@ use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use ValueError;
 
 #[AsCommand('app:ingest', 'Store an event from a video or up to three images, like POST /api/events')]
 final readonly class IngestCommand
@@ -44,7 +42,7 @@ final readonly class IngestCommand
         array $files,
         #[Option('Start of the event in APP_TIMEZONE, e.g. "2026-11-10 07:16:20" or "-5 minutes" (default: now)')]
         string $at = '',
-        #[Option('What the camera detected: person, animal, vehicle or motion')]
+        #[Option('What the camera detected, e.g. person; see detection_types in the settings')]
         array $detection = [],
         #[Option('Context for the AI, e.g. "Doorbell rang"')]
         array $hint = [],
@@ -55,8 +53,7 @@ final readonly class IngestCommand
     ): int {
         try {
             $startedAt = '' === $at ? $this->clock->now() : new DateTimeImmutable($at, $this->homeTimeZone->zone());
-            $types = array_map(DetectionType::from(...), $detection);
-        } catch (Exception|ValueError $exception) {
+        } catch (Exception $exception) {
             $io->error($exception->getMessage());
 
             return Command::INVALID;
@@ -85,7 +82,7 @@ final readonly class IngestCommand
                 startedAt: $startedAt,
                 videoPath: $video,
                 imagePaths: $images,
-                detectionTypes: $types,
+                detectionTypes: $detection,
                 hints: $hint,
                 source: $source,
                 externalId: $externalId,

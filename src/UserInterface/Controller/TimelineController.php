@@ -6,8 +6,8 @@ namespace App\UserInterface\Controller;
 
 use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\UserInterface\Form\TimelineFilter;
 use App\UserInterface\Form\TimelineFilterType;
@@ -28,6 +28,7 @@ final class TimelineController extends AbstractController
         private readonly CameraEventRepositoryInterface $events,
         private readonly HomeTimeZone $homeTimeZone,
         private readonly AiCallBudgetInterface $budget,
+        private readonly SettingsProviderInterface $settings,
         private readonly ClockInterface $clock,
     ) {
     }
@@ -51,7 +52,7 @@ final class TimelineController extends AbstractController
         if (null !== $filter->camera) {
             $filters['cameraSlug'] = $filter->camera;
         }
-        if ($filter->type instanceof DetectionType) {
+        if (null !== $filter->type) {
             $filters['detectionType'] = $filter->type;
         }
         if (!$filter->falseAlarms) {
@@ -66,14 +67,27 @@ final class TimelineController extends AbstractController
             'isToday' => $day->format('Y-m-d') === $today->format('Y-m-d'),
             'filterQuery' => array_filter([
                 'camera' => $filter->camera,
-                'type' => $filter->type?->value,
+                'type' => $filter->type,
                 'falseAlarms' => $filter->falseAlarms ? '1' : null,
             ], static fn (?string $value): bool => null !== $value),
             'events' => $events,
             'latestBefore' => [] === $events ? $this->latestBefore($filters, $from) : null,
-            'aiCallsToday' => $this->budget->usedToday(),
-            'aiDailyLimit' => $this->budget->dailyLimit(),
+            'aiUsage' => $this->aiUsage(),
         ]);
+    }
+
+    /**
+     * @return list<array{label: string, used: int, limit: int}> today's AI calls in total, then per call pool
+     */
+    private function aiUsage(): array
+    {
+        $ai = $this->settings->settings()->ai;
+        $usage = [['label' => 'AI calls today', 'used' => $this->budget->usedToday(), 'limit' => $ai->dailyCallLimit]];
+        foreach ($ai->callPools as $pool) {
+            $usage[] = ['label' => $pool->label(), 'used' => $this->budget->usedToday($pool), 'limit' => $pool->dailyCallLimit];
+        }
+
+        return $usage;
     }
 
     /**

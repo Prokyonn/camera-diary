@@ -8,9 +8,7 @@ use App\Application\Search\EventIndexerInterface;
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\FalseAlarmCause;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 use App\Infrastructure\Seal\SealEventIndexer;
 use App\Infrastructure\Seal\SealEventSearch;
@@ -42,8 +40,8 @@ final class SealEventSearchTest extends KernelTestCase
         $this->greyCat = CameraEventFactory::described('A grey cat drags the doormat from the cat flap to the door.', '2026-11-06 06:16:40');
         $this->luna = CameraEventFactory::described('A cat sits right in front of the lens.', '2026-11-06 16:53:53', 'garden');
         $this->luna->relabel('Luna', null);
-        $this->fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: Subject::Person, side: Side::Outside);
-        $this->web = CameraEventFactory::described('A thin thread swings across the lens.', '2026-11-06 16:36:00', 'garden', Verdict::FalseAlarm, Subject::Nothing, Side::Unclear, FalseAlarmCause::SpiderWeb);
+        $this->fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: 'person', side: Side::Outside);
+        $this->web = CameraEventFactory::described('A thin thread swings across the lens.', '2026-11-06 16:36:00', 'garden', Verdict::FalseAlarm, 'nothing', Side::Unclear, 'spider_web');
 
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $indexer = self::getContainer()->get(EventIndexerInterface::class);

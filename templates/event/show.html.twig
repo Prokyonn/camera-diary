@@ -24,7 +24,7 @@
 
     <dl class="facts">
         <dt>Detected</dt>
-        <dd>{{ event.detectionTypes is empty ? 'not specified' : event.detectionTypes|map(type => type.value)|join(' and ') }}{% if event.detectionCount > 1 %}, {{ event.detectionCount }} times{% endif %}</dd>
+        <dd>{{ event.detectionTypes is empty ? 'not specified' : event.detectionTypes|map(type => type|term_label('detection_types'))|join(' and ') }}{% if event.detectionCount > 1 %}, {{ event.detectionCount }} times{% endif %}</dd>
         <dt>Source</dt>
         <dd>{{ event.source }}</dd>
         <dt>Status</dt>
@@ -35,13 +35,13 @@
             <dt>Verdict</dt>
             <dd>
                 {{ event.effectiveVerdict.label }}{% if event.unusual and not event.falseAlarm %}, unusual{% endif %}
-                {% if event.falseAlarm and event.falseAlarmCause and event.falseAlarmCause.value != 'none' %}({{ event.falseAlarmCause.label }}){% endif %}
+                {% if event.falseAlarm and event.falseAlarmCause %}({{ event.falseAlarmCause|term_label('false_alarm_causes') }}){% endif %}
                 {% if event.verdictOverride %}<small>set by hand; the AI said {{ event.verdict.label|default('nothing') }}</small>{% endif %}
             </dd>
             <dt>Side</dt>
             <dd>{{ event.side.label }}</dd>
             <dt>Subject</dt>
-            <dd>{{ event.subject.label }}</dd>
+            <dd>{{ event.subject|term_label('subjects') }}</dd>
         {% endif %}
         {% if hints is not empty %}
             <dt>Hints</dt>

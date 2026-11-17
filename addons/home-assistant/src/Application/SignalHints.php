@@ -15,8 +15,6 @@ use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
  */
 final readonly class SignalHints implements HintProviderInterface
 {
-    public const int WINDOW_SECONDS = 180;
-
     public function __construct(
         private HomeSignalRepositoryInterface $signals,
         private SettingsProviderInterface $settings,
@@ -32,8 +30,8 @@ final readonly class SignalHints implements HintProviderInterface
         }
 
         $signals = $this->signals->findBy([
-            'changedAtOrAfter' => $event->getStartedAt()->modify(\sprintf('-%d seconds', self::WINDOW_SECONDS)),
-            'changedAtOrBefore' => $event->getEndedAt()->modify(\sprintf('+%d seconds', self::WINDOW_SECONDS)),
+            'changedAtOrAfter' => $event->getStartedAt()->modify(\sprintf('-%d seconds', $settings->hintWindowSeconds)),
+            'changedAtOrBefore' => $event->getEndedAt()->modify(\sprintf('+%d seconds', $settings->hintWindowSeconds)),
         ], ['changedAt' => 'asc']);
 
         $hints = [];

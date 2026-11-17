@@ -11,6 +11,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **Any camera, any app.** Anything that can send a video or an image posts it to one hook. A Home Assistant add-on comes along, cutting frames from continuous recordings.
 - **Any AI, including your subscription.** Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the CLI you are already logged in to.
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light), where it happened, and a short description. You can correct both the label and the verdict.
+- **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI and the app use it.
 - **Questions with sources.** The AI turns the question into a search, then looks at the best matches' frames and answers with the events it relies on.
 - **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events.
 - **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
@@ -88,9 +89,16 @@ Google AI Pro and Ultra include monthly Google Cloud credits through the Google 
 
 For `vertexai`, enable the Agent Platform API (formerly Vertex AI) in a project with billing, and create an API key bound to a service account with the role `aiplatform.user`. Google's default organization policy blocks such keys for private accounts, so `gemini` is the simpler choice there.
 
-`AI_DAILY_CALL_LIMIT` caps the AI calls per day (default 500). Events over the cap wait for the next day. `AI_HOME_CONTEXT` is free text every prompt gets, e.g. "Our cat is called Luna." `AI_UNUSUAL_RULE` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
-
 The CLI providers run on the machine that runs the worker. The Docker image does not contain them.
+
+## Settings
+
+Everything an installation may want to change lives in one YAML file, `var/data/camera-diary.yaml` (or `CAMERA_DIARY_CONFIG`). Every key is optional, and a running worker picks up changes. [camera-diary.example.yaml](camera-diary.example.yaml) lists them all; `bin/console app:settings` checks the file.
+
+- **AI limits:** `ai.daily_call_limit` (default 500) caps the calls per day; events over it wait for the next day. `ai.call_pools` gives detection types a share of it, e.g. 75 calls for animals, so a spider web in front of the lens cannot use up the calls for people.
+- **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Luna." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
+- **Vocabularies:** `detection_types`, `subjects` and `false_alarm_causes` merge with the defaults. Add a name with a label and a hint for the AI, or remove one with `name: false`. The AI's output schema takes its allowed values from these lists.
+- **Timings:** frame offsets, retries, batch size, question limits, the nightly clean-up time and how long false-alarm frames and backups are kept.
 
 ## The hook
 
@@ -110,7 +118,7 @@ curl -H "Authorization: Bearer $INGEST_TOKEN" \
 | `camera` | Slug: lower-case letters, digits, `-`, `_`. Unknown cameras are created. |
 | `video` or `images[]` | One video (frames are taken at 25, 50 and 75 % of it) or up to three images |
 | `startedAt`, `endedAt` | ISO 8601; default now |
-| `detections[]` | `person`, `animal`, `vehicle`, `motion` |
+| `detections[]` | Names from `detection_types` in the settings (default `person`, `animal`, `vehicle`, `motion`) |
 | `hints[]` | Context for the AI and the search, e.g. "Front door opened" |
 | `externalId`, `source` | Your id and app name; sending the same pair again returns the stored event |
 | `cameraName` | Display name for a new camera |
@@ -148,9 +156,9 @@ One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg):
 - **Web:** the image's default command.
 - **Worker:** `bin/console messenger:consume scheduler_default scheduler_home_assistant`.
   - Every minute it describes up to 20 pending events and runs the add-on import.
-  - At 03:30 (`APP_TIMEZONE`) it removes false-alarm frames older than 30 days and writes a database backup (14 kept).
+  - At 03:30 (`APP_TIMEZONE`) it removes false-alarm frames older than 30 days and writes a database backup (14 kept). All of these are [settings](#settings).
 
-Everything lives in `var/data`: the SQLite database, the Loupe search index, frames, backups and locks. Mount it as a volume. `compose.yaml` shows the layout.
+Everything lives in `var/data`: the SQLite database, the Loupe search index, frames, backups, locks and the settings file. Mount it as a volume. `compose.yaml` shows the layout.
 
 ## Development
 

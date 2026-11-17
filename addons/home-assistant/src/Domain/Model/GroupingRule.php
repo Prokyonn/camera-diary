@@ -8,12 +8,15 @@ use App\Domain\Model\CameraEvent;
 use DateTimeImmutable;
 
 /**
- * Detections less than two minutes apart form one event; an event is capped at ten minutes.
+ * Detections less than maxGapSeconds apart form one event; an event lasts at most maxDurationSeconds.
  */
 final readonly class GroupingRule
 {
-    public const int MAX_GAP_SECONDS = 120;
-    public const int MAX_DURATION_SECONDS = 600;
+    public function __construct(
+        public int $maxGapSeconds,
+        public int $maxDurationSeconds,
+    ) {
+    }
 
     public function joins(CameraEvent $event, DateTimeImmutable $detectedAt): bool
     {
@@ -21,8 +24,8 @@ final readonly class GroupingRule
         $start = $event->getStartedAt()->getTimestamp();
 
         return $at >= $start
-            && $at - $event->getEndedAt()->getTimestamp() <= self::MAX_GAP_SECONDS
-            && $at - $start <= self::MAX_DURATION_SECONDS;
+            && $at - $event->getEndedAt()->getTimestamp() <= $this->maxGapSeconds
+            && $at - $start <= $this->maxDurationSeconds;
     }
 
     /**
@@ -30,6 +33,6 @@ final readonly class GroupingRule
      */
     public function closedBefore(DateTimeImmutable $importedUntil): DateTimeImmutable
     {
-        return $importedUntil->modify(\sprintf('-%d seconds', self::MAX_GAP_SECONDS));
+        return $importedUntil->modify(\sprintf('-%d seconds', $this->maxGapSeconds));
     }
 }

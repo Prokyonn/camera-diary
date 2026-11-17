@@ -9,8 +9,8 @@ All times are stored in UTC and shown in `APP_TIMEZONE`.
 | Layer | Holds |
 |---|---|
 | `Domain` | Models (`Camera`, `CameraEvent`, enums) and repository interfaces with filter shapes |
-| `Application` | Use cases (`EventIngester`, `EventProcessor`, `PendingEventRunner`, `QuestionAnswerer`, `CameraEventLabeler`, `DeepLinkResolver`, maintenance), ports for everything outside, and the extension points for add-ons |
-| `Infrastructure` | Adapters: Doctrine repositories, AI call budget and SQLite backup; ffmpeg; the AI clients; SEAL/Loupe search; the ingest token |
+| `Application` | Use cases (`EventIngester`, `EventProcessor`, `PendingEventRunner`, `QuestionAnswerer`, `CameraEventLabeler`, `DeepLinkResolver`, maintenance), the settings, ports for everything outside, and the extension points for add-ons |
+| `Infrastructure` | Adapters: Doctrine repositories, AI call budget and SQLite backup; ffmpeg; the AI clients; SEAL/Loupe search; the ingest token; the settings file |
 | `UserInterface` | Controllers, the ingest API, forms, console commands, MCP tools, the schedule |
 
 Ports and adapters:
@@ -23,8 +23,17 @@ Ports and adapters:
 | `EventIndexerInterface`, `EventSearchInterface` | `Seal\SealEventIndexer`, `Seal\SealEventSearch` |
 | `DatabaseBackupInterface` | `Doctrine\SqliteDatabaseBackup` |
 | `UnitOfWorkInterface` | `Doctrine\DoctrineUnitOfWork` |
+| `SettingsProviderInterface` | `Settings\YamlSettingsProvider` |
 
 Repositories only offer `add`, `remove`, `findBy`, `findOneBy`, `getOneBy` and `countBy`. Each Doctrine implementation lists its `ALLOWED_FILTER_KEYS` and rejects other keys.
+
+## Settings
+
+`SettingsProviderInterface` returns one `Settings` object: the vocabularies, the AI limits and context, and the timings. `YamlSettingsProvider` reads `CAMERA_DIARY_CONFIG`, validates it against `SettingsConfiguration` (defaults for everything left out) and reads it again when the file changes. Nothing else reads the environment for these values.
+
+- **Vocabularies:** detection types, subjects and false-alarm causes are configured `Term`s (name, label, hint for the AI). Events store the names; the domain only checks their form (`TermName`). Verdict, side and status stay enums because the code branches on them.
+- **AI output:** fields marked `#[VocabularyChoice]` get the configured names as their JSON schema `enum`, through `VocabularyResponseFormatFactory`, which decorates Symfony AI's response format factory. The CLI clients use the same factory.
+- **Labels:** `{{ name|term_label('subjects') }}` in Twig; names no longer configured read as words.
 
 ## Data flow
 
@@ -61,11 +70,11 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 
 ## Description
 
-- `PendingEventRunner` runs every minute under the lock `camera-event-description`. It takes up to 20 closed, pending, due events, newest first.
+- `PendingEventRunner` runs every minute under the lock `camera-event-description`. It takes up to `description.batch_size` (20) closed, pending, due events, newest first.
 - `EventProcessor` gets the frames from the event's frame source if the event has none. It then checks the budget, describes the event, stores the result, and indexes it.
-- Retries: an AI or ffmpeg failure retries every 10 minutes, and gives `failed` after 8 attempts. Missing footage waits up to an hour, then gives `no_footage`.
-- The AI gets the camera's scene, `AI_HOME_CONTEXT`, `AI_UNUSUAL_RULE`, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, summary, and whether the event is unusual.
-- Daily budget: `AI_DAILY_CALL_LIMIT` calls per local day, counted atomically in `ai_usage`. Over the limit, events stay pending with their frames, and questions fall back to plain search.
+- Retries: an AI or ffmpeg failure retries every 10 minutes, and gives `failed` after 8 attempts. Missing footage waits up to an hour, then gives `no_footage`. All three are settings (`description.*`).
+- The AI gets the camera's scene, the settings' home context, unusual rule and false-alarm causes, the hints and the frames. It returns structured output: verdict, false-alarm cause, side, subject, summary, and whether the event is unusual.
+- Daily budget: `ai.daily_call_limit` calls per local day, counted atomically in `ai_usage`. An event in a call pool (the first pool with one of its detection types) also needs room in that pool, counted in `ai_pool_usage`; the runner skips such events and goes on with the others. Over the daily limit, events stay pending with their frames, and questions fall back to plain search.
 - Manual corrections: a free-text label and a verdict override. The effective verdict is the override, else the AI's.
 
 ## AI clients
@@ -102,7 +111,7 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 | Message | When | Work |
 |---|---|---|
 | `DescribePendingEvents` | every minute | `PendingEventRunner` |
-| `RunNightlyMaintenance` | 03:30 local | remove false-alarm frames older than 30 days, `VACUUM INTO` a backup (14 kept) |
+| `RunNightlyMaintenance` | `maintenance.nightly_at` (03:30 local) | remove false-alarm frames older than 30 days, `VACUUM INTO` a backup (14 kept); both configurable |
 | `ImportHistory` (add-on) | every minute | Home Assistant import, see the add-on README |
 
 The default schedule is stateful, so a missed nightly run happens after a restart.

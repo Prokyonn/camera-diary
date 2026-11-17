@@ -7,6 +7,7 @@ namespace App\Application\Maintenance;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use Psr\Clock\ClockInterface;
 
@@ -15,13 +16,12 @@ use Psr\Clock\ClockInterface;
  */
 final readonly class FalseAlarmFrameRetention
 {
-    public const int KEEP_DAYS = 30;
-
     public function __construct(
         private CameraEventRepositoryInterface $events,
         private FrameStorageInterface $frameStorage,
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
+        private SettingsProviderInterface $settings,
         private ClockInterface $clock,
     ) {
     }
@@ -35,7 +35,7 @@ final readonly class FalseAlarmFrameRetention
         $events = $this->events->findBy([
             'falseAlarm' => true,
             'framesRemoved' => false,
-            'startedBefore' => $now->modify(\sprintf('-%d days', self::KEEP_DAYS)),
+            'startedBefore' => $now->modify(\sprintf('-%d days', $this->settings->settings()->maintenance->falseAlarmFrameDays)),
         ]);
 
         foreach ($events as $event) {

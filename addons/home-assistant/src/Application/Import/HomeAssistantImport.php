@@ -73,7 +73,7 @@ final readonly class HomeAssistantImport
         return new ImportReport(
             $import,
             $newEvents,
-            $cursor instanceof ImportCursor ? $this->grouper->closeSettled($cursor->getImportedUntil()) : 0,
+            $cursor instanceof ImportCursor ? $this->grouper->closeSettled($settings, $cursor->getImportedUntil()) : 0,
         );
     }
 

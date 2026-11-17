@@ -26,9 +26,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[AsEventListener]
 final readonly class VerdictPush
 {
-    /** An older push is no longer worth updating, e.g. after a day over the AI budget. */
-    public const int MAX_AGE_SECONDS = 3600;
-
     public function __construct(
         private SettingsProviderInterface $settings,
         private EventHandovers $handovers,
@@ -51,7 +48,7 @@ final readonly class VerdictPush
         $event = $described->event;
         $now = $this->clock->now();
         foreach ($this->handovers->forEvent($event) as $handover) {
-            if ($handover->isUpdated() || $now->getTimestamp() - $handover->getPushedAt()->getTimestamp() > self::MAX_AGE_SECONDS) {
+            if ($handover->isUpdated() || $now->getTimestamp() - $handover->getPushedAt()->getTimestamp() > $push->maxAgeSeconds) {
                 continue;
             }
 

@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Infrastructure\Doctrine;
 
 use App\Domain\Exception\CameraEventNotFoundException;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
@@ -38,15 +37,15 @@ final class DoctrineCameraEventRepositoryTest extends KernelTestCase
     public function testFiltersByCameraTimeAndDetectionType(): void
     {
         $this->store(
-            CameraEventFactory::create('2026-11-07 13:55:00', 'garden', DetectionType::Person),
-            CameraEventFactory::create('2026-11-07 13:58:00', 'garden', DetectionType::Animal),
-            CameraEventFactory::create('2026-11-07 13:56:00', 'terrace', DetectionType::Person),
-            CameraEventFactory::create('2026-11-08 08:00:00', 'garden', DetectionType::Person),
+            CameraEventFactory::create('2026-11-07 13:55:00', 'garden', 'person'),
+            CameraEventFactory::create('2026-11-07 13:58:00', 'garden', 'animal'),
+            CameraEventFactory::create('2026-11-07 13:56:00', 'terrace', 'person'),
+            CameraEventFactory::create('2026-11-08 08:00:00', 'garden', 'person'),
         );
 
         $events = $this->repository->findBy([
             'cameraSlug' => 'garden',
-            'detectionType' => DetectionType::Person,
+            'detectionType' => 'person',
             'startedAtOrAfter' => CameraEventFactory::utc('2026-11-07 00:00:00'),
             'startedBefore' => CameraEventFactory::utc('2026-11-08 00:00:00'),
         ], ['startedAt' => 'desc']);

@@ -12,6 +12,7 @@ use App\Infrastructure\Ai\Client\PlatformStructuredClient;
 use App\Infrastructure\Ai\HomeContext;
 use App\Tests\Factory\CameraFactory;
 use App\Tests\Support\FakePlatform;
+use App\Tests\Support\ProvidesSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -22,6 +23,7 @@ use Symfony\Component\Clock\MockClock;
 final class AiQuestionPlannerTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     public function testTurnsThePlanIntoSearchCriteria(): void
     {
@@ -33,7 +35,7 @@ final class AiQuestionPlannerTest extends TestCase
         $planner = new AiQuestionPlanner(
             new PlatformStructuredClient($platform, 'test-model'),
             new HomeTimeZone('Europe/Vienna'),
-            new HomeContext($cameras->reveal(), '', ''),
+            new HomeContext($cameras->reveal(), $this->settingsProvider()),
             new MockClock('2026-11-08 10:00:00', 'UTC'),
         );
 

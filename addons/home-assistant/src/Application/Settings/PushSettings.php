@@ -10,15 +10,18 @@ namespace CameraDiary\HomeAssistant\Application\Settings;
 final readonly class PushSettings
 {
     /**
-     * @param array<string, string> $muteActions action id => button title, kept on pushes that had them
+     * @param array<string, string>      $muteActions action id => button title, kept on pushes that had them
+     * @param non-empty-list<float|null> $frames      per frame of an event: null for the snapshot, else the second in the clip
      */
     public function __construct(
         public string $handoverEntity,
         public string $notifyService,
-        public ?string $url = null,
-        public string $detailsTitle = 'Details',
-        public string $loudInterruptionLevel = 'active',
-        public array $muteActions = [],
+        public ?string $url,
+        public string $detailsTitle,
+        public string $loudInterruptionLevel,
+        public array $muteActions,
+        public int $maxAgeSeconds,
+        public array $frames,
     ) {
     }
 }

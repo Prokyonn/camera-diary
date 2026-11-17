@@ -7,7 +7,6 @@ namespace CameraDiary\HomeAssistant\Tests\Unit\Application\Import;
 use App\Application\Camera\CameraRegistry;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
@@ -55,10 +54,10 @@ final class EventGrouperTest extends TestCase
     public function testGroupsDetectionsLessThanTwoMinutesApartIntoOpenEvents(): void
     {
         $detections = [
-            new Detection('garden', DetectionType::Person, CameraEventFactory::utc('2026-11-07 13:55:00')),
-            new Detection('terrace', DetectionType::Person, CameraEventFactory::utc('2026-11-07 13:55:10')),
-            new Detection('garden', DetectionType::Animal, CameraEventFactory::utc('2026-11-07 13:56:30')),
-            new Detection('garden', DetectionType::Person, CameraEventFactory::utc('2026-11-07 14:05:00')),
+            new Detection('garden', 'person', CameraEventFactory::utc('2026-11-07 13:55:00')),
+            new Detection('terrace', 'person', CameraEventFactory::utc('2026-11-07 13:55:10')),
+            new Detection('garden', 'animal', CameraEventFactory::utc('2026-11-07 13:56:30')),
+            new Detection('garden', 'person', CameraEventFactory::utc('2026-11-07 14:05:00')),
         ];
         $this->detections->findBy(['unassigned' => true], ['detectedAt' => 'asc'])->willReturn($detections);
         $this->events->findOneBy(Argument::cetera())->willReturn(null);
@@ -71,7 +70,7 @@ final class EventGrouperTest extends TestCase
         self::assertNotNull($first);
         self::assertSame($first, $detections[2]->getEvent());
         self::assertSame(2, $first->getDetectionCount());
-        self::assertSame([DetectionType::Person, DetectionType::Animal], $first->getDetectionTypes());
+        self::assertSame(['person', 'animal'], $first->getDetectionTypes());
         self::assertSame(EventGrouper::SOURCE, $first->getSource());
         self::assertTrue($first->isOpen());
         self::assertSame('terrace', $detections[1]->getEvent()?->getCamera()->getSlug());
@@ -80,8 +79,8 @@ final class EventGrouperTest extends TestCase
 
     public function testJoinsAnOpenEventFromAnEarlierImport(): void
     {
-        $open = CameraEventFactory::create('2026-11-07 13:55:00', 'garden', DetectionType::Person, 7, EventGrouper::SOURCE, open: true);
-        $detection = new Detection('garden', DetectionType::Person, CameraEventFactory::utc('2026-11-07 13:56:00'));
+        $open = CameraEventFactory::create('2026-11-07 13:55:00', 'garden', 'person', 7, EventGrouper::SOURCE, open: true);
+        $detection = new Detection('garden', 'person', CameraEventFactory::utc('2026-11-07 13:56:00'));
         $this->detections->findBy(Argument::cetera())->willReturn([$detection]);
         $this->events->findOneBy(['cameraSlug' => 'garden', 'source' => EventGrouper::SOURCE, 'startedAtOrBefore' => $detection->getDetectedAt()], ['startedAt' => 'desc'])->willReturn($open);
 
@@ -92,8 +91,8 @@ final class EventGrouperTest extends TestCase
 
     public function testStartsANewEventNextToAClosedEvent(): void
     {
-        $closed = CameraEventFactory::create('2026-11-07 09:40:00', 'terrace', DetectionType::Person, 3, EventGrouper::SOURCE);
-        $detection = new Detection('terrace', DetectionType::Person, CameraEventFactory::utc('2026-11-07 09:40:30'));
+        $closed = CameraEventFactory::create('2026-11-07 09:40:00', 'terrace', 'person', 3, EventGrouper::SOURCE);
+        $detection = new Detection('terrace', 'person', CameraEventFactory::utc('2026-11-07 09:40:30'));
         $this->detections->findBy(Argument::cetera())->willReturn([$detection]);
         $this->events->findOneBy(Argument::cetera())->willReturn($closed);
 
@@ -103,12 +102,12 @@ final class EventGrouperTest extends TestCase
 
     public function testClosesEventsNoDetectionCanJoinAnymore(): void
     {
-        $settled = CameraEventFactory::create('2026-11-07 09:40:00', 'garden', DetectionType::Person, 3, EventGrouper::SOURCE, open: true);
+        $settled = CameraEventFactory::create('2026-11-07 09:40:00', 'garden', 'person', 3, EventGrouper::SOURCE, open: true);
         $importedUntil = CameraEventFactory::utc('2026-11-07 09:43:00');
         $this->events->findBy(['source' => EventGrouper::SOURCE, 'open' => true, 'endedBefore' => CameraEventFactory::utc('2026-11-07 09:41:00')])->willReturn([$settled]);
         $this->unitOfWork->flush()->shouldBeCalledOnce();
 
-        self::assertSame(1, $this->grouper()->closeSettled($importedUntil));
+        self::assertSame(1, $this->grouper()->closeSettled(SettingsFactory::create(), $importedUntil));
         self::assertFalse($settled->isOpen());
     }
 

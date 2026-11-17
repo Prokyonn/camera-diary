@@ -7,7 +7,6 @@ namespace App\UserInterface\Mcp;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\HintCollector;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -33,11 +32,11 @@ final readonly class EventPresenter
             'camera_name' => $event->getCamera()->getName(),
             'started_at' => $this->homeTimeZone->toLocal($event->getStartedAt())->format(\DATE_ATOM),
             'ended_at' => $this->homeTimeZone->toLocal($event->getEndedAt())->format(\DATE_ATOM),
-            'detected' => array_map(static fn (DetectionType $type): string => $type->value, $event->getDetectionTypes()),
+            'detected' => $event->getDetectionTypes(),
             'status' => $event->getStatus()->value,
             'verdict' => $event->getEffectiveVerdict()?->value,
             'side' => $event->getSide()?->value,
-            'subject' => $event->getSubject()?->value,
+            'subject' => $event->getSubject(),
             'summary' => $event->getSummary(),
             'label' => $event->getLabel(),
             'hints' => $this->hints->hintsFor($event),

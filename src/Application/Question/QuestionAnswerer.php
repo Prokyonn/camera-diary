@@ -8,18 +8,18 @@ use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Ai\AiRequestFailedException;
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
 use Psr\Log\LoggerInterface;
 
 final readonly class QuestionAnswerer
 {
-    public const int SEARCH_LIMIT = 12;
-
     public function __construct(
         private QuestionPlannerInterface $planner,
         private AnswerWriterInterface $writer,
         private EventSearchInterface $search,
         private AiCallBudgetInterface $budget,
+        private SettingsProviderInterface $settings,
         private LoggerInterface $logger,
     ) {
     }
@@ -51,13 +51,13 @@ final readonly class QuestionAnswerer
     {
         if ($this->budget->tryConsume()) {
             try {
-                return $this->planner->plan($question, self::SEARCH_LIMIT);
+                return $this->planner->plan($question, $this->settings->settings()->questions->searchResults);
             } catch (AiRequestFailedException $exception) {
                 $this->logger->warning('The AI could not plan the search: {message}', ['message' => $exception->getMessage()]);
             }
         }
 
-        return new SearchCriteria(text: $question, limit: self::SEARCH_LIMIT);
+        return new SearchCriteria(text: $question, limit: $this->settings->settings()->questions->searchResults);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Domain\Model;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use LogicException;
 
 /**
@@ -30,7 +31,7 @@ class CameraEvent
     #[ORM\Column]
     private DateTimeImmutable $endedAt;
 
-    /** @var list<string> */
+    /** @var list<string> names from the detection types vocabulary */
     #[ORM\Column(type: Types::JSON)]
     private array $detectionTypes;
 
@@ -66,14 +67,16 @@ class CameraEvent
     #[ORM\Column(length: 16, nullable: true)]
     private ?Verdict $verdict = null;
 
-    #[ORM\Column(length: 16, nullable: true)]
-    private ?FalseAlarmCause $falseAlarmCause = null;
+    /** a name from the false-alarm causes vocabulary; null for real events */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $falseAlarmCause = null;
 
     #[ORM\Column(length: 16, nullable: true)]
     private ?Side $side = null;
 
-    #[ORM\Column(length: 16, nullable: true)]
-    private ?Subject $subject = null;
+    /** a name from the subjects vocabulary */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $subject = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $summary = null;
@@ -94,8 +97,8 @@ class CameraEvent
     private ?Verdict $verdictOverride = null;
 
     /**
-     * @param list<DetectionType> $detectionTypes
-     * @param bool                $open           an open event still takes detections and is not described yet
+     * @param list<string> $detectionTypes names from the detection types vocabulary
+     * @param bool         $open           an open event still takes detections and is not described yet
      */
     public function __construct(
         #[ORM\ManyToOne]
@@ -117,7 +120,7 @@ class CameraEvent
         }
 
         $this->endedAt = $endedAt ?? $startedAt;
-        $this->detectionTypes = array_values(array_unique(array_map(static fn (DetectionType $type): string => $type->value, $detectionTypes)));
+        $this->detectionTypes = array_values(array_unique(array_map($this->termName(...), $detectionTypes)));
     }
 
     public function getId(): int
@@ -141,11 +144,11 @@ class CameraEvent
     }
 
     /**
-     * @return list<DetectionType>
+     * @return list<string>
      */
     public function getDetectionTypes(): array
     {
-        return array_map(DetectionType::from(...), $this->detectionTypes);
+        return $this->detectionTypes;
     }
 
     public function getSource(): string
@@ -219,7 +222,7 @@ class CameraEvent
         return $this->verdict;
     }
 
-    public function getFalseAlarmCause(): ?FalseAlarmCause
+    public function getFalseAlarmCause(): ?string
     {
         return $this->falseAlarmCause;
     }
@@ -229,7 +232,7 @@ class CameraEvent
         return $this->side;
     }
 
-    public function getSubject(): ?Subject
+    public function getSubject(): ?string
     {
         return $this->subject;
     }
@@ -279,7 +282,10 @@ class CameraEvent
         return $this->open && EventStatus::Pending === $this->status && [] === $this->framePaths;
     }
 
-    public function addDetection(DetectionType $type, DateTimeImmutable $detectedAt): void
+    /**
+     * @param string $type a name from the detection types vocabulary
+     */
+    public function addDetection(string $type, DateTimeImmutable $detectedAt): void
     {
         if (!$this->canTakeDetections()) {
             throw new LogicException('Detections can only join an open, pending event without frames.');
@@ -289,8 +295,9 @@ class CameraEvent
             $this->endedAt = $detectedAt;
         }
 
-        if (!\in_array($type->value, $this->detectionTypes, true)) {
-            $this->detectionTypes[] = $type->value;
+        $type = $this->termName($type);
+        if (!\in_array($type, $this->detectionTypes, true)) {
+            $this->detectionTypes[] = $type;
         }
 
         ++$this->detectionCount;
@@ -326,18 +333,18 @@ class CameraEvent
 
     public function describe(
         Verdict $verdict,
-        FalseAlarmCause $falseAlarmCause,
+        ?string $falseAlarmCause,
         Side $side,
-        Subject $subject,
+        string $subject,
         string $summary,
         bool $unusual,
         string $model,
         DateTimeImmutable $describedAt,
     ): void {
         $this->verdict = $verdict;
-        $this->falseAlarmCause = Verdict::FalseAlarm === $verdict ? $falseAlarmCause : FalseAlarmCause::None;
+        $this->falseAlarmCause = Verdict::FalseAlarm === $verdict && null !== $falseAlarmCause ? $this->termName($falseAlarmCause) : null;
         $this->side = $side;
-        $this->subject = $subject;
+        $this->subject = $this->termName($subject);
         $this->summary = $summary;
         $this->unusual = $unusual;
         $this->model = $model;
@@ -381,5 +388,14 @@ class CameraEvent
         $this->framesRemovedAt = $removedAt;
 
         return $framePaths;
+    }
+
+    private function termName(string $name): string
+    {
+        if (!TermName::isValid($name)) {
+            throw new InvalidArgumentException(\sprintf('"%s" is no valid name for a detection type, subject or cause.', $name));
+        }
+
+        return $name;
     }
 }

@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Factory;
 
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
-use App\Domain\Model\FalseAlarmCause;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -19,7 +16,7 @@ final class CameraEventFactory
     public static function create(
         string $startedAt = '2026-11-06 06:16:40',
         string $camera = 'terrace',
-        DetectionType $type = DetectionType::Animal,
+        string $type = 'animal',
         ?int $id = null,
         string $source = 'api',
         bool $open = false,
@@ -49,9 +46,9 @@ final class CameraEventFactory
         string $startedAt = '2026-11-06 06:16:40',
         string $camera = 'terrace',
         Verdict $verdict = Verdict::Real,
-        Subject $subject = Subject::Cat,
+        string $subject = 'cat',
         Side $side = Side::OurProperty,
-        FalseAlarmCause $falseAlarmCause = FalseAlarmCause::None,
+        ?string $falseAlarmCause = null,
         ?int $id = null,
     ): CameraEvent {
         $event = self::withFrames($startedAt, $camera, $id);

@@ -4,32 +4,29 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Ai;
 
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\Camera;
 use App\Domain\Repository\CameraRepositoryInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * What every prompt may know about the home: the free-text AI_HOME_CONTEXT and the cameras.
+ * What every prompt may know about the home: the settings' home context and unusual rule, and the cameras.
  */
 final readonly class HomeContext
 {
     public function __construct(
         private CameraRepositoryInterface $cameras,
-        #[Autowire(env: 'AI_HOME_CONTEXT')]
-        private string $notes,
-        #[Autowire(env: 'AI_UNUSUAL_RULE')]
-        private string $unusualRule,
+        private SettingsProviderInterface $settings,
     ) {
     }
 
     public function unusualRule(): string
     {
-        return trim($this->unusualRule);
+        return $this->settings->settings()->ai->unusualRule;
     }
 
     public function notes(): string
     {
-        return trim($this->notes);
+        return $this->settings->settings()->ai->homeContext;
     }
 
     public function describeCamera(Camera $camera): string

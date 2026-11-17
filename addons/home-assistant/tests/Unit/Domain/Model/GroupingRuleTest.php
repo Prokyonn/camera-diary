@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace CameraDiary\HomeAssistant\Tests\Unit\Domain\Model;
 
-use App\Domain\Model\DetectionType;
 use App\Tests\Factory\CameraEventFactory;
 use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,17 +28,17 @@ final class GroupingRuleTest extends TestCase
     public function testJoinsWithinTheGap(string $detectedAt, bool $joins): void
     {
         $event = CameraEventFactory::create('2026-11-06 16:36:00', open: true);
-        $event->addDetection(DetectionType::Animal, CameraEventFactory::utc('2026-11-06 16:37:00'));
+        $event->addDetection('animal', CameraEventFactory::utc('2026-11-06 16:37:00'));
 
-        self::assertSame($joins, new GroupingRule()->joins($event, CameraEventFactory::utc($detectedAt)));
+        self::assertSame($joins, new GroupingRule(120, 600)->joins($event, CameraEventFactory::utc($detectedAt)));
     }
 
     public function testCapsAnEventAtTenMinutes(): void
     {
-        $rule = new GroupingRule();
+        $rule = new GroupingRule(120, 600);
         $event = CameraEventFactory::create('2026-11-06 16:36:00', open: true);
         foreach (['16:38:00', '16:40:00', '16:42:00', '16:44:00', '16:46:00'] as $time) {
-            $event->addDetection(DetectionType::Animal, CameraEventFactory::utc('2026-11-06 '.$time));
+            $event->addDetection('animal', CameraEventFactory::utc('2026-11-06 '.$time));
         }
 
         self::assertFalse($rule->joins($event, CameraEventFactory::utc('2026-11-06 16:46:01')), 'A storm of detections must split into several events.');
@@ -47,7 +46,7 @@ final class GroupingRuleTest extends TestCase
 
     public function testEventsEndingBeforeTheGapAreSettled(): void
     {
-        $rule = new GroupingRule();
+        $rule = new GroupingRule(120, 600);
 
         self::assertEquals(CameraEventFactory::utc('2026-11-06 16:36:00'), $rule->closedBefore(CameraEventFactory::utc('2026-11-06 16:38:00')));
     }

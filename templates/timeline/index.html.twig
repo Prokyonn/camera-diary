@@ -38,5 +38,5 @@
         </ol>
     {% endif %}
 
-    <p class="meta">AI calls today: {{ aiCallsToday }} of {{ aiDailyLimit }}.</p>
+    <p class="meta">{% for usage in aiUsage %}{{ usage.label }}: {{ usage.used }} of {{ usage.limit }}{{ loop.last ? '.' : ', ' }}{% endfor %}</p>
 {% endblock %}

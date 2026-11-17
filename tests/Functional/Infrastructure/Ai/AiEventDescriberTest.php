@@ -6,22 +6,24 @@ namespace App\Tests\Functional\Infrastructure\Ai;
 
 use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
-use App\Domain\Model\FalseAlarmCause;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraRepositoryInterface;
 use App\Infrastructure\Ai\AiEventDescriber;
 use App\Infrastructure\Ai\Client\PlatformStructuredClient;
 use App\Infrastructure\Ai\HomeContext;
+use App\Infrastructure\Ai\Output\VocabularyResponseFormatFactory;
 use App\Infrastructure\Media\FilesystemFrameStorage;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Factory\CameraFactory;
 use App\Tests\Support\FakePlatform;
+use App\Tests\Support\ProvidesSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Symfony\AI\Platform\Exception\RateLimitExceededException;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(AiEventDescriber::class)]
@@ -30,6 +32,7 @@ use Symfony\Component\Filesystem\Filesystem;
 final class AiEventDescriberTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     private string $framesDir;
 
@@ -43,7 +46,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertNotFalse($image);
         new Filesystem()->mkdir($this->framesDir.'/terrace');
         imagejpeg($image, $this->framesDir.'/terrace/frame-0.jpg');
-        $this->platform = new FakePlatform();
+        $this->platform = new FakePlatform(new VocabularyResponseFormatFactory(new ResponseFormatFactory(), $this->settings()));
     }
 
     protected function tearDown(): void
@@ -61,9 +64,9 @@ final class AiEventDescriberTest extends TestCase
         $description = $this->describer()->describe($event, ['07:17:02 Luna came in through the cat flap']);
 
         self::assertSame(Verdict::Real, $description->verdict);
-        self::assertSame(FalseAlarmCause::None, $description->falseAlarmCause);
+        self::assertNull($description->falseAlarmCause);
         self::assertSame(Side::OurProperty, $description->side);
-        self::assertSame(Subject::Cat, $description->subject);
+        self::assertSame('cat', $description->subject);
         self::assertTrue($description->unusual);
         self::assertSame('test-model', $description->model);
 
@@ -75,7 +78,32 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('cat flap on the left', $input, 'The prompt describes the scene.');
         self::assertStringContainsString('Our cat is called Luna.', $input, 'The prompt carries the home context.');
         self::assertStringContainsString('Unusual events: A stranger on our property.', $input, 'The prompt carries the rule for unusual events.');
-        self::assertStringContainsString('spider_web', json_encode($call['options'], \JSON_THROW_ON_ERROR), 'The JSON schema lists the false-alarm causes.');
+        $options = json_encode($call['options'], \JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('"enum":["none","spider_web","insect","rain","light","nothing","other","snail"]', $options, 'The JSON schema lists the false-alarm causes.');
+        self::assertStringContainsString('fox: a red fox', $options, 'The JSON schema lists configured subjects with their hints.');
+        self::assertStringContainsString('a spider web or a single thread', $input, 'The prompt names the configured false-alarm causes.');
+    }
+
+    public function testAcceptsAConfiguredSubjectAndCause(): void
+    {
+        $this->platform->respondWith('{"verdict":"false_alarm","falseAlarmCause":"snail","side":"our_property","subject":"nothing","summary":"A snail crosses the lens.","unusual":false}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        $description = $this->describer()->describe($event, []);
+
+        self::assertSame('snail', $description->falseAlarmCause);
+    }
+
+    public function testRejectsASubjectOutsideTheVocabulary(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"unicorn","summary":"A unicorn.","unusual":false}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        $this->expectException(AiRequestFailedException::class);
+
+        $this->describer()->describe($event, []);
     }
 
     public function testWrapsPlatformErrors(): void
@@ -97,7 +125,17 @@ final class AiEventDescriberTest extends TestCase
             new PlatformStructuredClient($this->platform, 'test-model'),
             new FilesystemFrameStorage($this->framesDir, $homeTimeZone),
             $homeTimeZone,
-            new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), 'Our cat is called Luna.', 'A stranger on our property.'),
+            new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), $this->settings()),
+            $this->settings(),
         );
+    }
+
+    private function settings(): SettingsProviderInterface
+    {
+        return $this->settingsProvider([
+            'ai' => ['home_context' => 'Our cat is called Luna.', 'unusual_rule' => 'A stranger on our property.'],
+            'subjects' => ['fox' => ['description' => 'a red fox']],
+            'false_alarm_causes' => ['snail' => null],
+        ]);
     }
 }

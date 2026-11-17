@@ -10,6 +10,8 @@ use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\Result\DeferredResult;
 use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactoryInterface;
 use Symfony\AI\Platform\Test\MockPlatformFactory;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Throwable;
@@ -28,10 +30,10 @@ final class FakePlatform implements PlatformInterface
 
     private readonly Platform $platform;
 
-    public function __construct()
+    public function __construct(?ResponseFormatFactoryInterface $responseFormats = null)
     {
         $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new PlatformSubscriber());
+        $dispatcher->addSubscriber(new PlatformSubscriber($responseFormats ?? new ResponseFormatFactory()));
 
         $this->platform = MockPlatformFactory::createPlatform(
             function (Model $model, array|string|object $input, array $options): string {

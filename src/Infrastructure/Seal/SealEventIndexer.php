@@ -6,8 +6,8 @@ namespace App\Infrastructure\Seal;
 
 use App\Application\Description\HintCollector;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use CmsIg\Seal\EngineInterface;
 use DateTimeInterface;
 
@@ -22,6 +22,7 @@ final readonly class SealEventIndexer implements EventIndexerInterface
     public function __construct(
         private EngineInterface $engine,
         private HintCollector $hints,
+        private SettingsProviderInterface $settings,
     ) {
     }
 
@@ -35,15 +36,19 @@ final readonly class SealEventIndexer implements EventIndexerInterface
      */
     public function document(CameraEvent $event): array
     {
+        $settings = $this->settings->settings();
+        $subject = $event->getSubject();
+        $cause = $event->isFalseAlarm() ? $event->getFalseAlarmCause() : null;
+
         return [
             'id' => (string) $event->getId(),
             'label' => $event->getLabel() ?? '',
             'summary' => $event->getSummary() ?? '',
-            'subject' => $event->getSubject()?->label() ?? '',
-            'falseAlarmCause' => $event->isFalseAlarm() ? ($event->getFalseAlarmCause()?->label() ?? '') : '',
+            'subject' => null === $subject ? '' : $settings->subjects->label($subject),
+            'falseAlarmCause' => null === $cause ? '' : $settings->falseAlarmCauses->label($cause),
             'hints' => $this->hints->hintsFor($event),
             'camera' => $event->getCamera()->getSlug(),
-            'types' => array_map(static fn (DetectionType $type): string => $type->value, $event->getDetectionTypes()),
+            'types' => $event->getDetectionTypes(),
             'verdict' => $event->getEffectiveVerdict()->value ?? self::UNKNOWN,
             'side' => $event->getSide()->value ?? self::UNKNOWN,
             'status' => $event->getStatus()->value,

@@ -119,7 +119,7 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
 
         if (isset($filters['detectionType'])) {
             $queryBuilder->andWhere('event.detectionTypes LIKE :detectionType')
-                ->setParameter('detectionType', '%"'.$filters['detectionType']->value.'"%');
+                ->setParameter('detectionType', '%"'.$filters['detectionType'].'"%');
         }
 
         if (isset($filters['falseAlarm'])) {

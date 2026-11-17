@@ -20,13 +20,14 @@ use App\Application\Frame\FrameSources;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\CallPool;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Model\EventStatus;
-use App\Domain\Model\FalseAlarmCause;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 use App\Tests\Factory\CameraEventFactory;
+use App\Tests\Factory\SettingsFactory;
+use App\Tests\Support\ProvidesSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -40,6 +41,7 @@ use Symfony\Component\Clock\MockClock;
 final class EventProcessorTest extends TestCase
 {
     use ProphecyTrait;
+    use ProvidesSettings;
 
     /** @var ObjectProphecy<FrameSourceInterface> */
     private ObjectProphecy $grabber;
@@ -74,7 +76,7 @@ final class EventProcessorTest extends TestCase
         $this->hints = $this->prophesize(HintProviderInterface::class);
         $this->hints->hintsFor(Argument::type(CameraEvent::class))->willReturn([]);
         $this->storage = $this->prophesize(FrameStorageInterface::class);
-        foreach (array_keys(EventProcessor::FRAME_OFFSETS_SECONDS) as $index) {
+        foreach (array_keys(SettingsFactory::create()->description->frameOffsets) as $index) {
             $relativePath = \sprintf('terrace/2026/11/06/1-%d.jpg', $index);
             $this->storage->relativePathFor(Argument::type(CameraEvent::class), $index)->willReturn($relativePath);
             $this->storage->prepare($relativePath)->willReturn('/frames/'.$relativePath);
@@ -84,7 +86,7 @@ final class EventProcessorTest extends TestCase
         $this->storage->remove(Argument::type('array'));
         $this->describer = $this->prophesize(EventDescriberInterface::class);
         $this->budget = $this->prophesize(AiCallBudgetInterface::class);
-        $this->budget->tryConsume()->willReturn(true);
+        $this->budget->tryConsume(null)->willReturn(true);
         $this->indexer = $this->prophesize(EventIndexerInterface::class);
         $this->unitOfWork = $this->prophesize(UnitOfWorkInterface::class);
         $this->eventDispatcher = $this->prophesize(EventDispatcherInterface::class);
@@ -101,7 +103,7 @@ final class EventProcessorTest extends TestCase
 
         $this->hints->hintsFor($event)->willReturn(['07:17:02 Luna came in through the cat flap']);
         $this->describer->describe($event, ['Doorbell rang', '07:17:02 Luna came in through the cat flap'])->willReturn(
-            new EventDescription(Verdict::Real, FalseAlarmCause::None, Side::OurProperty, Subject::Cat, 'A grey cat drags the doormat to the door.', true, 'test-model'),
+            new EventDescription(Verdict::Real, null, Side::OurProperty, 'cat', 'A grey cat drags the doormat to the door.', true, 'test-model'),
         );
         $this->unitOfWork->flush()->shouldBeCalledOnce();
         $this->indexer->index($event)->shouldBeCalledOnce();
@@ -161,7 +163,7 @@ final class EventProcessorTest extends TestCase
     public function testFailsAfterTheLastAttempt(): void
     {
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
-        for ($attempt = 1; $attempt < EventProcessor::MAX_ATTEMPTS; ++$attempt) {
+        for ($attempt = 1; $attempt < SettingsFactory::create()->description->maxAttempts; ++$attempt) {
             $event->retryAt($this->clock->now());
         }
         $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
@@ -175,7 +177,7 @@ final class EventProcessorTest extends TestCase
     {
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
         $this->grabber->grab(Argument::cetera())->shouldBeCalledTimes(3);
-        $this->budget->tryConsume()->willReturn(false);
+        $this->budget->tryConsume(null)->willReturn(false);
         $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
         $this->unitOfWork->flush()->shouldBeCalledOnce();
         $this->eventDispatcher->dispatch(Argument::any())->shouldNotBeCalled();
@@ -185,7 +187,25 @@ final class EventProcessorTest extends TestCase
         self::assertSame(EventStatus::Pending, $event->getStatus());
     }
 
-    private function processor(): EventProcessor
+    public function testCountsTheCallInThePoolOfTheEventsDetectionTypes(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', type: 'animal', id: 1);
+        $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
+        $this->budget->tryConsume(Argument::that(static fn (?CallPool $pool): bool => 'animals' === $pool?->name))->willReturn(false)->shouldBeCalledOnce();
+        $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
+
+        $processor = $this->processor(['ai' => ['call_pools' => [
+            'people' => ['detection_types' => ['person', 'vehicle'], 'daily_call_limit' => 75],
+            'animals' => ['detection_types' => ['animal'], 'daily_call_limit' => 75],
+        ]]]);
+
+        self::assertSame(ProcessOutcome::OverBudget, $processor->process($event));
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    private function processor(array $settings = []): EventProcessor
     {
         return new EventProcessor(
             new FrameSources([$this->grabber->reveal()]),
@@ -196,6 +216,7 @@ final class EventProcessorTest extends TestCase
             $this->indexer->reveal(),
             $this->unitOfWork->reveal(),
             $this->eventDispatcher->reveal(),
+            $this->settingsProvider($settings),
             $this->clock,
             new NullLogger(),
         );

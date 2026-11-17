@@ -9,10 +9,8 @@ use App\Domain\Model\CameraEvent;
 
 interface AnswerWriterInterface
 {
-    public const int MAX_EVENTS = 6;
-
     /**
-     * Answers $question from the first MAX_EVENTS of $events and their frames.
+     * Answers $question from the top of $events (questions.answer_events in the settings) and their frames.
      *
      * @param list<CameraEvent> $events best match first
      *

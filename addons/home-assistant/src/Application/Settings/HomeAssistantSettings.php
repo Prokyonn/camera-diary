@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CameraDiary\HomeAssistant\Application\Settings;
 
-use App\Domain\Model\DetectionType;
+use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 
 final readonly class HomeAssistantSettings
 {
@@ -13,8 +13,10 @@ final readonly class HomeAssistantSettings
      * @param list<SignalMapping> $signals
      */
     public function __construct(
-        public array $cameras = [],
-        public array $signals = [],
+        public array $cameras,
+        public array $signals,
+        public GroupingRule $grouping,
+        public int $hintWindowSeconds,
         public ?PushSettings $push = null,
     ) {
     }
@@ -47,7 +49,7 @@ final readonly class HomeAssistantSettings
     }
 
     /**
-     * @return array<string, array{CameraMapping, DetectionType}> entity id => camera and detection type
+     * @return array<string, array{CameraMapping, string}> entity id => camera and detection type
      */
     public function detectionSensors(): array
     {

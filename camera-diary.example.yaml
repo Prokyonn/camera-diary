@@ -1,0 +1,60 @@
+# Settings of one Camera diary installation. Copy to var/data/camera-diary.yaml, or point CAMERA_DIARY_CONFIG
+# elsewhere. Every key is optional: what you leave out keeps its default. A running worker picks up changes.
+# Check the file with: bin/console app:settings
+
+ai:
+    # AI calls per local day, for events and questions together (default 500)
+    daily_call_limit: 150
+    # Shares of the daily limit. An event counts towards the first pool that holds one of its detection types;
+    # events in no pool only count towards the daily limit. Here, a night of spider-web "animals" cannot use up the
+    # calls for people and vehicles.
+    call_pools:
+        people_and_vehicles:
+            detection_types: [person, vehicle]
+            daily_call_limit: 75
+        animals:
+            detection_types: [animal]
+            daily_call_limit: 75
+    # Free text every prompt gets
+    home_context: Our cat is called Luna. The fence at the back is the property line.
+    # Which events the AI flags as unusual, e.g. for a louder push
+    unusual_rule: A person on our property who does not seem to belong there, or anyone on our property at night.
+
+# The vocabularies merge with the defaults: add a name, change a label or hint, or remove one with "name: false".
+# Names use lower-case letters, digits and "_". The label is shown in the app, the description helps the AI.
+#
+# Defaults:
+#   detection_types: person, animal, vehicle, motion
+#   subjects: person, cat, dog, bird, other_animal, vehicle, nothing, other
+#   false_alarm_causes: spider_web, insect, rain, light, nothing, other ("none" is reserved for real events)
+detection_types:
+    package: { label: Package }
+subjects:
+    fox: { label: Fox, description: a red fox }
+    hedgehog: ~
+false_alarm_causes:
+    snow: { label: Snow, description: snowflakes close to the lens }
+
+description:
+    # Seconds after the start of an event at which a frame source (e.g. continuous recordings) cuts the frames
+    frame_offsets: [1, 2, 3]
+    # Seconds until an AI or ffmpeg failure, or missing footage, is tried again
+    retry_delay: 600
+    # Failed attempts before an event ends as failed
+    max_attempts: 8
+    # Seconds to wait for footage before an event ends as no_footage
+    footage_grace: 3600
+    # Events the worker describes per run (every minute)
+    batch_size: 20
+
+questions:
+    # Events a question searches for, the top ones the AI gets, and their frames each
+    search_results: 12
+    answer_events: 6
+    frames_per_event: 2
+
+maintenance:
+    # Local time (APP_TIMEZONE) of the nightly clean-up and database backup
+    nightly_at: '03:30'
+    false_alarm_frame_days: 30
+    backups_kept: 14

@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace CameraDiary\HomeAssistant\Application\Settings;
 
-use App\Domain\Model\DetectionType;
-
 /**
  * One camera: its detection sensors in Home Assistant and, optionally, its folder of continuous recordings.
  */
 final readonly class CameraMapping
 {
     /**
-     * @param list<DetectionType> $detections
+     * @param list<string> $detections names from the core's detection types vocabulary
      */
     public function __construct(
         public string $slug,
@@ -24,8 +22,8 @@ final readonly class CameraMapping
     ) {
     }
 
-    public function sensorEntityId(DetectionType $type): string
+    public function sensorEntityId(string $type): string
     {
-        return \sprintf('%s_%s', $this->sensorPrefix, $type->value);
+        return \sprintf('%s_%s', $this->sensorPrefix, $type);
     }
 }

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Ai;
 
+use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
 use App\Application\Frame\FrameStorageInterface;
+use App\Application\Settings\SettingsProviderInterface;
+use App\Application\Settings\Term;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Infrastructure\Ai\Client\Prompt;
 use App\Infrastructure\Ai\Client\PromptImage;
 use App\Infrastructure\Ai\Client\StructuredClientInterface;
@@ -22,6 +24,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         private FrameStorageInterface $frameStorage,
         private HomeTimeZone $homeTimeZone,
         private HomeContext $homeContext,
+        private SettingsProviderInterface $settings,
     ) {
     }
 
@@ -39,9 +42,9 @@ final readonly class AiEventDescriber implements EventDescriberInterface
 
         return new EventDescription(
             $output->verdict,
-            $output->falseAlarmCause,
+            $this->falseAlarmCause($output),
             $output->side,
-            $output->subject,
+            $this->subject($output),
             $output->summary,
             $output->unusual,
             $this->client->modelName(),
@@ -58,7 +61,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             Camera: {$this->homeContext->describeCamera($event->getCamera())}
 
             The frames are in time order; the subject may only appear in a later frame.
-            Common false alarms: a spider web or a single thread swinging in front of the lens (often lit by the infrared light at night), insects close to the lens, rain or snow, headlights or sun reflections, moving shadows, plants moving in the wind.
+            Common false alarms: {$this->commonFalseAlarms()}.
             Describe people neutrally and never guess their names. Hints from the home are given when available; they may be unrelated to what the frames show.
             Unusual events: {$this->homeContext->unusualRule()}
             {$notes}
@@ -74,7 +77,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         $lines = [
             \sprintf(
                 'The camera reported %s at %s (until %s).',
-                [] === $types ? 'an event' : implode(' and ', array_map(static fn (DetectionType $type): string => $type->value, $types)),
+                [] === $types ? 'an event' : implode(' and ', $types),
                 $this->homeTimeZone->toLocal($event->getStartedAt())->format('l, j F Y, H:i:s'),
                 $this->homeTimeZone->toLocal($event->getEndedAt())->format('H:i:s'),
             ),
@@ -88,5 +91,37 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         }
 
         return implode("\n", $lines);
+    }
+
+    private function subject(EventDescriptionOutput $output): string
+    {
+        if (!$this->settings->settings()->subjects->has($output->subject)) {
+            throw new AiRequestFailedException(\sprintf('The AI named the unknown subject "%s".', $output->subject));
+        }
+
+        return $output->subject;
+    }
+
+    private function falseAlarmCause(EventDescriptionOutput $output): ?string
+    {
+        if (EventDescriptionOutput::NO_FALSE_ALARM === $output->falseAlarmCause) {
+            return null;
+        }
+
+        if (!$this->settings->settings()->falseAlarmCauses->has($output->falseAlarmCause)) {
+            throw new AiRequestFailedException(\sprintf('The AI named the unknown false-alarm cause "%s".', $output->falseAlarmCause));
+        }
+
+        return $output->falseAlarmCause;
+    }
+
+    private function commonFalseAlarms(): string
+    {
+        $causes = array_map(
+            static fn (Term $cause): string => $cause->description ?? strtolower($cause->label),
+            $this->settings->settings()->falseAlarmCauses->terms,
+        );
+
+        return implode(', ', $causes);
     }
 }

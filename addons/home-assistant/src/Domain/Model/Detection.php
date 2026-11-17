@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace CameraDiary\HomeAssistant\Domain\Model;
 
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * One detection sensor turning on.
+ * One detection sensor turning on; the type is a name from the core's detection types vocabulary.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'home_assistant_detection')]
@@ -30,8 +29,8 @@ class Detection
     public function __construct(
         #[ORM\Column(length: 32)]
         private string $camera,
-        #[ORM\Column(length: 16)]
-        private DetectionType $type,
+        #[ORM\Column(length: 32)]
+        private string $type,
         #[ORM\Column]
         private DateTimeImmutable $detectedAt,
     ) {
@@ -47,7 +46,7 @@ class Detection
         return $this->camera;
     }
 
-    public function getType(): DetectionType
+    public function getType(): string
     {
         return $this->type;
     }
@@ -72,8 +71,8 @@ class Detection
         return self::keyOf($this->camera, $this->type, $this->detectedAt);
     }
 
-    public static function keyOf(string $camera, DetectionType $type, DateTimeImmutable $detectedAt): string
+    public static function keyOf(string $camera, string $type, DateTimeImmutable $detectedAt): string
     {
-        return \sprintf('%s|%s|%s', $camera, $type->value, $detectedAt->format('U'));
+        return \sprintf('%s|%s|%s', $camera, $type, $detectedAt->format('U'));
     }
 }

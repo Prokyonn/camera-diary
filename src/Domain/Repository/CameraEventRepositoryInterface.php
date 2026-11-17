@@ -7,7 +7,6 @@ namespace App\Domain\Repository;
 use App\Domain\Exception\CameraEventNotFoundException;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Model\EventStatus;
 use DateTimeImmutable;
 
@@ -20,7 +19,7 @@ use DateTimeImmutable;
  *     source?: string,
  *     externalId?: string,
  *     open?: bool,
- *     detectionType?: DetectionType,
+ *     detectionType?: string,
  *     status?: EventStatus,
  *     startedAtOrAfter?: DateTimeImmutable,
  *     startedBefore?: DateTimeImmutable,

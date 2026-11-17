@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Model;
 
 use App\Domain\Model\CameraEvent;
-use App\Domain\Model\DetectionType;
 use App\Domain\Model\EventStatus;
-use App\Domain\Model\FalseAlarmCause;
 use App\Domain\Model\Side;
-use App\Domain\Model\Subject;
 use App\Domain\Model\Verdict;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Factory\CameraFactory;
@@ -22,11 +19,11 @@ final class CameraEventTest extends TestCase
 {
     public function testNewEventIsPendingAndSpansOneDetection(): void
     {
-        $event = CameraEventFactory::create('2026-11-07 09:40:00', type: DetectionType::Person, open: true);
+        $event = CameraEventFactory::create('2026-11-07 09:40:00', type: 'person', open: true);
 
         self::assertSame(EventStatus::Pending, $event->getStatus());
         self::assertEquals($event->getStartedAt(), $event->getEndedAt());
-        self::assertSame([DetectionType::Person], $event->getDetectionTypes());
+        self::assertSame(['person'], $event->getDetectionTypes());
         self::assertSame(1, $event->getDetectionCount());
         self::assertTrue($event->canTakeDetections());
     }
@@ -41,7 +38,7 @@ final class CameraEventTest extends TestCase
 
         $this->expectException(LogicException::class);
 
-        $event->addDetection(DetectionType::Animal, CameraEventFactory::utc('2026-11-06 06:17:00'));
+        $event->addDetection('animal', CameraEventFactory::utc('2026-11-06 06:17:00'));
     }
 
     public function testCannotEndBeforeItStarts(): void
@@ -64,13 +61,13 @@ final class CameraEventTest extends TestCase
 
     public function testAddDetectionExtendsTheEventAndMergesTypes(): void
     {
-        $event = CameraEventFactory::create('2026-11-07 09:40:00', type: DetectionType::Person, open: true);
+        $event = CameraEventFactory::create('2026-11-07 09:40:00', type: 'person', open: true);
 
-        $event->addDetection(DetectionType::Animal, CameraEventFactory::utc('2026-11-07 09:41:00'));
-        $event->addDetection(DetectionType::Person, CameraEventFactory::utc('2026-11-07 09:40:30'));
+        $event->addDetection('animal', CameraEventFactory::utc('2026-11-07 09:41:00'));
+        $event->addDetection('person', CameraEventFactory::utc('2026-11-07 09:40:30'));
 
         self::assertEquals(CameraEventFactory::utc('2026-11-07 09:41:00'), $event->getEndedAt());
-        self::assertSame([DetectionType::Person, DetectionType::Animal], $event->getDetectionTypes());
+        self::assertSame(['person', 'animal'], $event->getDetectionTypes());
         self::assertSame(3, $event->getDetectionCount());
     }
 
@@ -80,7 +77,7 @@ final class CameraEventTest extends TestCase
         $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
 
         $this->expectException(LogicException::class);
-        $event->addDetection(DetectionType::Animal, CameraEventFactory::utc('2026-11-06 06:17:00'));
+        $event->addDetection('animal', CameraEventFactory::utc('2026-11-06 06:17:00'));
     }
 
     public function testDescribeStoresTheAisVerdict(): void
@@ -88,11 +85,11 @@ final class CameraEventTest extends TestCase
         $event = CameraEventFactory::create();
         $describedAt = CameraEventFactory::utc('2026-11-06 06:20:00');
 
-        $event->describe(Verdict::Real, FalseAlarmCause::Insect, Side::OurProperty, Subject::Cat, 'A grey cat drags the doormat.', true, 'test-model', $describedAt);
+        $event->describe(Verdict::Real, 'insect', Side::OurProperty, 'cat', 'A grey cat drags the doormat.', true, 'test-model', $describedAt);
 
         self::assertSame(EventStatus::Described, $event->getStatus());
         self::assertSame(Verdict::Real, $event->getEffectiveVerdict());
-        self::assertSame(FalseAlarmCause::None, $event->getFalseAlarmCause(), 'A real event has no false-alarm cause.');
+        self::assertNull($event->getFalseAlarmCause(), 'A real event has no false-alarm cause.');
         self::assertSame('A grey cat drags the doormat.', $event->getSummary());
         self::assertTrue($event->isUnusual());
         self::assertSame($describedAt, $event->getDescribedAt());

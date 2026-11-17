@@ -9,6 +9,7 @@ use App\Tests\Factory\CameraEventFactory;
 use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
 use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
 use CameraDiary\HomeAssistant\Application\SignalHints;
+use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
 use CameraDiary\HomeAssistant\Domain\Model\HomeSignal;
 use CameraDiary\HomeAssistant\Domain\Repository\HomeSignalRepositoryInterface;
 use CameraDiary\HomeAssistant\Tests\Support\SettingsFactory;
@@ -43,7 +44,7 @@ final class SignalHintsTest extends TestCase
         $signals = $this->prophesize(HomeSignalRepositoryInterface::class);
         $signals->findBy(Argument::cetera())->shouldNotBeCalled();
 
-        self::assertSame([], $this->hints($signals->reveal(), new HomeAssistantSettings())->hintsFor(CameraEventFactory::create()));
+        self::assertSame([], $this->hints($signals->reveal(), new HomeAssistantSettings([], [], new GroupingRule(120, 600), 180))->hintsFor(CameraEventFactory::create()));
     }
 
     private function hints(HomeSignalRepositoryInterface $signals, HomeAssistantSettings $settings): SignalHints

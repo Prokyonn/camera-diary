@@ -13,6 +13,7 @@ use App\Application\Frame\FrameSources;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -24,15 +25,6 @@ use Psr\Log\LoggerInterface;
  */
 final readonly class EventProcessor
 {
-    /** The object often appears only one to three seconds after the detection. */
-    public const array FRAME_OFFSETS_SECONDS = [1, 2, 3];
-
-    public const int RETRY_DELAY_SECONDS = 600;
-    public const int MAX_ATTEMPTS = 8;
-
-    /** How long to wait for a recording to show up before giving up on the footage. */
-    public const int FOOTAGE_GRACE_SECONDS = 3600;
-
     public function __construct(
         private FrameSources $frameSources,
         private FrameStorageInterface $frameStorage,
@@ -42,6 +34,7 @@ final readonly class EventProcessor
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
         private EventDispatcherInterface $eventDispatcher,
+        private SettingsProviderInterface $settings,
         private ClockInterface $clock,
         private LoggerInterface $logger,
     ) {
@@ -68,7 +61,8 @@ final readonly class EventProcessor
             }
         }
 
-        if (!$this->budget->tryConsume()) {
+        $pool = $this->settings->settings()->ai->callPoolFor($event->getDetectionTypes());
+        if (!$this->budget->tryConsume($pool)) {
             return ProcessOutcome::OverBudget;
         }
 
@@ -89,7 +83,7 @@ final readonly class EventProcessor
 
         $paths = [];
         $size = [0, 0];
-        foreach (self::FRAME_OFFSETS_SECONDS as $index => $offset) {
+        foreach ($this->settings->settings()->description->frameOffsets as $index => $offset) {
             $relativePath = $this->frameStorage->relativePathFor($event, $index);
             try {
                 $source->grab($event, $event->getStartedAt()->modify(\sprintf('+%d seconds', $offset)), $this->frameStorage->prepare($relativePath));
@@ -142,27 +136,33 @@ final readonly class EventProcessor
     private function waitForFootage(CameraEvent $event): ProcessOutcome
     {
         $age = $this->clock->now()->getTimestamp() - $event->getStartedAt()->getTimestamp();
-        if ($age > self::FOOTAGE_GRACE_SECONDS) {
+        if ($age > $this->settings->settings()->description->footageGraceSeconds) {
             $event->markNoFootage();
 
             return ProcessOutcome::NoFootage;
         }
 
-        $event->retryAt($this->clock->now()->modify(\sprintf('+%d seconds', self::RETRY_DELAY_SECONDS)));
+        $this->retryLater($event);
 
         return ProcessOutcome::Waiting;
     }
 
     private function retryOrFail(CameraEvent $event): ProcessOutcome
     {
-        if ($event->getAttempts() + 1 >= self::MAX_ATTEMPTS) {
+        if ($event->getAttempts() + 1 >= $this->settings->settings()->description->maxAttempts) {
             $event->markFailed();
 
             return ProcessOutcome::Failed;
         }
 
-        $event->retryAt($this->clock->now()->modify(\sprintf('+%d seconds', self::RETRY_DELAY_SECONDS)));
+        $this->retryLater($event);
 
         return ProcessOutcome::Waiting;
+    }
+
+    private function retryLater(CameraEvent $event): void
+    {
+        $delay = $this->settings->settings()->description->retryDelaySeconds;
+        $event->retryAt($this->clock->now()->modify(\sprintf('+%d seconds', $delay)));
     }
 }
