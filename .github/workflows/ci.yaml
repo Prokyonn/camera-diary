@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, pdo_sqlite, gd
+          tools: composer:v2
+          coverage: none
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Lint, static analysis and tests
+        run: composer check
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t camera-diary:ci .
+      - name: The image has the PHP extensions and ffmpeg it needs
+        run: |
+          docker run --rm --entrypoint php camera-diary:ci -r 'foreach (["gd", "intl", "pdo_sqlite"] as $e) { extension_loaded($e) or exit("missing $e\n"); }'
+          docker run --rm --entrypoint ffmpeg camera-diary:ci -version
