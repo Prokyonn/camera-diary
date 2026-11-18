@@ -107,6 +107,14 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 2. With a time range of at most `questions.context_events` (200) events, all of them are read, the keyword matches first, so wording cannot hide an event. Otherwise `EventSearch` returns the 12 best keyword matches. Either way the search reports the total.
 3. The AI gets the question, the total and every event as text (subject, description, label, hints), with 2 frames each for the first 6. It returns the answer and the ids of the events it relies on, which are listed first; the page shows 12.
 
+## Activity
+
+`ActivityReport` counts the events of a time range: real events per subject label (a known individual by name), per local hour and per day; false alarms per cause; and both per camera. The insights page and the MCP tool `camera_activity` use it, so an assistant gets exact counts instead of counting search results.
+
+## MCP
+
+`UserInterface/Mcp` holds the tools (`CameraEventTools`, `HomeTools`) and the `daily_report` prompt. `get_camera_event` returns the event as JSON text plus its frames as `ImageContent`. `correct_camera_event` goes through `CameraEventLabeler` like the web form, so it counts as a review and feeds the correction examples.
+
 ## Schedule
 
 `messenger:consume scheduler_default scheduler_home_assistant`:

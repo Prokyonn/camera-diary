@@ -15,6 +15,7 @@
                 <a href="{{ path('ask') }}"{% if app.current_route == 'ask' %} aria-current="page"{% endif %}>Ask</a>
                 {% set to_check = review_count() %}
                 <a href="{{ path('review') }}"{% if app.current_route == 'review' %} aria-current="page"{% endif %}>Check{% if to_check > 0 %} <span class="count">{{ to_check }}</span>{% endif %}</a>
+                <a href="{{ path('insights') }}"{% if app.current_route == 'insights' %} aria-current="page"{% endif %}>Insights</a>
                 <a href="{{ path('individuals') }}"{% if app.current_route == 'individuals' %} aria-current="page"{% endif %}>Known</a>
             </nav>
         </header>

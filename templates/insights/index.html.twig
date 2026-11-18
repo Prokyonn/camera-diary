@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Insights · Camera diary{% endblock %}
+
+{% macro bars(counts, label_format) %}
+    {% set peak = max(counts|merge([1])) %}
+    <ol class="bars">
+        {% for key, count in counts %}
+            <li>
+                <span class="bar-label">{{ label_format == 'day' ? key|date('D j') : (label_format == 'hour' ? '%02d'|format(key) : key) }}</span>
+                <span class="bar" style="--share: {{ count / peak }}"></span>
+                <span class="bar-count">{{ count }}</span>
+            </li>
+        {% endfor %}
+    </ol>
+{% endmacro %}
+
+{% macro columns(counts, label_format) %}
+    {% set peak = max(counts|merge([1])) %}
+    {% set every = counts|length > 12 ? (counts|length / 6)|round(0, 'ceil') : 1 %}
+    <ol class="columns" style="--count: {{ counts|length }}">
+        {% for key, count in counts %}
+            {% set label = label_format == 'day' ? key|date('j M') : '%02d'|format(key) %}
+            <li title="{{ label }}: {{ count }}">
+                <span class="column" style="--share: {{ count / peak }}"></span>
+                <span class="column-label">{{ loop.index0 is divisible by(every) ? label }}</span>
+            </li>
+        {% endfor %}
+    </ol>
+{% endmacro %}
+
+{% block body %}
+    <h1>Insights</h1>
+    <nav class="day-nav" aria-label="Range">
+        {% for range in ranges %}
+            <a href="{{ path('insights', {days: range}) }}"{% if range == days %} aria-current="page"{% endif %}>Last {{ range }} days</a>
+        {% endfor %}
+    </nav>
+
+    <p class="summary">
+        <strong>{{ activity.real }}</strong> real events and <strong>{{ activity.falseAlarms }}</strong> false alarms
+        {%- if activity.real + activity.falseAlarms > 0 %} ({{ (activity.falseAlarms / (activity.real + activity.falseAlarms) * 100)|round }} %){% endif %}
+        {%- if activity.undescribed > 0 %}; {{ activity.undescribed }} not described{% endif %}.
+    </p>
+
+    {% if activity.byWho is not empty %}
+        <section aria-labelledby="who-heading">
+            <h2 id="who-heading">Who came by</h2>
+            {{ _self.bars(activity.byWho, 'text') }}
+        </section>
+
+        <section aria-labelledby="when-heading">
+            <h2 id="when-heading">When, by hour</h2>
+            {{ _self.columns(activity.realByHour, 'hour') }}
+        </section>
+
+        <section aria-labelledby="days-heading">
+            <h2 id="days-heading">Per day</h2>
+            {{ _self.columns(activity.realByDay, 'day') }}
+        </section>
+    {% endif %}
+
+    {% if activity.cameras is not empty %}
+        <section aria-labelledby="cameras-heading">
+            <h2 id="cameras-heading">Cameras</h2>
+            <ul class="camera-insights">
+                {% for camera in activity.cameras %}
+                    <li>
+                        <strong>{{ camera.name }}</strong>: {{ camera.real }} real, {{ camera.falseAlarms }} false alarms.
+                        {% if camera.topFalseAlarmCause %}
+                            {% set top = camera.falseAlarmCauses[camera.topFalseAlarmCause] %}
+                            <span class="{{ camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 ? 'tip' }}">{{ camera.topFalseAlarmCause }} caused {{ top }} of them{% if camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 %}: worth a look at this camera{% endif %}.</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    {% if activity.falseAlarmCauses is not empty %}
+        <section aria-labelledby="causes-heading">
+            <h2 id="causes-heading">False alarms</h2>
+            {{ _self.bars(activity.falseAlarmCauses, 'text') }}
+        </section>
+    {% endif %}
+{% endblock %}

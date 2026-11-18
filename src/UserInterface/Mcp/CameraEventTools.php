@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Mcp;
 
-use App\Application\Clock\HomeTimeZone;
+use App\Application\Frame\FrameStorageInterface;
 use App\Application\Search\EventSearchInterface;
 use App\Application\Search\SearchCriteria;
 use App\Domain\Model\Camera;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
-use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use InvalidArgumentException;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
+use Mcp\Schema\Content\Content;
+use Mcp\Schema\Content\ImageContent;
+use Mcp\Schema\Content\TextContent;
 use Mcp\Schema\ToolAnnotations;
 
 /**
@@ -30,16 +30,17 @@ final readonly class CameraEventTools
         private CameraEventRepositoryInterface $events,
         private CameraRepositoryInterface $cameras,
         private EventPresenter $presenter,
-        private HomeTimeZone $homeTimeZone,
+        private TimeParser $timeParser,
+        private FrameStorageInterface $frameStorage,
     ) {
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return array{total: int, events: list<array<string, mixed>>}
      */
     #[McpTool(
         name: 'search_camera_events',
-        description: 'Search the stored events of the home cameras (list_cameras names them). Each event has a description, a verdict (real or false_alarm), the side (our_property or outside), hints from the home and a link to its frames. Times are local.',
+        description: 'Search the stored events of the home cameras (list_cameras names them), newest first. Each event has a description, a verdict (real or false_alarm), the subject and the known individual (list_known_individuals), the side (our_property or outside), hints from the home and a link to its frames. "total" counts all matches beyond the limit. Times are local. For counts over days, camera_activity is exact.',
         annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false),
     )]
     public function search(
@@ -55,17 +56,23 @@ final readonly class CameraEventTools
         bool $includeFalseAlarms = false,
         #[Schema(description: 'Maximum number of events', minimum: 1, maximum: self::MAX_LIMIT)]
         int $limit = 10,
+        #[Schema(description: 'Subject name, e.g. person or cat; empty for any')]
+        string $subject = '',
+        #[Schema(description: 'Name of a known individual from list_known_individuals, e.g. luna; empty for anyone')]
+        string $individual = '',
     ): array {
-        $events = $this->search->search(new SearchCriteria(
+        $result = $this->search->search(new SearchCriteria(
             text: $query,
             cameras: '' === $camera ? [] : [$this->cameras->findOneBy(['slug' => $camera])?->getSlug() ?? throw new InvalidArgumentException(\sprintf('Unknown camera "%s".', $camera))],
-            from: $this->parseTime($from),
-            to: $this->parseTime($to),
+            from: $this->timeParser->parse($from),
+            to: $this->timeParser->parse($to),
             includeFalseAlarms: $includeFalseAlarms,
             limit: max(1, min(self::MAX_LIMIT, $limit)),
-        ))->events;
+            subjects: '' === $subject ? [] : [$subject],
+            individuals: '' === $individual ? [] : [$individual],
+        ));
 
-        return array_map($this->presenter->present(...), $events);
+        return ['total' => $result->total, 'events' => array_map($this->presenter->present(...), $result->events)];
     }
 
     /**
@@ -85,30 +92,31 @@ final readonly class CameraEventTools
     }
 
     /**
-     * @return array<string, mixed>
+     * @return list<Content>
      */
     #[McpTool(
         name: 'get_camera_event',
-        description: 'Get one stored camera event by its id.',
+        description: 'Get one stored camera event by its id, with its frames as images, so you can look at what the camera saw yourself.',
         annotations: new ToolAnnotations(readOnlyHint: true, openWorldHint: false),
     )]
-    public function get(int $id): array
-    {
+    public function get(
+        int $id,
+        #[Schema(description: 'Attach the frames (up to three JPEG images)')]
+        bool $includeFrames = true,
+    ): array {
         $event = $this->events->findOneBy(['id' => $id]) ?? throw new InvalidArgumentException(\sprintf('Event %d does not exist.', $id));
-
-        return $this->presenter->present($event);
-    }
-
-    private function parseTime(string $value): ?DateTimeImmutable
-    {
-        if ('' === trim($value)) {
-            return null;
+        $content = [new TextContent(json_encode($this->presenter->present($event), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR))];
+        if (!$includeFrames) {
+            return $content;
         }
 
-        try {
-            return new DateTimeImmutable($value, $this->homeTimeZone->zone())->setTimezone(new DateTimeZone('UTC'));
-        } catch (Exception $exception) {
-            throw new InvalidArgumentException(\sprintf('"%s" is not a valid time.', $value), 0, $exception);
+        foreach ($event->getFramePaths() as $framePath) {
+            $path = $this->frameStorage->absolutePath($framePath);
+            if (is_file($path)) {
+                $content[] = ImageContent::fromFile($path, 'image/jpeg');
+            }
         }
+
+        return $content;
     }
 }

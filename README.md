@@ -15,7 +15,8 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI and the app use it.
 - **Your cat by name.** Name the known individuals, your cat or the people who live with you, and add reference photos straight from event frames. Events then show "Luna" or "Other cat".
 - **Questions with sources.** The AI turns the question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on.
-- **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events.
+- **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Luna").
+- **Insights.** Who came by and when, per day and hour, and which camera raises false alarms for what reason.
 - **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
 
 ## Try it in five minutes
@@ -141,7 +142,18 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 
 ## Assistants (MCP)
 
-`/mcp` serves the tools `search_camera_events`, `get_camera_event` and `list_cameras`. Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). Only `localhost` is an allowed host by default, see `config/packages/mcp.yaml`.
+`/mcp` serves these tools and one prompt:
+
+| Tool | Does |
+|---|---|
+| `search_camera_events` | Search by words, camera, time, subject and known individual; returns the events and the total |
+| `get_camera_event` | One event, with its frames as images, so the assistant looks at them itself |
+| `camera_activity` | Exact counts for a time range: per subject or known individual, hour, day, camera and false-alarm cause |
+| `list_cameras`, `list_known_individuals` | What the cameras see, and who the AI recognises |
+| `correct_camera_event` | Set the verdict, the known individual or a label; the AI learns from it |
+| Prompt `daily_report` | Asks the assistant for a short report of one day, using the tools above |
+
+ Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). Only `localhost` is an allowed host by default, see `config/packages/mcp.yaml`.
 
 ## Web pages
 
@@ -149,6 +161,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 - `/events/{id}`: frames, description, hints, and the correction form (label, verdict, who).
 - `/check`: events the AI was not sure of, to confirm or correct.
 - `/ask`: questions in plain words.
+- `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.
 - `/at?camera=<slug>&t=<epoch seconds>`: deep link for push notifications. It waits and refreshes while the event is not stored yet.
 
 The pages and MCP have no login. Run them in a private network, e.g. behind Tailscale Serve. Only the hook needs a credential.

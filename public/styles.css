@@ -91,10 +91,13 @@ img {
     max-inline-size: 60rem;
     margin-inline: auto;
     padding-inline: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
   a {
-    padding: 0.75rem;
+    padding: 0.75rem 0.6rem;
+    white-space: nowrap;
     color: var(--color-text);
     text-decoration: none;
     font-weight: 600;
@@ -441,4 +444,74 @@ form small {
   form {
     margin-block-start: 0.25rem;
   }
+}
+
+/* Insights */
+
+.summary {
+  font-size: 1.1rem;
+}
+
+.bars {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space);
+  display: grid;
+  gap: 0.2rem;
+
+  li {
+    display: grid;
+    grid-template-columns: 6rem 1fr 2.5rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+.bar {
+  block-size: 0.8rem;
+  inline-size: calc(var(--share) * 100%);
+  min-inline-size: 1px;
+  border-radius: 0.2rem;
+  background: var(--color-accent);
+}
+
+.bar-count {
+  color: var(--color-muted);
+  text-align: end;
+}
+
+.columns {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space);
+  display: grid;
+  grid-template-columns: repeat(var(--count), 1fr);
+  gap: 2px;
+  block-size: 7rem;
+
+  li {
+    display: grid;
+    grid-template-rows: 1fr 1.2rem;
+    min-inline-size: 0;
+  }
+}
+
+.column {
+  align-self: end;
+  block-size: calc(var(--share) * 100%);
+  min-block-size: 1px;
+  border-radius: 0.15rem 0.15rem 0 0;
+  background: var(--color-accent);
+}
+
+.column-label {
+  font-size: 0.65rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.camera-insights .tip {
+  color: var(--color-warn);
 }
