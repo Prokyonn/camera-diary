@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "02cf92f060132dbc29b65531b997fc8f",
+    "content-hash": "8ae1f6a4abf1c4e1e385f614f0270ce2",
     "packages": [
         {
             "name": "camera-diary/home-assistant",
@@ -13669,6 +13669,7 @@
     "platform": {
         "php": ">=8.4",
         "ext-ctype": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
         "ext-intl": "*",
         "ext-pdo_sqlite": "*"

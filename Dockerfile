@@ -5,7 +5,7 @@ FROM dunglas/frankenphp:1.13-php8.4-bookworm AS base
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions intl opcache pdo_sqlite
+    && install-php-extensions gd intl opcache pdo_sqlite
 
 COPY docker/php.ini $PHP_INI_DIR/conf.d/zz-camera-diary.ini
 
