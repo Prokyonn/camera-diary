@@ -50,6 +50,20 @@ final class TimelineControllerTest extends WebTestCase
         self::assertStringContainsString('Luna', $cards->eq(1)->filter('.badges')->text(), 'Known individuals are named.');
     }
 
+    public function testAQuietTodayOpensTheLatestDayWithEvents(): void
+    {
+        self::mockTime('2026-11-08 01:00:00');
+        $client = self::createClient();
+        $this->resetStorage(self::getContainer());
+        $this->storeEvents(self::getContainer(), CameraEventFactory::described('Luna crosses the lawn.', '2026-11-06 12:00:00', 'garden', individual: 'luna'));
+
+        $client->request('GET', '/');
+        self::assertResponseRedirects('/?day=2026-11-06');
+
+        $client->request('GET', '/?day=2026-11-08');
+        self::assertResponseIsSuccessful('An explicit day stays, empty or not.');
+    }
+
     public function testSummarizesTheDayOnRequest(): void
     {
         self::mockTime('2026-11-07 20:00:00');
@@ -108,7 +122,7 @@ final class TimelineControllerTest extends WebTestCase
             CameraEventFactory::described('A web thread.', '2026-11-07 03:00:00', 'garden', Verdict::FalseAlarm),
         );
 
-        $client->request('GET', '/');
+        $client->request('GET', '/?day=2026-11-08');
 
         self::assertSelectorTextContains('.empty', 'The latest ones are from Friday, 6 November.');
         self::assertSelectorExists('.empty a[href="/?day=2026-11-06"]', 'Hidden false alarms do not count.');

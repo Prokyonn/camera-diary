@@ -64,6 +64,11 @@ final class TimelineController extends AbstractController
         }
 
         $events = $this->events->findBy($filters, ['startedAt' => 'desc']);
+        $latestBefore = [] === $events ? $this->latestBefore($filters, $from) : null;
+        if ($latestBefore instanceof CameraEvent && !$request->query->has('day')) {
+            // A quiet today opens on the latest day with events; "Next day" still leads to today.
+            return $this->redirectToRoute('timeline', [...$request->query->all(), 'day' => $this->homeTimeZone->toLocal($latestBefore->getStartedAt())->format('Y-m-d')]);
+        }
 
         return $this->render('timeline/index.html.twig', [
             'form' => $form,
@@ -75,7 +80,7 @@ final class TimelineController extends AbstractController
                 'falseAlarms' => $filter->falseAlarms ? '1' : null,
             ], static fn (?string $value): bool => null !== $value),
             'events' => $events,
-            'latestBefore' => [] === $events ? $this->latestBefore($filters, $from) : null,
+            'latestBefore' => $latestBefore,
             'aiUsage' => $this->aiUsage(),
             'digest' => $this->digests->of($day),
             'describedCount' => $this->digests->eventCount($day),
