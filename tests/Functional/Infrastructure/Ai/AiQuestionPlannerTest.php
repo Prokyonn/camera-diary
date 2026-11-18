@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\NullLogger;
 use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(AiQuestionPlanner::class)]
@@ -31,20 +32,21 @@ final class AiQuestionPlannerTest extends TestCase
         $cameras = $this->prophesize(CameraRepositoryInterface::class);
         $cameras->findBy(Argument::cetera())->willReturn([CameraFactory::get('garden', 'Garden with a fence at the back.'), CameraFactory::get('terrace')]);
         $platform = new FakePlatform();
-        $platform->respondWith('{"keywords":"dark jacket","subjects":["person","ghost"],"individuals":["luna","garfield"],"cameras":["garden","attic"],"from":"2026-11-07T18:00:00+01:00","to":"","side":"outside","includeFalseAlarms":false}');
+        $platform->respondWith('{"keywords":"dark jacket","subjects":["Person","ghost"],"individuals":["Luna","luna","garfield"],"cameras":["garden","attic"],"from":"2026-11-07T18:00:00+01:00","to":"","side":"outside","includeFalseAlarms":false}');
         $planner = new AiQuestionPlanner(
             new PlatformStructuredClient($platform, 'test-model'),
             new HomeTimeZone('Europe/Vienna'),
             new HomeContext($cameras->reveal(), $this->settingsProvider()),
             new MockClock('2026-11-08 10:00:00', 'UTC'),
             $this->settingsProvider(['individuals' => ['luna' => ['subject' => 'cat']]]),
+            new NullLogger(),
         );
 
         $criteria = $planner->plan('Who was behind the fence last night?', 12);
 
         self::assertSame('dark jacket', $criteria->text);
-        self::assertSame(['person'], $criteria->subjects, 'Unknown subjects are dropped.');
-        self::assertSame(['luna'], $criteria->individuals, 'Unknown individuals are dropped.');
+        self::assertSame(['person'], $criteria->subjects, 'Labels count as names; unknown subjects are dropped.');
+        self::assertSame(['luna'], $criteria->individuals, 'A label and its name are one individual; unknown ones are dropped.');
         self::assertSame(['garden'], $criteria->cameras, 'Unknown cameras are dropped.');
         self::assertSame('2026-11-07 17:00:00', $criteria->from?->format('Y-m-d H:i:s'), 'Times are converted to UTC.');
         self::assertNull($criteria->to);

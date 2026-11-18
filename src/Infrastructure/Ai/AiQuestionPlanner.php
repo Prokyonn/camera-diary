@@ -16,6 +16,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
 use Psr\Clock\ClockInterface;
+use Psr\Log\LoggerInterface;
 
 final readonly class AiQuestionPlanner implements QuestionPlannerInterface
 {
@@ -25,6 +26,7 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
         private HomeContext $homeContext,
         private ClockInterface $clock,
         private SettingsProviderInterface $settings,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -39,9 +41,11 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
             Cameras:
             {$this->homeContext->cameraList()}
             Now is {$now->format('l, j F Y, H:i')} in {$this->homeTimeZone->zone()->getName()}.
-            Resolve relative times ("last night", "on Saturday") into a range. Night means 18:00 to 08:00.
+            Resolve relative times ("last night", "on Saturday") into a range. Night means 18:00 to 08:00. "This week", "lately" and "recently" mean the last seven days up to now.
+            For a group of subjects ("animals", "wild animals", "visitors"), list every subject that belongs to it.
             {$notes}
             PROMPT), [$question]), SearchPlanOutput::class);
+        $this->logger->info('Search plan for "{question}": {plan}', ['question' => $question, 'plan' => json_encode($plan)]);
 
         $settings = $this->settings->settings();
 
@@ -53,9 +57,39 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
             side: $plan->side->side(),
             includeFalseAlarms: $plan->includeFalseAlarms,
             limit: $limit,
-            subjects: array_values(array_intersect($plan->subjects, $settings->subjects->names())),
-            individuals: array_values(array_intersect($plan->individuals, array_map(static fn (Individual $individual): string => $individual->name, $settings->individuals))),
+            subjects: $this->known($plan->subjects, array_combine($settings->subjects->names(), array_map($settings->subjects->label(...), $settings->subjects->names()))),
+            individuals: $this->known($plan->individuals, array_combine(
+                array_map(static fn (Individual $individual): string => $individual->name, $settings->individuals),
+                array_map(static fn (Individual $individual): string => $individual->label, $settings->individuals),
+            )),
         );
+    }
+
+    /**
+     * Models sometimes answer with a label ("Mochi") instead of the name ("mochi").
+     *
+     * @param list<string>          $values
+     * @param array<string, string> $labelsByName
+     *
+     * @return list<string> the names the values stand for, unknown ones dropped
+     */
+    private function known(array $values, array $labelsByName): array
+    {
+        $names = [];
+        foreach ($labelsByName as $name => $label) {
+            $names[mb_strtolower($name)] = $name;
+            $names[mb_strtolower($label)] = $name;
+        }
+
+        $known = [];
+        foreach ($values as $value) {
+            $name = $names[mb_strtolower(trim($value))] ?? null;
+            if (null !== $name && !\in_array($name, $known, true)) {
+                $known[] = $name;
+            }
+        }
+
+        return $known;
     }
 
     private function parseTime(string $value): ?DateTimeImmutable

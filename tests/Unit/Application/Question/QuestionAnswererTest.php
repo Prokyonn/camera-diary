@@ -129,11 +129,24 @@ final class QuestionAnswererTest extends TestCase
         $walk = CameraEventFactory::described('Sam walks across the lawn.', id: 1);
         $bucket = CameraEventFactory::described('Sam carries an orange bucket.', id: 2);
         $this->planner->plan(Argument::cetera())->willReturn($criteria);
-        $this->search->search($criteria->withText('')->withLimit(200))->willReturn(new SearchResult([$walk, $bucket], 2));
+        $this->search->search($criteria->withText('')->withSubjects([])->withLimit(200))->willReturn(new SearchResult([$walk, $bucket], 2));
         $this->search->search($criteria->withLimit(6))->willReturn(new SearchResult([$bucket], 1));
         $this->writer->answer('How often was Sam outside today?', [$bucket, $walk], 2, false)->willReturn(new Answer('Twice.', []))->shouldBeCalledOnce();
 
         self::assertSame('Twice.', $this->answerer()->answer('How often was Sam outside today?')->answer);
+    }
+
+    public function testASubjectOnlyRanksTheEventsOfATimeRange(): void
+    {
+        $criteria = new SearchCriteria(from: CameraEventFactory::utc('2026-11-12 00:00:00'), subjects: ['other_animal']);
+        $squirrel = CameraEventFactory::described('A grey squirrel on the patio.', subject: 'other_animal', id: 1);
+        $marten = CameraEventFactory::described('A marten at the feeding box.', subject: 'marten', id: 2);
+        $this->planner->plan(Argument::cetera())->willReturn($criteria);
+        $this->search->search($criteria->withSubjects([])->withLimit(200))->willReturn(new SearchResult([$marten, $squirrel], 2));
+        $this->search->search($criteria->withLimit(6))->willReturn(new SearchResult([$squirrel], 1));
+        $this->writer->answer('Which wild animals came by?', [$squirrel, $marten], 2, false)->willReturn(new Answer('A squirrel and a marten.', [1, 2]))->shouldBeCalledOnce();
+
+        self::assertSame('A squirrel and a marten.', $this->answerer()->answer('Which wild animals came by?')->answer, 'The marten is not hidden by a subject picked too narrowly.');
     }
 
     public function testFallsBackToTheKeywordMatchesForABusyTimeRange(): void
@@ -141,7 +154,7 @@ final class QuestionAnswererTest extends TestCase
         $criteria = new SearchCriteria(text: 'spider', from: CameraEventFactory::utc('2026-11-06 00:00:00'), includeFalseAlarms: true, limit: 12);
         $web = CameraEventFactory::described('A spider web.', id: 3);
         $this->planner->plan(Argument::cetera())->willReturn($criteria);
-        $this->search->search($criteria->withText('')->withLimit(200))->willReturn(new SearchResult([], 800));
+        $this->search->search($criteria->withText('')->withSubjects([])->withLimit(200))->willReturn(new SearchResult([], 800));
         $this->search->search($criteria)->willReturn(new SearchResult([$web], 40));
         $this->writer->answer(Argument::any(), [$web], 40, false)->willReturn(new Answer('A spider web.', [3]))->shouldBeCalledOnce();
 

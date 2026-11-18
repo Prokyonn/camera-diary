@@ -49,6 +49,7 @@ final class AiAnswerWriterTest extends TestCase
         $platform->respondWith('{"text":"Sam was on the terrace twice.","eventIds":[1,2]}');
         $first = CameraEventFactory::described('Sam carries a bucket.', '@1781000000', subject: 'person', id: 1, individual: 'sam');
         $second = CameraEventFactory::described('A cat walks by.', '@1781000060', id: 2);
+        $second->relabel(null, null, 'luna', null);
         $homeTimeZone = new HomeTimeZone('Europe/Vienna');
         $writer = new AiAnswerWriter(
             new PlatformStructuredClient($platform, 'test-model'),
@@ -67,7 +68,8 @@ final class AiAnswerWriterTest extends TestCase
         $input = json_encode(($platform->calls()[0] ?? self::fail('The AI was not called.'))['input'], \JSON_THROW_ON_ERROR);
         self::assertStringContainsString('5 events match; here are the 2 most relevant.', $input);
         self::assertStringContainsString('Subject: Sam', $input);
-        self::assertStringContainsString('Subject: Other cat', $input);
+        self::assertStringContainsString('Subject: Luna', $input, 'The owner said the cat was Luna.');
+        self::assertSame(1, substr_count($input, 'Corrected by the owner'), 'Only the corrected event says so.');
         self::assertStringContainsString('A cat walks by.', $input, 'Events beyond answer_events are read as text.');
         self::assertSame(1, substr_count($input, '"type":"image_url"'), 'Only the first event comes with its frame.');
     }

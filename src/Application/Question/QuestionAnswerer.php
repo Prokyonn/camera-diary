@@ -56,16 +56,17 @@ final readonly class QuestionAnswerer
     }
 
     /**
-     * For a time range with few enough events, all of them, the keyword matches first, so the AI reads everything and
-     * wording cannot hide an event. Otherwise the best keyword matches.
+     * For a time range with few enough events, all of them, the keyword and subject matches first, so the AI reads
+     * everything and neither wording nor a subject picked too narrowly ("wild animals" as only "other animal") can
+     * hide an event. Otherwise the best matches.
      */
     private function events(SearchCriteria $criteria): SearchResult
     {
         $questions = $this->settings->settings()->questions;
         if ($criteria->hasTimeRange()) {
-            $inRange = $this->search->search($criteria->withText('')->withLimit($questions->contextEvents));
+            $inRange = $this->search->search($criteria->withText('')->withSubjects([])->withLimit($questions->contextEvents));
             if ($inRange->total <= $questions->contextEvents) {
-                $matches = '' === trim($criteria->text) ? [] : $this->search->search($criteria->withLimit($questions->answerEvents))->events;
+                $matches = '' === trim($criteria->text) && [] === $criteria->subjects ? [] : $this->search->search($criteria->withLimit($questions->answerEvents))->events;
 
                 return new SearchResult($this->citedFirst($inRange->events, array_map(static fn (CameraEvent $event): int => $event->getId(), $matches)), $inRange->total);
             }

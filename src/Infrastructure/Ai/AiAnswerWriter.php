@@ -44,7 +44,7 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
 
         $output = $this->client->request(new Prompt(<<<'PROMPT'
             You answer questions about camera events at home. Use only the events and frames given; the first events list their frames right after their text.
-            Manual labels and corrections are reliable and override the description. Several events often show the same person or animal; count individuals, not events, when asked how many. Say clearly when the events do not answer the question.
+            Manual labels and corrections are reliable and override the description. Night means 18:00 to 08:00; check each event's time. Several events often show the same person or animal; count individuals, not events, when asked how many. Say clearly when the events do not answer the question.
             Answer in a few plain sentences without Markdown.
             PROMPT, $parts), AnswerOutput::class);
 
@@ -68,6 +68,9 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
         ];
         if (null !== $event->getLabel()) {
             $lines[] = 'Label: '.$event->getLabel();
+        }
+        if ($event->isCorrected()) {
+            $lines[] = 'Corrected by the owner: the label, subject and verdict here are right, even where the description says otherwise.';
         }
         $subject = $event->getSubject();
         if (null !== $subject) {

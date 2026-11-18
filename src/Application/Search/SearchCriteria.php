@@ -32,6 +32,14 @@ final readonly class SearchCriteria
         return new self($text, $this->cameras, $this->from, $this->to, $this->side, $this->includeFalseAlarms, $this->limit, $this->subjects, $this->individuals);
     }
 
+    /**
+     * @param list<string> $subjects
+     */
+    public function withSubjects(array $subjects): self
+    {
+        return new self($this->text, $this->cameras, $this->from, $this->to, $this->side, $this->includeFalseAlarms, $this->limit, $subjects, $this->individuals);
+    }
+
     public function withLimit(int $limit): self
     {
         return new self($this->text, $this->cameras, $this->from, $this->to, $this->side, $this->includeFalseAlarms, $limit, $this->subjects, $this->individuals);
