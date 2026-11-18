@@ -162,7 +162,7 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
 
     private function filterNeedsReview(QueryBuilder $queryBuilder, bool $needsReview): void
     {
-        $condition = 'event.status = :reviewStatus AND event.reviewedAt IS NULL AND (event.unusual = true OR event.confidence IN (:unsure))';
+        $condition = 'event.status = :reviewStatus AND event.reviewedAt IS NULL AND event.repeatOf IS NULL AND (event.unusual = true OR event.confidence IN (:unsure))';
         $queryBuilder
             ->andWhere($needsReview ? $condition : 'NOT ('.$condition.') OR event.confidence IS NULL')
             ->setParameter('reviewStatus', EventStatus::Described)

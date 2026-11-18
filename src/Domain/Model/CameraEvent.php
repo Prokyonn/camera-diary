@@ -118,6 +118,10 @@ class CameraEvent
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $reviewedAt = null;
 
+    /** the AI-checked false alarm this event repeats; it was filed without an AI call */
+    #[ORM\Column(nullable: true)]
+    private ?int $repeatOf = null;
+
     /**
      * @param list<string> $detectionTypes names from the detection types vocabulary
      * @param bool         $open           an open event still takes detections and is not described yet
@@ -314,13 +318,24 @@ class CameraEvent
         return $this->reviewedAt;
     }
 
+    public function getRepeatOf(): ?int
+    {
+        return $this->repeatOf;
+    }
+
+    public function isRepeat(): bool
+    {
+        return null !== $this->repeatOf;
+    }
+
     /**
-     * Described as unusual, or the AI was not sure, and the owner has not looked at it yet.
+     * Described as unusual, or the AI was not sure, and the owner has not looked at it yet; repeats never are.
      */
     public function needsReview(): bool
     {
         return EventStatus::Described === $this->status
             && !$this->reviewedAt instanceof DateTimeImmutable
+            && null === $this->repeatOf
             && ($this->unusual || \in_array($this->confidence, [Confidence::Medium, Confidence::Low], true));
     }
 
@@ -452,6 +467,30 @@ class CameraEvent
         $this->describedAt = $describedAt;
         $this->status = EventStatus::Described;
         $this->nextAttemptAt = null;
+    }
+
+    /**
+     * Files the event as a repeat of a false alarm the AI checked, without asking the AI: it takes over that answer.
+     */
+    public function describeAsRepeatOf(self $checked, DateTimeImmutable $describedAt): void
+    {
+        if (EventStatus::Described !== $checked->status || !$checked->isFalseAlarm() || $checked->isRepeat()) {
+            throw new LogicException('An event can only repeat a described false alarm the AI checked.');
+        }
+
+        $this->describe(
+            Verdict::FalseAlarm,
+            $checked->getEffectiveFalseAlarmCause(),
+            $checked->side ?? Side::Unclear,
+            $checked->subject ?? throw new LogicException('A described event has a subject.'),
+            null,
+            $checked->summary ?? '',
+            false,
+            $checked->confidence ?? Confidence::High,
+            $checked->model ?? '',
+            $describedAt,
+        );
+        $this->repeatOf = $checked->getId();
     }
 
     public function retryAt(DateTimeImmutable $nextAttemptAt): void

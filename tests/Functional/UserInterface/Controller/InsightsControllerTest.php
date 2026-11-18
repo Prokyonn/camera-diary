@@ -31,12 +31,16 @@ final class InsightsControllerTest extends WebTestCase
             range(1, 5),
         );
         $this->storeEvents(self::getContainer(), CameraEventFactory::described('Luna on the wall.', '2026-11-07 06:10:00', individual: 'luna'), ...$webs);
+        $repeat = CameraEventFactory::withFrames('2026-11-07 23:30:00', 'garden');
+        $repeat->describeAsRepeatOf($webs[4], CameraEventFactory::utc('2026-11-07 23:31:00'));
+        $this->storeEvents(self::getContainer(), $repeat);
 
         $client->request('GET', '/insights?days=30');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.summary', '1 real events and 5 false alarms');
+        self::assertSelectorTextContains('.summary', '1 real events and 6 false alarms');
         self::assertSelectorTextContains('.bars', 'Luna');
-        self::assertSelectorTextContains('.camera-insights .tip', 'Spider web caused 5 of them: worth a look at this camera.');
+        self::assertSelectorTextContains('.camera-insights .tip', 'Spider web caused 6 of them: worth a look at this camera.');
+        self::assertSelectorTextContains('main', '1 of the false alarms repeated an ongoing one and were filed without asking the AI.');
     }
 }

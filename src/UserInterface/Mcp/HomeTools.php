@@ -78,6 +78,7 @@ final readonly class HomeTools
             'to' => $this->local($activity->to),
             'real_events' => $activity->real,
             'false_alarms' => $activity->falseAlarms,
+            'false_alarms_filed_without_ai' => $activity->repeats,
             'not_described_yet' => $activity->undescribed,
             'real_events_by_who' => $activity->byWho,
             'false_alarms_by_cause' => $activity->falseAlarmCauses,

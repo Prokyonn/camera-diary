@@ -24,7 +24,7 @@ use Symfony\Component\Filesystem\Path;
  *
  * @phpstan-type VocabularyConfig array<string, array{enabled: bool, label: ?string, description: ?string}>
  * @phpstan-type Config array{
- *     ai: array{daily_call_limit: int, call_pools: array<string, array{detection_types: list<string>, daily_call_limit: int}>, home_context: string, unusual_rule: string, reference_photos: int, correction_examples: int, scene_baseline: bool},
+ *     ai: array{daily_call_limit: int, call_pools: array<string, array{detection_types: list<string>, daily_call_limit: int}>, home_context: string, unusual_rule: string, reference_photos: int, correction_examples: int, scene_baseline: bool, skip_repeats: bool, repeat_recheck_minutes: int},
  *     detection_types: VocabularyConfig,
  *     subjects: VocabularyConfig,
  *     false_alarm_causes: VocabularyConfig,
@@ -82,7 +82,7 @@ final readonly class SettingsBuilder
             $subjects,
             $falseAlarmCauses,
             $this->individuals($config['individuals'], $subjects, $detectionTypes, $directory),
-            new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule']), $ai['reference_photos'], $ai['correction_examples'], $ai['scene_baseline']),
+            new AiSettings($ai['daily_call_limit'], $this->callPools($ai['call_pools'], $detectionTypes), trim($ai['home_context']), trim($ai['unusual_rule']), $ai['reference_photos'], $ai['correction_examples'], $ai['scene_baseline'], $ai['skip_repeats'], $ai['repeat_recheck_minutes']),
             new DescriptionSettings($description['frame_offsets'], $description['retry_delay'], $description['max_attempts'], $description['footage_grace'], $description['batch_size']),
             new QuestionSettings($questions['search_results'], $questions['answer_events'], $questions['frames_per_event'], $questions['context_events']),
             new MaintenanceSettings((int) substr($nightlyAt, 0, 2), (int) substr($nightlyAt, 3, 2), $maintenance['false_alarm_frame_days'], $maintenance['backups_kept']),

@@ -83,7 +83,7 @@ final class HomeToolsTest extends KernelTestCase
         $event = CameraEventFactory::described('A grey cat.');
         $this->storeEvents(self::getContainer(), $event);
 
-        $this->expectExceptionMessage('"tornado" is no false-alarm cause.');
+        $this->expectExceptionMessageIsOrContains('"tornado" is no false-alarm cause.');
 
         $this->tools->correct($event->getId(), cause: 'tornado');
     }

@@ -87,6 +87,8 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->integerNode('reference_photos')->min(1)->defaultValue(6)->info('Reference photos per known individual the AI gets with an event: the settings\' ones first, then the newest added in the app')->end()
                 ->integerNode('correction_examples')->min(0)->defaultValue(6)->info('Your latest corrections on the same camera the AI gets as examples with an event; 0 for none')->end()
                 ->booleanNode('scene_baseline')->defaultTrue()->info('Send the camera\'s latest empty view in the same light (a false alarm with nothing visible) with each event, so the AI sees what changed')->end()
+                ->booleanNode('skip_repeats')->defaultTrue()->info('File an event without an AI call when the camera\'s last three events were false alarms with the same cause and its frames show nothing new, e.g. a spider in front of the lens all night')->end()
+                ->integerNode('repeat_recheck_minutes')->min(0)->defaultValue(30)->info('After how many minutes without an AI check a repeat goes to the AI anyway; 0 for never')->end()
             ->end();
 
         return $node;

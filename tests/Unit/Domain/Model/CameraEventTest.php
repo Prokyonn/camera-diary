@@ -212,4 +212,41 @@ final class CameraEventTest extends TestCase
         $event->relabel(null, Verdict::Real, null, 'spider_web');
         self::assertNull($event->getEffectiveFalseAlarmCause(), 'A real event has no false-alarm cause.');
     }
+
+    public function testARepeatTakesOverTheCheckedFalseAlarmWithoutNeedingReview(): void
+    {
+        $checked = CameraEventFactory::described('A spider web in front of the lens.', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'insect', id: 7, confidence: Confidence::Low);
+        $checked->relabel(null, null, null, 'spider_web');
+        $repeat = CameraEventFactory::withFrames('2026-11-06 06:30:00');
+
+        $repeat->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-06 06:31:00'));
+
+        self::assertSame(EventStatus::Described, $repeat->getStatus());
+        self::assertSame(7, $repeat->getRepeatOf());
+        self::assertTrue($repeat->isRepeat());
+        self::assertTrue($repeat->isFalseAlarm());
+        self::assertSame('spider_web', $repeat->getEffectiveFalseAlarmCause(), 'The owner\'s cause, not the AI\'s.');
+        self::assertSame('A spider web in front of the lens.', $repeat->getSummary());
+        self::assertSame('test-model', $repeat->getModel());
+        self::assertTrue($checked->needsReview());
+        self::assertFalse($repeat->needsReview(), 'Only the checked one waits for a look.');
+    }
+
+    public function testOnlyACheckedFalseAlarmCanBeRepeated(): void
+    {
+        $real = CameraEventFactory::described('A cat.', id: 1);
+
+        $this->expectException(LogicException::class);
+        CameraEventFactory::withFrames()->describeAsRepeatOf($real, CameraEventFactory::utc('2026-11-06 06:31:00'));
+    }
+
+    public function testARepeatCannotBeRepeated(): void
+    {
+        $checked = CameraEventFactory::described('A spider web.', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'spider_web', id: 1);
+        $repeat = CameraEventFactory::withFrames('2026-11-06 06:30:00', id: 2);
+        $repeat->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-06 06:31:00'));
+
+        $this->expectException(LogicException::class);
+        CameraEventFactory::withFrames('2026-11-06 06:40:00')->describeAsRepeatOf($repeat, CameraEventFactory::utc('2026-11-06 06:41:00'));
+    }
 }

@@ -81,6 +81,18 @@ final class DoctrineCameraEventRepositoryTest extends KernelTestCase
         self::assertSame([$reviewed], $this->repository->findBy(['reviewed' => true], ['reviewedAt' => 'desc']));
     }
 
+    public function testARepeatNeverNeedsReview(): void
+    {
+        $checked = CameraEventFactory::described('Something bright at the lens.', '2026-11-06 03:00:00', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'spider_web', confidence: Confidence::Low);
+        $this->store($checked);
+        $repeat = CameraEventFactory::withFrames('2026-11-06 03:10:00');
+        $repeat->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-06 03:11:00'));
+        $this->store($repeat);
+
+        self::assertSame([$checked], $this->repository->findBy(['needsReview' => true]));
+        self::assertSame($checked->getId(), $this->repository->getOneBy(['id' => $repeat->getId()])->getRepeatOf());
+    }
+
     public function testFindsPendingEventsThatAreDue(): void
     {
         $due = CameraEventFactory::create('2026-11-07 13:55:00');

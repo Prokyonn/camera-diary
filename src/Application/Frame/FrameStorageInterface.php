@@ -33,6 +33,13 @@ interface FrameStorageInterface
     public function isMonochrome(string $relativePath): bool;
 
     /**
+     * The frame scaled down to the given number of columns, the rows keeping the aspect ratio; null for unreadable files.
+     *
+     * @param positive-int $columns
+     */
+    public function brightnessGrid(string $relativePath, int $columns): ?BrightnessGrid;
+
+    /**
      * @param list<string> $relativePaths
      */
     public function remove(array $relativePaths): void;

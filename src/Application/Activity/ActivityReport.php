@@ -37,7 +37,7 @@ final readonly class ActivityReport
         }
 
         $settings = $this->settings->settings();
-        $real = $falseAlarms = $undescribed = 0;
+        $real = $falseAlarms = $undescribed = $repeats = 0;
         $byWho = $causes = $names = $cameraReal = $cameraFalseAlarms = $cameraCauses = [];
         $byHour = array_fill(0, 24, 0);
         $byDay = $this->days($from, $to);
@@ -53,6 +53,7 @@ final readonly class ActivityReport
 
             if ($event->isFalseAlarm()) {
                 ++$falseAlarms;
+                $repeats += $event->isRepeat() ? 1 : 0;
                 $cameraFalseAlarms[$slug] = ($cameraFalseAlarms[$slug] ?? 0) + 1;
                 $cause = $this->causeLabel($event);
                 $causes[$cause] = ($causes[$cause] ?? 0) + 1;
@@ -83,7 +84,7 @@ final readonly class ActivityReport
         arsort($byWho);
         arsort($causes);
 
-        return new Activity($from, $to, $real, $falseAlarms, $undescribed, $byWho, $causes, $cameras, $byHour, $byDay);
+        return new Activity($from, $to, $real, $falseAlarms, $undescribed, $repeats, $byWho, $causes, $cameras, $byHour, $byDay);
     }
 
     private function causeLabel(CameraEvent $event): string

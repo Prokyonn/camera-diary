@@ -39,6 +39,23 @@ final class EventControllerTest extends WebTestCase
         self::assertSame('/events/'.$event->getId().'/frames/0.jpg?v='.$event->getStartedAt()->format('U'), $crawler->filter('.frames img')->attr('src'));
     }
 
+    public function testShowsThatARepeatWasNotSentToTheAi(): void
+    {
+        $client = self::createClient();
+        $this->resetStorage(self::getContainer());
+        $checked = CameraEventFactory::described('A spider web in front of the lens.', '2026-11-06 03:00:00', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'spider_web');
+        $this->storeEvents(self::getContainer(), $checked);
+        $repeat = CameraEventFactory::withFrames('2026-11-06 03:10:00');
+        $repeat->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-06 03:11:00'));
+        $this->storeEvents(self::getContainer(), $repeat);
+
+        $crawler = $client->request('GET', '/events/'.$repeat->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.described-by', 'Not sent to the AI');
+        self::assertSame('/events/'.$checked->getId(), $crawler->filter('.described-by a')->attr('href'));
+    }
+
     public function testSavesALabelAndAVerdictOverride(): void
     {
         $client = self::createClient();

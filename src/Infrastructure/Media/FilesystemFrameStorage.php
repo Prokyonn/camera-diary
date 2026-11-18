@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Media;
 
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Frame\BrightnessGrid;
 use App\Application\Frame\FrameExtractionFailedException;
 use App\Application\Frame\FrameStorageInterface;
 use App\Domain\Model\CameraEvent;
@@ -86,6 +87,31 @@ final readonly class FilesystemFrameStorage implements FrameStorageInterface
         }
 
         return $spread / self::SAMPLE_SIZE ** 2 < self::MONOCHROME_SPREAD;
+    }
+
+    public function brightnessGrid(string $relativePath, int $columns): ?BrightnessGrid
+    {
+        $image = @imagecreatefromjpeg($this->absolutePath($relativePath));
+        if (false === $image) {
+            return null;
+        }
+
+        $rows = max(1, (int) round($columns * imagesy($image) / imagesx($image)));
+        $small = imagecreatetruecolor($columns, $rows);
+        if (false === $small) {
+            return null;
+        }
+
+        // Resampling averages each cell's pixels, so a small thing still changes its cell.
+        imagecopyresampled($small, $image, 0, 0, 0, 0, $columns, $rows, imagesx($image), imagesy($image));
+
+        $cells = array_map(static function (int $index) use ($small, $columns): float {
+            $rgb = imagecolorat($small, $index % $columns, intdiv($index, $columns));
+
+            return ((($rgb >> 16) & 0xFF) + (($rgb >> 8) & 0xFF) + ($rgb & 0xFF)) / 3.0;
+        }, range(0, $rows * $columns - 1));
+
+        return new BrightnessGrid($columns, $cells);
     }
 
     public function remove(array $relativePaths): void

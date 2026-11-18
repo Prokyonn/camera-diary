@@ -142,7 +142,9 @@
         </script>
     {% endif %}
 
-    {% if event.describedAt %}
-        <p class="meta">Described by {{ event.model }} on {{ event.describedAt|date('j M Y, H:i') }}.</p>
+    {% if event.repeat %}
+        <p class="meta described-by">Not sent to the AI: it looks like the ongoing false alarms on this camera. The answer is taken from <a href="{{ path('event_show', {id: event.repeatOf}) }}">the last one the AI checked</a>.</p>
+    {% elseif event.describedAt %}
+        <p class="meta described-by">Described by {{ event.model }} on {{ event.describedAt|date('j M Y, H:i') }}.</p>
     {% endif %}
 {% endblock %}

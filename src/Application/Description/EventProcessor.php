@@ -31,6 +31,7 @@ final readonly class EventProcessor
         private EventDescriberInterface $describer,
         private AiCallBudgetInterface $budget,
         private HintCollector $hints,
+        private RepeatedFalseAlarms $repeatedFalseAlarms,
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
         private EventDispatcherInterface $eventDispatcher,
@@ -59,6 +60,13 @@ final readonly class EventProcessor
             if ($outcome instanceof ProcessOutcome) {
                 return $outcome;
             }
+        }
+
+        $checkedOriginal = $this->repeatedFalseAlarms->checkedOriginalOf($event);
+        if ($checkedOriginal instanceof CameraEvent) {
+            $event->describeAsRepeatOf($checkedOriginal, $this->clock->now());
+
+            return ProcessOutcome::Described;
         }
 
         $pool = $this->settings->settings()->ai->callPoolFor($event->getDetectionTypes());

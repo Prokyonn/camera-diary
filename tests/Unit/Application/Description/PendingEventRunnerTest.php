@@ -10,6 +10,8 @@ use App\Application\Description\EventDescription;
 use App\Application\Description\EventProcessor;
 use App\Application\Description\HintCollector;
 use App\Application\Description\PendingEventRunner;
+use App\Application\Description\RepeatedFalseAlarms;
+use App\Application\Description\SceneChange;
 use App\Application\Frame\FrameSources;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
@@ -114,12 +116,16 @@ final class PendingEventRunnerTest extends TestCase
         $clock = new MockClock('2026-11-06 06:30:00', 'UTC');
         $dispatcher = $this->prophesize(EventDispatcherInterface::class);
         $dispatcher->dispatch(Argument::any())->willReturnArgument(0);
+        $storage = $this->prophesize(FrameStorageInterface::class)->reveal();
+        $recent = $this->prophesize(CameraEventRepositoryInterface::class);
+        $recent->findBy(Argument::cetera())->willReturn([]);
         $processor = new EventProcessor(
             new FrameSources([]),
-            $this->prophesize(FrameStorageInterface::class)->reveal(),
+            $storage,
             $this->describer->reveal(),
             $this->budget->reveal(),
             new HintCollector([]),
+            new RepeatedFalseAlarms($recent->reveal(), $storage, new SceneChange(), $settingsProvider),
             $this->prophesize(EventIndexerInterface::class)->reveal(),
             $this->prophesize(UnitOfWorkInterface::class)->reveal(),
             $dispatcher->reveal(),

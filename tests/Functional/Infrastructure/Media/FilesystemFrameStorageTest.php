@@ -39,6 +39,18 @@ final class FilesystemFrameStorageTest extends TestCase
         self::assertFalse($this->storage->isMonochrome('missing.jpg'), 'An unreadable frame counts as colour.');
     }
 
+    public function testScalesAFrameDownToABrightnessGrid(): void
+    {
+        $this->frame('grey.jpg', 90, 120, 150);
+
+        $grid = $this->storage->brightnessGrid('grey.jpg', 16);
+
+        self::assertSame(16, $grid?->columns);
+        self::assertCount(16 * 9, $grid->cells, '32 by 18 pixels give 16 by 9 cells.');
+        self::assertEqualsWithDelta(120.0, array_sum($grid->cells) / \count($grid->cells), 3.0);
+        self::assertNull($this->storage->brightnessGrid('missing.jpg', 16));
+    }
+
     /**
      * @param int<0, 255> $red
      * @param int<0, 255> $green

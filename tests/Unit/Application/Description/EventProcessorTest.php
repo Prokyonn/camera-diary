@@ -13,6 +13,9 @@ use App\Application\Description\EventProcessor;
 use App\Application\Description\HintCollector;
 use App\Application\Description\HintProviderInterface;
 use App\Application\Description\ProcessOutcome;
+use App\Application\Description\RepeatedFalseAlarms;
+use App\Application\Description\SceneChange;
+use App\Application\Frame\BrightnessGrid;
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractionFailedException;
 use App\Application\Frame\FrameSourceInterface;
@@ -26,6 +29,7 @@ use App\Domain\Model\Confidence;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
+use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Factory\SettingsFactory;
 use App\Tests\Support\ProvidesSettings;
@@ -68,10 +72,15 @@ final class EventProcessorTest extends TestCase
     /** @var ObjectProphecy<EventDispatcherInterface> */
     private ObjectProphecy $eventDispatcher;
 
+    /** @var ObjectProphecy<CameraEventRepositoryInterface> */
+    private ObjectProphecy $events;
+
     private MockClock $clock;
 
     protected function setUp(): void
     {
+        $this->events = $this->prophesize(CameraEventRepositoryInterface::class);
+        $this->events->findBy(Argument::cetera())->willReturn([]);
         $this->grabber = $this->prophesize(FrameSourceInterface::class);
         $this->grabber->supports(Argument::type(CameraEvent::class))->willReturn(true);
         $this->hints = $this->prophesize(HintProviderInterface::class);
@@ -204,21 +213,42 @@ final class EventProcessorTest extends TestCase
         self::assertSame(ProcessOutcome::OverBudget, $processor->process($event));
     }
 
+    public function testFilesARepeatedFalseAlarmWithoutTheAi(): void
+    {
+        $spiders = array_map(
+            static fn (int $id): CameraEvent => CameraEventFactory::described('A spider web.', \sprintf('2026-11-06 06:%02d:00', $id), verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'spider_web', id: $id),
+            [12, 8, 4],
+        );
+        $this->events->findBy(Argument::cetera())->willReturn($spiders);
+        $this->storage->brightnessGrid(Argument::cetera())->willReturn(new BrightnessGrid(2, [100.0, 100.0, 100.0, 100.0]));
+        $event = CameraEventFactory::withFrames('2026-11-06 06:16:40', id: 20);
+        $this->budget->tryConsume(Argument::any())->shouldNotBeCalled();
+        $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
+        $this->eventDispatcher->dispatch(new EventDescribed($event))->shouldBeCalledOnce()->willReturnArgument(0);
+
+        self::assertSame(ProcessOutcome::Described, $this->processor()->process($event));
+        self::assertSame(12, $event->getRepeatOf());
+        self::assertSame('spider_web', $event->getEffectiveFalseAlarmCause());
+    }
+
     /**
      * @param array<string, mixed> $settings
      */
     private function processor(array $settings = []): EventProcessor
     {
+        $settingsProvider = $this->settingsProvider($settings);
+
         return new EventProcessor(
             new FrameSources([$this->grabber->reveal()]),
             $this->storage->reveal(),
             $this->describer->reveal(),
             $this->budget->reveal(),
             new HintCollector([$this->hints->reveal()]),
+            new RepeatedFalseAlarms($this->events->reveal(), $this->storage->reveal(), new SceneChange(), $settingsProvider),
             $this->indexer->reveal(),
             $this->unitOfWork->reveal(),
             $this->eventDispatcher->reveal(),
-            $this->settingsProvider($settings),
+            $settingsProvider,
             $this->clock,
             new NullLogger(),
         );

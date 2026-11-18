@@ -12,6 +12,7 @@ use DateTimeImmutable;
 final readonly class Activity
 {
     /**
+     * @param int                           $repeats          false alarms filed as repeats, without an AI call
      * @param array<string, int>            $byWho            real events per subject label, a known individual by name ("Luna", "Other cat", "Person"), most first
      * @param array<string, int>            $falseAlarmCauses false alarms per cause label, most first
      * @param array<string, CameraActivity> $cameras          per camera slug, by name
@@ -24,6 +25,7 @@ final readonly class Activity
         public int $real,
         public int $falseAlarms,
         public int $undescribed,
+        public int $repeats,
         public array $byWho,
         public array $falseAlarmCauses,
         public array $cameras,

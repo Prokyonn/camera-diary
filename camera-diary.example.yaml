@@ -25,6 +25,11 @@ ai:
     correction_examples: 6
     # Send the camera's latest empty view in the same light with each event (default true)
     scene_baseline: true
+    # File an event without an AI call when the camera's last three events were false alarms with the same cause and
+    # its frames show nothing new, e.g. a spider in front of the lens all night (default true)
+    skip_repeats: true
+    # After how many minutes without an AI check a repeat goes to the AI anyway (default 30, 0 for never)
+    repeat_recheck_minutes: 30
 
 # The vocabularies merge with the defaults: add a name, change a label or hint, or remove one with "name: false".
 # Names use lower-case letters, digits and "_". The label is shown in the app, the description helps the AI.

@@ -8,9 +8,11 @@ final readonly class AiSettings
 {
     /**
      * @param list<CallPool> $callPools
-     * @param int            $referencePhotos    reference photos per known individual the AI gets with an event
-     * @param int            $correctionExamples the owner's latest corrections on the same camera the AI gets as examples
-     * @param bool           $sceneBaseline      whether the AI gets the camera's latest empty view in the same light
+     * @param int            $referencePhotos      reference photos per known individual the AI gets with an event
+     * @param int            $correctionExamples   the owner's latest corrections on the same camera the AI gets as examples
+     * @param bool           $sceneBaseline        whether the AI gets the camera's latest empty view in the same light
+     * @param bool           $skipRepeats          whether an event that looks like the camera's ongoing false alarms is filed without an AI call
+     * @param int            $repeatRecheckMinutes after how many minutes a repeat goes to the AI again anyway; 0 for never
      */
     public function __construct(
         public int $dailyCallLimit,
@@ -20,6 +22,8 @@ final readonly class AiSettings
         public int $referencePhotos,
         public int $correctionExamples,
         public bool $sceneBaseline,
+        public bool $skipRepeats,
+        public int $repeatRecheckMinutes,
     ) {
     }
 
