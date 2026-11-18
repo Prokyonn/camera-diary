@@ -1,56 +1,83 @@
 # Camera diary
 
-Your security cameras record everything and tell you nothing. Camera diary turns each clip into a searchable diary entry: an AI looks at the frames and writes down what happened, and you ask in plain words.
+Home cameras send dozens of notifications a day, and many of them are a spider in front of the lens. Camera diary turns every clip into a diary entry instead: an AI looks at the frames, says whether anything real happened and who it was, learns from your corrections, and answers your questions in plain words.
 
-> When was the strange grey cat here?
-> Was anyone behind the fence last night?
-> Show me everything on the terrace this morning except the rain.
+> When did the strange grey cat come in through our cat flap?
+> How often was Mochi outside in the last seven days?
+> Which camera has the most false alarms, and why?
 
-Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [PHP MCP SDK](https://github.com/modelcontextprotocol/php-sdk).
+![The timeline, an event, the Check page, an answer and the insights on a phone](docs/images/screens.jpg)
 
-- **Any camera, any app.** Anything that can send a video or an image posts it to one hook. A Home Assistant add-on comes along, cutting frames from continuous recordings.
-- **Any AI, including your subscription.** Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the CLI you are already logged in to.
-- **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light), where it happened, and a short description. The AI compares the frames with the camera's usual empty view in the same light, so a new spider web or a shape at the hedge stands out.
-- **It learns from you.** The AI says how sure it is. Unsure events land on the "Check" page: one tap confirms them, and every correction (verdict, who it was, a label) goes into the next prompts for that camera as an example.
-- **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI and the app use it.
-- **Your cat by name.** Name the known individuals, your cat or the people who live with you, and add reference photos straight from event frames. Events then show "Luna" or "Other cat".
-- **Questions with sources.** The AI turns the question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on.
-- **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Luna").
-- **Insights.** Who came by and when, per day and hour, and which camera raises false alarms for what reason.
-- **Your day in a few lines.** On request, the AI summarizes a day on the timeline: who came by, anything unusual, and the false alarms in a clause. Questions and their answers are kept, so you can read them again or share the link.
-- **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
+Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [PHP MCP SDK](https://github.com/modelcontextprotocol/php-sdk) for the [Symfony AI & MCP Hackathon](https://symfony.com/hackathon).
+
+- **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light, wind), where it happened, and a short description. The AI compares the frames with the camera's usual empty view in the same light, so a new spider web or a shape at the hedge stands out.
+- **Your cat by name.** Name your cat or the people who live with you, and drag a box around them in any frame to add a reference photo. Events then read "Mochi", and every other cat "Other cat".
+- **It learns from you.** Unusual and unsure events land on the "Check" page. One tap confirms them, and every correction (verdict, who it was, a label) goes into the next prompts for that camera, so the same mistake does not come back.
+- **Questions with sources.** The AI turns a question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on. Questions are kept, with a link to share.
+- **Assistants included.** An MCP server lets Claude, Home Assistant Assist or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Mochi").
+- **Insights and a daily summary.** Who came by and when, which camera raises false alarms and why, and the day in a few sentences.
+- **Any camera, any AI.** Anything that can send a video or an image posts it to one hook; a Home Assistant add-on cuts frames from continuous recordings. Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the subscription you are already logged in to.
+- **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI's output schema and the app use it.
+
+## What Symfony AI and the MCP SDK made possible
+
+- **One structured output, five providers.** The AI's answer is a PHP class (`EventDescriptionOutput`). Symfony AI turns it into a JSON schema, and a decorated response format factory fills its `enum`s from the settings, so the vocabulary you configure is exactly what the model may answer. Gemini, Vertex AI and Ollama get it natively through the platform; a small adapter gives the same schema and images to the Claude Code and Codex CLIs, so a Claude or ChatGPT subscription works too.
+- **Multimodal prompts that teach.** Each event's prompt holds the reference photos of the known individuals, the camera's usual empty view, the owner's latest corrections on that camera as text, the home's hints (e.g. the cat flap opened inwards), and the frames.
+- **Images both ways over MCP.** `get_camera_event` returns the frames as `ImageContent`, so Claude looks at what the camera saw instead of trusting a description. `camera_activity` gives exact counts, `correct_camera_event` writes a correction back into the learning loop, and the `daily_report` prompt asks for a report of a day.
+- **The AI plans the search.** A question becomes a structured search plan (subjects and known individuals as exact filters, cameras, time range), and the answer cites the events it used.
+
+Tags: Symfony AI Platform, Structured Output, Multimodal / Vision, Multi-provider, MCP, MCP SDK, Human in the Loop.
 
 ## Try it in five minutes
 
-The demo loads five openly licensed clips: a badger in a garden at night, fox cubs in a hedge, a fox at a wildlife camera, a person with an umbrella in the snow, and rain over a courtyard, see [demo/CREDITS.md](demo/CREDITS.md).
+The demo is a week in a made-up home: Mochi the black-and-white cat at the cat flap, a strange grey cat that comes in through it, a spider in front of the shed camera every night, foxes, a hedgehog, a badger, a jogger and the rain. The clips are openly licensed, see [demo/CREDITS.md](demo/CREDITS.md).
 
 ### With Docker
 
 ```
-git clone <this repository> camera-diary && cd camera-diary
-export GEMINI_API_KEY=...        # free key: https://aistudio.google.com/apikey
+git clone https://github.com/Prokyonn/camera-diary.git && cd camera-diary
 docker compose up --build
 ```
 
-Open http://localhost:8080. The worker describes the events within a minute. Then ask something on the "Ask" page.
+Open http://localhost:8080. Without an AI key, the demo loads the AI answers recorded from a real run with Gemini: browse the timeline, the event pages, "Check", "Insights", and the earlier questions on "Ask". New questions need an AI.
+
+With an AI, the worker describes the 32 clips itself, about 20 per minute:
+
+```
+docker compose down -v                   # start from an empty demo
+export GEMINI_API_KEY=...                # free key: https://aistudio.google.com/apikey
+docker compose up --build
+```
 
 For a local model instead, run [Ollama](https://ollama.com) on the host with a vision model (`ollama pull qwen2.5vl:7b`) and start the stack with `AI_PLATFORM=ollama AI_MODEL=qwen2.5vl:7b docker compose up --build`.
 
+### Ask Claude
+
+With the stack running, connect Claude to the MCP server:
+
+```
+claude mcp add --transport http camera-diary http://localhost:8080/mcp
+```
+
+Then ask, e.g., "What did Mochi do yesterday? Show me the frames." or "The grey cat on Monday morning was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
+
 ### With PHP
 
-You need PHP 8.4 with `intl` and `pdo_sqlite`, Composer, and ffmpeg.
+You need PHP 8.4 with `gd`, `intl` and `pdo_sqlite`, Composer, and ffmpeg.
 
 ```
 composer install
 mkdir -p var/data
 bin/console doctrine:migrations:migrate --no-interaction
 bin/console cmsig:seal:index-create
-bin/console app:demo
+bin/console app:demo                     # or: app:demo --recorded, without an AI
 ```
 
-Choose the AI in `.env.local` (never committed):
+Choose the AI and the demo settings in `.env.local` (never committed):
 
 ```
+CAMERA_DIARY_CONFIG=demo/camera-diary.yaml
+
 # Claude subscription: the claude CLI, logged in
 AI_PLATFORM=claude_code
 AI_MODEL=sonnet
@@ -101,9 +128,9 @@ Everything an installation may want to change lives in one YAML file, `var/data/
 
 - **AI limits:** `ai.daily_call_limit` (default 500) caps the calls per day; events over it wait for the next day. `ai.call_pools` gives detection types a share of it, e.g. 75 calls for animals, so a spider web in front of the lens cannot use up the calls for people.
 - **Learning:** `ai.correction_examples` (6) of your latest corrections on the same camera go with each event; `ai.scene_baseline` sends the camera's latest empty view (a false alarm with nothing visible) in the same light, day or infrared night.
-- **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Luna." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
+- **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Mochi." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
 - **Vocabularies:** `detection_types`, `subjects` and `false_alarm_causes` merge with the defaults. Add a name with a label and a hint for the AI, or remove one with `name: false`. The AI's output schema takes its allowed values from these lists.
-- **Known individuals:** `individuals` names, e.g., your cat or the people who live with you, with the subject, a short description and optionally reference photos (paths relative to the settings file). More photos come from the app: on an event's page, drag a box around the animal or person and save it; the "Known" page lists and removes them. The AI gets the photos with an event and names an individual only on a clear match; events then show "Luna", and other cats "Other cat". `detection_types` limits whose photos go with which events (the cat's with `animal`), and `ai.reference_photos` (6) caps them per individual. Crops that show the animal or person large work best, from different days and, for people, in different clothes. Only add people who agree to it. A wrong answer can be corrected on the event page.
+- **Known individuals:** `individuals` names, e.g., your cat or the people who live with you, with the subject, a short description and optionally reference photos (paths relative to the settings file). More photos come from the app: on an event's page, drag a box around the animal or person and save it; the "Known" page lists and removes them. The AI gets the photos with an event and names an individual only on a clear match; events then show "Mochi", and other cats "Other cat". `detection_types` limits whose photos go with which events (the cat's with `animal`), and `ai.reference_photos` (6) caps them per individual. Crops that show the animal or person large work best, from different days and, for people, in different clothes. Only add people who agree to it. A wrong answer can be corrected on the event page.
 - **Timings:** frame offsets, retries, batch size, question limits, the nightly clean-up time and how long false-alarm frames and backups are kept.
 
 ## The hook
