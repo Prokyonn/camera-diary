@@ -70,6 +70,11 @@ final readonly class CorrectionNotes
             $answer[] = strtolower($verdict->label());
         }
 
+        $cause = $event->getFalseAlarmCauseOverride();
+        if (null !== $cause && $cause !== $event->getFalseAlarmCause()) {
+            $answer[] = 'cause: '.strtolower($this->settings->settings()->falseAlarmCauses->label($cause));
+        }
+
         $individual = $event->getIndividualOverride();
         if (null !== $individual && $individual !== ($event->getIndividual() ?? CameraEvent::NO_KNOWN_INDIVIDUAL)) {
             $answer[] = CameraEvent::NO_KNOWN_INDIVIDUAL === $individual

@@ -74,6 +74,10 @@ class CameraEvent
     #[ORM\Column(length: 32, nullable: true)]
     private ?string $falseAlarmCause = null;
 
+    /** set by hand: a name from the false-alarm causes vocabulary */
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $falseAlarmCauseOverride = null;
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?Side $side = null;
 
@@ -245,6 +249,19 @@ class CameraEvent
         return $this->falseAlarmCause;
     }
 
+    public function getFalseAlarmCauseOverride(): ?string
+    {
+        return $this->falseAlarmCauseOverride;
+    }
+
+    /**
+     * The cause set by hand, else the AI's; null unless the effective verdict is a false alarm.
+     */
+    public function getEffectiveFalseAlarmCause(): ?string
+    {
+        return $this->isFalseAlarm() ? $this->falseAlarmCauseOverride ?? $this->falseAlarmCause : null;
+    }
+
     public function getSide(): ?Side
     {
         return $this->side;
@@ -308,7 +325,7 @@ class CameraEvent
     }
 
     /**
-     * The owner changed the AI's answer: the verdict, the known individual, or gave a label.
+     * The owner changed the AI's answer: the verdict, the false-alarm cause, the known individual, or gave a label.
      */
     public function isCorrected(): bool
     {
@@ -317,6 +334,10 @@ class CameraEvent
         }
 
         if ($this->verdictOverride instanceof Verdict && $this->verdictOverride !== $this->verdict) {
+            return true;
+        }
+
+        if (null !== $this->falseAlarmCauseOverride && $this->falseAlarmCauseOverride !== $this->falseAlarmCause) {
             return true;
         }
 
@@ -452,14 +473,16 @@ class CameraEvent
     }
 
     /**
-     * @param ?string $individualOverride the name of a known individual, NO_KNOWN_INDIVIDUAL, or null for the AI's answer
+     * @param ?string $individualOverride      the name of a known individual, NO_KNOWN_INDIVIDUAL, or null for the AI's answer
+     * @param ?string $falseAlarmCauseOverride a name from the false-alarm causes vocabulary, or null for the AI's answer
      */
-    public function relabel(?string $label, ?Verdict $verdictOverride, ?string $individualOverride): void
+    public function relabel(?string $label, ?Verdict $verdictOverride, ?string $individualOverride, ?string $falseAlarmCauseOverride): void
     {
         $label = null !== $label ? trim($label) : null;
         $this->label = '' === $label ? null : $label;
         $this->verdictOverride = $verdictOverride;
         $this->individualOverride = null === $individualOverride ? null : $this->termName($individualOverride);
+        $this->falseAlarmCauseOverride = null === $falseAlarmCauseOverride ? null : $this->termName($falseAlarmCauseOverride);
     }
 
     /**

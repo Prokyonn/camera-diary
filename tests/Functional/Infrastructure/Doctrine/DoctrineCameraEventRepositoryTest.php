@@ -59,7 +59,7 @@ final class DoctrineCameraEventRepositoryTest extends KernelTestCase
     {
         $web = CameraEventFactory::described('A web thread.', '2026-11-06 17:36:00', verdict: Verdict::FalseAlarm);
         $corrected = CameraEventFactory::described('Nothing visible.', '2026-11-06 17:53:53', verdict: Verdict::FalseAlarm);
-        $corrected->relabel('Luna right in front of the lens', Verdict::Real, null);
+        $corrected->relabel('Luna right in front of the lens', Verdict::Real, null, null);
         $pending = CameraEventFactory::create('2026-11-06 18:00:00');
         $real = CameraEventFactory::described('A grey cat.', '2026-11-06 18:05:00');
         $this->store($web, $corrected, $pending, $real);

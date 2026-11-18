@@ -98,7 +98,7 @@ final readonly class DemoCommand
 
             if ($result->created && isset($entry['correction'])) {
                 $correction = $entry['correction'];
-                $this->labeler->relabel($event, $correction['label'], null === $correction['verdict'] ? null : Verdict::from($correction['verdict']), $correction['individual']);
+                $this->labeler->relabel($event, $correction['label'], null === $correction['verdict'] ? null : Verdict::from($correction['verdict']), $correction['individual'], $correction['false_alarm_cause']);
             }
 
             $rows[] = [$key, $entry['camera'], $result->created ? 'stored' : 'already stored', $event->getStatus()->value];

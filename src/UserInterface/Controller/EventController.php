@@ -44,7 +44,7 @@ final class EventController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->labeler->relabel($event, $label->label, $label->verdictOverride, $label->individualOverride);
+            $this->labeler->relabel($event, $label->label, $label->verdictOverride, $label->individualOverride, $label->falseAlarmCauseOverride);
             $this->addFlash('success', 'Saved.');
 
             return $this->redirectToRoute('event_show', ['id' => $event->getId()], Response::HTTP_SEE_OTHER);
@@ -129,7 +129,7 @@ final class EventController extends AbstractController
             return false;
         }
 
-        $this->labeler->relabel($event, $event->getLabel(), $event->getVerdictOverride(), $individual->name);
+        $this->labeler->relabel($event, $event->getLabel(), $event->getVerdictOverride(), $individual->name, $event->getFalseAlarmCauseOverride());
         $this->addFlash('success', \sprintf('Saved as a reference photo of %s.', $individual->label));
 
         return true;

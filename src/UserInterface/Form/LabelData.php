@@ -15,11 +15,12 @@ final class LabelData
         public ?string $label = null,
         public ?Verdict $verdictOverride = null,
         public ?string $individualOverride = null,
+        public ?string $falseAlarmCauseOverride = null,
     ) {
     }
 
     public static function fromEvent(CameraEvent $event): self
     {
-        return new self($event->getLabel(), $event->getVerdictOverride(), $event->getIndividualOverride());
+        return new self($event->getLabel(), $event->getVerdictOverride(), $event->getIndividualOverride(), $event->getFalseAlarmCauseOverride());
     }
 }

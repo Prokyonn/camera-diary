@@ -88,7 +88,7 @@ final readonly class ActivityReport
 
     private function causeLabel(CameraEvent $event): string
     {
-        $cause = $event->getFalseAlarmCause();
+        $cause = $event->getEffectiveFalseAlarmCause();
 
         return null === $cause ? 'Set by hand' : $this->settings->settings()->falseAlarmCauses->label($cause);
     }

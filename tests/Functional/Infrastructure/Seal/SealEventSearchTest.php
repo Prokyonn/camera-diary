@@ -39,7 +39,7 @@ final class SealEventSearchTest extends KernelTestCase
 
         $this->greyCat = CameraEventFactory::described('A grey cat drags the doormat from the cat flap to the door.', '2026-11-06 06:16:40');
         $this->luna = CameraEventFactory::described('A cat sits right in front of the lens.', '2026-11-06 16:53:53', 'garden');
-        $this->luna->relabel('Luna', null, 'luna');
+        $this->luna->relabel('Luna', null, 'luna', null);
         $this->fence = CameraEventFactory::described('A person in a dark jacket walks along the gravel path.', '2026-11-07 13:55:00', 'garden', subject: 'person', side: Side::Outside);
         $this->web = CameraEventFactory::described('A thin thread swings across the lens.', '2026-11-06 16:36:00', 'garden', Verdict::FalseAlarm, 'nothing', Side::Unclear, 'spider_web');
 

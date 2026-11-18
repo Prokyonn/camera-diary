@@ -52,7 +52,7 @@ final readonly class AiDigestWriter implements DigestWriterInterface
     {
         $settings = $this->settings->settings();
         $subject = $event->getSubject();
-        $cause = $event->getFalseAlarmCause();
+        $cause = $event->getEffectiveFalseAlarmCause();
 
         return \sprintf(
             '- %s %s: %s%s%s%s',

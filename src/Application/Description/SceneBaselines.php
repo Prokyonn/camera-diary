@@ -43,7 +43,7 @@ final readonly class SceneBaselines
         );
         foreach ($candidates as $candidate) {
             $candidateFrame = $candidate->getFramePaths()[0] ?? null;
-            if ($candidate === $event || null === $candidateFrame || self::EMPTY_SCENE_CAUSE !== $candidate->getFalseAlarmCause()) {
+            if ($candidate === $event || null === $candidateFrame || self::EMPTY_SCENE_CAUSE !== $candidate->getEffectiveFalseAlarmCause()) {
                 continue;
             }
 

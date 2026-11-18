@@ -115,7 +115,7 @@ final class AiEventDescriberTest extends TestCase
         $empty = CameraEventFactory::described('The empty terrace.', '2026-11-05 22:00:00', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'nothing', id: 2);
         $empty->recordFrames(['terrace/frame-0.jpg'], 4, 4);
         $hedge = CameraEventFactory::described('A person in dark clothes at the hedge.', '2026-11-04 21:10:00', subject: 'person', id: 3);
-        $hedge->relabel('the hedge in the wind', Verdict::FalseAlarm, null);
+        $hedge->relabel('the hedge in the wind', Verdict::FalseAlarm, null, 'other');
         $hedge->markReviewed(CameraEventFactory::utc('2026-11-05 08:00:00'));
         $this->events->findBy(Argument::withEntry('falseAlarm', true), Argument::cetera())->willReturn([$event, $empty]);
         $this->events->findBy(Argument::withEntry('reviewed', true), Argument::cetera())->willReturn([$hedge]);
@@ -126,7 +126,7 @@ final class AiEventDescriberTest extends TestCase
         $input = json_encode($this->platform->calls()[0]['input'] ?? self::fail('The AI was not called.'), \JSON_THROW_ON_ERROR);
         self::assertStringContainsString('usual view with nothing happening, from 5 November, 23:00', $input);
         self::assertSame(3, substr_count($input, '"type":"image_url"'), 'The reference photo, the usual view and the frame.');
-        self::assertStringContainsString('- Wed 4 Nov, 22:10: you said real, person: \\"A person in dark clothes at the hedge.\\" The owner: false alarm; labelled it \\"the hedge in the wind\\".', $input);
+        self::assertStringContainsString('- Wed 4 Nov, 22:10: you said real, person: \\"A person in dark clothes at the hedge.\\" The owner: false alarm; cause: other; labelled it \\"the hedge in the wind\\".', $input);
     }
 
     public function testDropsAnIndividualOfAnotherSubject(): void

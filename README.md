@@ -12,7 +12,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light, wind), where it happened, and a short description. The AI compares the frames with the camera's usual empty view in the same light, so a new spider web or a shape at the hedge stands out.
 - **Your cat by name.** Name your cat or the people who live with you, and drag a box around them in any frame to add a reference photo. Events then read "Mochi", and every other cat "Other cat".
-- **It learns from you.** Unusual and unsure events land on the "Check" page. One tap confirms them, and every correction (verdict, who it was, a label) goes into the next prompts for that camera, so the same mistake does not come back.
+- **It learns from you.** Unusual and unsure events land on the "Check" page. One tap confirms them, and every correction (verdict, cause, who it was, a label) goes into the next prompts for that camera, so the same mistake does not come back.
 - **Questions with sources.** The AI turns a question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on. Questions are kept, with a link to share.
 - **Assistants included.** An MCP server lets Claude, Home Assistant Assist or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Mochi").
 - **Insights and a daily summary.** Who came by and when, which camera raises false alarms and why, and the day in a few sentences.
@@ -178,7 +178,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 | `get_camera_event` | One event, with its frames as images, so the assistant looks at them itself |
 | `camera_activity` | Exact counts for a time range: per subject or known individual, hour, day, camera and false-alarm cause |
 | `list_cameras`, `list_known_individuals` | What the cameras see, and who the AI recognises |
-| `correct_camera_event` | Set the verdict, the known individual or a label; the AI learns from it |
+| `correct_camera_event` | Set the verdict, the false-alarm cause, the known individual or a label; the AI learns from it |
 | Prompt `daily_report` | Asks the assistant for a short report of one day, using the tools above |
 
  Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). Only `localhost` is an allowed host by default, see `config/packages/mcp.yaml`.
@@ -186,7 +186,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 ## Web pages
 
 - `/`: timeline per day with filters, false alarms hidden by default, and the AI's summary of the day on request.
-- `/events/{id}`: frames, description, hints, and the correction form (label, verdict, who).
+- `/events/{id}`: frames, description, hints, and the correction form (label, verdict, cause, who).
 - `/check`: events the AI was not sure of, to confirm or correct.
 - `/ask`: questions in plain words; `/ask/{id}` shows an earlier question with its answer and events.
 - `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.

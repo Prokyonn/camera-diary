@@ -6,6 +6,7 @@ namespace App\UserInterface\Form;
 
 use App\Application\Settings\Individual;
 use App\Application\Settings\SettingsProviderInterface;
+use App\Application\Settings\Term;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Model\Verdict;
 use Symfony\Component\Form\AbstractType;
@@ -39,6 +40,15 @@ final class LabelType extends AbstractType
                 'label' => 'Verdict',
                 'placeholder' => 'Keep the AI\'s verdict',
                 'choice_label' => static fn (Verdict $verdict): string => $verdict->label(),
+            ])
+            ->add('falseAlarmCauseOverride', ChoiceType::class, [
+                'required' => false,
+                'label' => 'Cause of a false alarm',
+                'placeholder' => 'Keep the AI\'s cause',
+                'choices' => array_combine(
+                    array_map(static fn (Term $cause): string => $cause->label, $this->settings->settings()->falseAlarmCauses->terms),
+                    array_map(static fn (Term $cause): string => $cause->name, $this->settings->settings()->falseAlarmCauses->terms),
+                ),
             ]);
 
         $individuals = $this->settings->settings()->individuals;

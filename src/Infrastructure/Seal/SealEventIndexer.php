@@ -38,7 +38,7 @@ final readonly class SealEventIndexer implements EventIndexerInterface
     {
         $settings = $this->settings->settings();
         $subject = $event->getSubject();
-        $cause = $event->isFalseAlarm() ? $event->getFalseAlarmCause() : null;
+        $cause = $event->getEffectiveFalseAlarmCause();
 
         return [
             'id' => (string) $event->getId(),

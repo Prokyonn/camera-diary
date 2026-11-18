@@ -102,7 +102,7 @@ final class CameraEventTest extends TestCase
     {
         $event = CameraEventFactory::described('Something moves in front of the lens.', verdict: Verdict::Real);
 
-        $event->relabel('  spider web  ', Verdict::FalseAlarm, null);
+        $event->relabel('  spider web  ', Verdict::FalseAlarm, null, null);
 
         self::assertSame('spider web', $event->getLabel());
         self::assertSame(Verdict::FalseAlarm, $event->getEffectiveVerdict());
@@ -113,7 +113,7 @@ final class CameraEventTest extends TestCase
     {
         $event = CameraEventFactory::create();
 
-        $event->relabel('   ', null, null);
+        $event->relabel('   ', null, null, null);
 
         self::assertNull($event->getLabel());
         self::assertNull($event->getEffectiveVerdict());
@@ -154,14 +154,14 @@ final class CameraEventTest extends TestCase
         $event = CameraEventFactory::described('A cat.', individual: 'luna');
         self::assertSame('luna', $event->getEffectiveIndividual());
 
-        $event->relabel(null, null, 'tiger');
+        $event->relabel(null, null, 'tiger', null);
         self::assertSame('tiger', $event->getEffectiveIndividual());
         self::assertSame('luna', $event->getIndividual(), 'The AI\'s answer stays.');
 
-        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL);
+        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL, null);
         self::assertNull($event->getEffectiveIndividual());
 
-        $event->relabel(null, null, null);
+        $event->relabel(null, null, null, null);
         self::assertSame('luna', $event->getEffectiveIndividual());
     }
 
@@ -187,16 +187,29 @@ final class CameraEventTest extends TestCase
     {
         $event = CameraEventFactory::described('A cat.', individual: 'luna');
 
-        $event->relabel(null, Verdict::Real, 'luna');
+        $event->relabel(null, Verdict::Real, 'luna', null);
         self::assertFalse($event->isCorrected(), 'The same verdict and individual confirm the answer.');
 
-        $event->relabel(null, Verdict::FalseAlarm, null);
+        $event->relabel(null, Verdict::FalseAlarm, null, null);
         self::assertTrue($event->isCorrected());
 
-        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL);
+        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL, null);
         self::assertTrue($event->isCorrected());
 
-        $event->relabel('the neighbour\'s cat', null, null);
+        $event->relabel('the neighbour\'s cat', null, null, null);
         self::assertTrue($event->isCorrected());
+    }
+
+    public function testAHandSetCauseCountsOnlyForAFalseAlarm(): void
+    {
+        $event = CameraEventFactory::described('Something bright at the lens.', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'insect');
+
+        $event->relabel(null, null, null, 'spider_web');
+        self::assertSame('spider_web', $event->getEffectiveFalseAlarmCause());
+        self::assertSame('insect', $event->getFalseAlarmCause(), 'The AI\'s answer stays.');
+        self::assertTrue($event->isCorrected());
+
+        $event->relabel(null, Verdict::Real, null, 'spider_web');
+        self::assertNull($event->getEffectiveFalseAlarmCause(), 'A real event has no false-alarm cause.');
     }
 }

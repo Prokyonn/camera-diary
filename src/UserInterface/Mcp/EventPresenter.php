@@ -35,6 +35,7 @@ final readonly class EventPresenter
             'detected' => $event->getDetectionTypes(),
             'status' => $event->getStatus()->value,
             'verdict' => $event->getEffectiveVerdict()?->value,
+            'false_alarm_cause' => $event->getEffectiveFalseAlarmCause(),
             'side' => $event->getSide()?->value,
             'subject' => $event->getSubject(),
             'individual' => $event->getEffectiveIndividual(),

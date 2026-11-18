@@ -26,11 +26,11 @@ final class PastCorrectionsTest extends TestCase
         $event = CameraEventFactory::withFrames(id: 1);
         $confirmed = CameraEventFactory::described('A cat.', id: 2);
         $first = CameraEventFactory::described('A person at the hedge.', id: 3);
-        $first->relabel(null, Verdict::FalseAlarm, null);
+        $first->relabel(null, Verdict::FalseAlarm, null, null);
         $second = CameraEventFactory::described('A dog.', id: 4);
-        $second->relabel('a fox', null, null);
+        $second->relabel('a fox', null, null, null);
         $third = CameraEventFactory::described('A bird.', id: 5);
-        $third->relabel('a bat', null, null);
+        $third->relabel('a bat', null, null, null);
         $events = $this->prophesize(CameraEventRepositoryInterface::class);
         $events->findBy(['camera' => $event->getCamera(), 'status' => EventStatus::Described, 'reviewed' => true], ['reviewedAt' => 'desc'], Argument::any())
             ->willReturn([$confirmed, $first, $second, $third]);

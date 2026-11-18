@@ -48,7 +48,7 @@ final class EventControllerTest extends WebTestCase
         $id = $event->getId();
 
         $client->request('GET', '/events/'.$id);
-        $client->submitForm('Save', ['label[label]' => 'the postman', 'label[verdictOverride]' => 'false_alarm']);
+        $client->submitForm('Save', ['label[label]' => 'the postman', 'label[verdictOverride]' => 'false_alarm', 'label[falseAlarmCauseOverride]' => 'light']);
 
         self::assertResponseRedirects('/events/'.$id, 303);
         $client->followRedirect();
@@ -57,6 +57,7 @@ final class EventControllerTest extends WebTestCase
         $saved = self::getContainer()->get(CameraEventRepositoryInterface::class)->getOneBy(['id' => $id]);
         self::assertSame('the postman', $saved->getLabel());
         self::assertSame(Verdict::FalseAlarm, $saved->getEffectiveVerdict());
+        self::assertSame('light', $saved->getEffectiveFalseAlarmCause());
     }
 
     public function testConfirmsAnUnsureAnswerFromTheCheckList(): void

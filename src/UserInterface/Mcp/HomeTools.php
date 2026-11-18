@@ -116,7 +116,7 @@ final readonly class HomeTools
      */
     #[McpTool(
         name: 'correct_camera_event',
-        description: 'Correct the AI\'s answer for one event when the user says what it really was, e.g. "that was Luna" or "that was only the wind". The AI learns from corrections for later events of that camera. Empty values keep what is set.',
+        description: 'Correct the AI\'s answer for one event when the user says what it really was, e.g. "that was Mochi" or "that was only the wind" (verdict false_alarm, cause wind). The AI learns from corrections for later events of that camera. Empty values keep what is set.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false),
     )]
     public function correct(
@@ -127,10 +127,17 @@ final readonly class HomeTools
         string $individual = '',
         #[Schema(description: 'Who or what it was in a few words, e.g. "the postman"; empty to keep', maxLength: 120)]
         string $label = '',
+        #[Schema(description: 'What caused a false alarm, e.g. spider_web or wind; empty to keep')]
+        string $cause = '',
     ): array {
         $event = $this->events->findOneBy(['id' => $id]) ?? throw new InvalidArgumentException(\sprintf('Event %d does not exist.', $id));
         if ('' !== $individual && CameraEvent::NO_KNOWN_INDIVIDUAL !== $individual && !$this->settings->settings()->individual($individual) instanceof Individual) {
             throw new InvalidArgumentException(\sprintf('"%s" is no known individual; list_known_individuals names them.', $individual));
+        }
+
+        $causes = $this->settings->settings()->falseAlarmCauses;
+        if ('' !== $cause && !$causes->has($cause)) {
+            throw new InvalidArgumentException(\sprintf('"%s" is no false-alarm cause. Known: %s.', $cause, implode(', ', $causes->names())));
         }
 
         $this->labeler->relabel(
@@ -138,6 +145,7 @@ final readonly class HomeTools
             '' === trim($label) ? $event->getLabel() : mb_substr(trim($label), 0, 120),
             '' === $verdict ? $event->getVerdictOverride() : Verdict::from($verdict),
             '' === $individual ? $event->getIndividualOverride() : $individual,
+            '' === $cause ? $event->getFalseAlarmCauseOverride() : $cause,
         );
 
         return $this->presenter->present($event);

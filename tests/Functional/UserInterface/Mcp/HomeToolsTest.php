@@ -72,6 +72,20 @@ final class HomeToolsTest extends KernelTestCase
         self::assertSame('Luna after the rain', $saved->getLabel());
         self::assertNotNull($saved->getReviewedAt(), 'A correction counts as a review.');
         self::assertSame(['luna'], array_column($this->tools->knownIndividuals(), 'name'));
+
+        $wind = $this->tools->correct($event->getId(), verdict: 'false_alarm', cause: 'other');
+        self::assertSame('other', $wind['false_alarm_cause'] ?? null);
+        self::assertSame('Luna after the rain', $saved->getLabel(), 'Empty values keep what is set.');
+    }
+
+    public function testRejectsAnUnknownCause(): void
+    {
+        $event = CameraEventFactory::described('A grey cat.');
+        $this->storeEvents(self::getContainer(), $event);
+
+        $this->expectExceptionMessage('"tornado" is no false-alarm cause.');
+
+        $this->tools->correct($event->getId(), cause: 'tornado');
     }
 
     public function testRejectsAnUnknownIndividual(): void
