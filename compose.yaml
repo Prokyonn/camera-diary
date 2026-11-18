@@ -1,6 +1,7 @@
 # Demo: docker compose up --build, then open http://localhost:8080
-# Pick the AI in a .env file next to this one (see README), e.g. AI_PLATFORM=gemini and GEMINI_API_KEY=...
-# Without any AI, the demo loads the answers recorded from a real run. The demo home's settings: demo/camera-diary.yaml.
+# Pick the AI with environment variables, e.g. export GEMINI_API_KEY=... (see README). Without any AI, the demo
+# loads the answers recorded from a real run. The demo home's settings: demo/camera-diary.yaml.
+# Compose also reads Symfony's .env next to this file, so values that must differ in the container are fixed here.
 name: camera-diary
 
 x-app: &app
@@ -15,8 +16,8 @@ x-app: &app
     AI_MODEL: ${AI_MODEL:-gemini-flash-latest}
     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     VERTEX_AI_API_KEY: ${VERTEX_AI_API_KEY:-}
-    OLLAMA_HOST_URL: ${OLLAMA_HOST_URL:-http://host.docker.internal:11434}
-    CAMERA_DIARY_CONFIG: ${CAMERA_DIARY_CONFIG:-/app/demo/camera-diary.yaml}
+    OLLAMA_HOST_URL: http://host.docker.internal:11434
+    CAMERA_DIARY_CONFIG: /app/demo/camera-diary.yaml
   extra_hosts:
     - host.docker.internal:host-gateway
   volumes:
