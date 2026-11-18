@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * The events the AI was not sure of: one tap confirms an answer, the event page corrects it, and every correction
+ * Unusual events and the ones the AI was not sure of: one tap confirms an answer, the event page corrects it, and every correction
  * teaches the AI for that camera.
  */
 final class ReviewController extends AbstractController

@@ -37,7 +37,7 @@ final readonly class EventDescriptionOutput
         public string $summary,
         #[Schema(description: 'true only if the event matches the rule for unusual events in the instructions')]
         public bool $unusual,
-        #[Schema(description: 'How sure you are of verdict, subject and known individual: high when the frames are clear, medium or low when the subject is small, dark, blurred, partly hidden or only in one frame')]
+        #[Schema(description: 'How sure you are of the whole answer. high: verdict, subject and, where known individuals of that subject exist, whether it is one of them are all clear. medium: one of them is uncertain, e.g. the subject looks like a known individual but you did not name it, or it is small, dark, blurred, partly hidden or only in one frame. low: you are mostly guessing')]
         public Confidence $confidence = Confidence::High,
     ) {
     }

@@ -100,7 +100,7 @@ final class AiEventDescriberTest extends TestCase
         $options = json_encode($call['options'], \JSON_THROW_ON_ERROR);
         self::assertStringContainsString('"enum":["none","spider_web","insect","rain","light","nothing","other","snail"]', $options, 'The JSON schema lists the false-alarm causes.');
         self::assertStringContainsString('fox: a red fox', $options, 'The JSON schema lists configured subjects with their hints.');
-        self::assertStringContainsString('a spider web or a single thread', $input, 'The prompt names the configured false-alarm causes.');
+        self::assertStringContainsString('a spider, its web or a single thread', $input, 'The prompt names the configured false-alarm causes.');
         self::assertStringContainsString('Reference photos of the known individual \\"luna\\" (Luna, a cat): grey-brown tabby. Not part of the event.', $input, 'The reference photos come with the event.');
         self::assertStringContainsString('"enum":["unknown","luna"]', $options, 'The JSON schema lists the known individuals.');
         self::assertSame(2, substr_count($input, '"type":"image_url"'), 'The reference photo and the frame.');

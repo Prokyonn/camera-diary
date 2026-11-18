@@ -298,13 +298,13 @@ class CameraEvent
     }
 
     /**
-     * Described, but the AI was not sure and the owner has not looked at it yet.
+     * Described as unusual, or the AI was not sure, and the owner has not looked at it yet.
      */
     public function needsReview(): bool
     {
         return EventStatus::Described === $this->status
             && !$this->reviewedAt instanceof DateTimeImmutable
-            && \in_array($this->confidence, [Confidence::Medium, Confidence::Low], true);
+            && ($this->unusual || \in_array($this->confidence, [Confidence::Medium, Confidence::Low], true));
     }
 
     /**

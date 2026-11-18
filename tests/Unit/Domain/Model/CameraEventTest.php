@@ -176,6 +176,11 @@ final class CameraEventTest extends TestCase
         $event->markReviewed(CameraEventFactory::utc('2026-11-06 07:00:00'));
         self::assertFalse($event->needsReview());
         self::assertFalse($event->isCorrected(), 'Confirming changes nothing.');
+
+        $unusual = CameraEventFactory::create();
+        $unusual->recordFrames(['terrace/1.jpg'], 8, 4);
+        $unusual->describe(Verdict::Real, null, Side::OurProperty, 'person', null, 'A person at the shed at night.', true, Confidence::High, 'test-model', CameraEventFactory::utc('2026-11-06 07:00:00'));
+        self::assertTrue($unusual->needsReview(), 'An unusual event is worth a look even when the AI is sure.');
     }
 
     public function testACorrectionChangesTheAisAnswer(): void

@@ -35,7 +35,7 @@ final class SettingsConfiguration implements ConfigurationInterface
 
     /** @var array<string, array{label: string, description?: string}> */
     public const array DEFAULT_FALSE_ALARM_CAUSES = [
-        'spider_web' => ['label' => 'Spider web', 'description' => 'a spider web or a single thread swinging in front of the lens, often lit by the infrared light at night'],
+        'spider_web' => ['label' => 'Spider web', 'description' => 'a spider, its web or a single thread in front of the lens, often lit up by the infrared light at night'],
         'insect' => ['label' => 'Insect', 'description' => 'insects close to the lens'],
         'rain' => ['label' => 'Rain', 'description' => 'rain or snow'],
         'light' => ['label' => 'Light', 'description' => 'headlights, sun reflections or moving shadows'],

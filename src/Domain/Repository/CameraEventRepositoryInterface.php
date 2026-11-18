@@ -36,7 +36,7 @@ use DateTimeImmutable;
  *
  * Filter semantics: `dueAt` matches events without a retry time or with one at or before it; `falseAlarm: true`
  * matches events whose effective verdict (manual override, else the AI's) is a false alarm, `false` all others;
- * `needsReview: true` matches described events the AI was not sure of and the owner has not reviewed (see
+ * `needsReview: true` matches described events that are unusual or the AI was not sure of, and the owner has not reviewed (see
  * CameraEvent::needsReview()); `reviewed` matches events the owner confirmed or corrected.
  */
 interface CameraEventRepositoryInterface
