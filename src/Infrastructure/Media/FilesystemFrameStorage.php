@@ -17,6 +17,11 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 final readonly class FilesystemFrameStorage implements FrameStorageInterface
 {
+    private const int SAMPLE_SIZE = 16;
+
+    /** Average difference between a pixel's strongest and weakest colour channel below which a frame has no colour. */
+    private const int MONOCHROME_SPREAD = 8;
+
     public function __construct(
         #[Autowire('%app.data_dir%/frames')]
         private string $framesDir,
@@ -61,6 +66,26 @@ final readonly class FilesystemFrameStorage implements FrameStorageInterface
         }
 
         return [$size[0], $size[1]];
+    }
+
+    public function isMonochrome(string $relativePath): bool
+    {
+        $image = @imagecreatefromjpeg($this->absolutePath($relativePath));
+        $sample = false === $image ? false : imagescale($image, self::SAMPLE_SIZE, self::SAMPLE_SIZE);
+        if (false === $sample) {
+            return false;
+        }
+
+        $spread = 0;
+        for ($x = 0; $x < self::SAMPLE_SIZE; ++$x) {
+            for ($y = 0; $y < self::SAMPLE_SIZE; ++$y) {
+                $rgb = imagecolorat($sample, $x, $y);
+                $channels = [($rgb >> 16) & 0xFF, ($rgb >> 8) & 0xFF, $rgb & 0xFF];
+                $spread += max($channels) - min($channels);
+            }
+        }
+
+        return $spread / self::SAMPLE_SIZE ** 2 < self::MONOCHROME_SPREAD;
     }
 
     public function remove(array $relativePaths): void

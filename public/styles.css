@@ -320,6 +320,24 @@ form small {
     background: var(--color-warn);
     color: var(--color-bg);
   }
+
+  &.is-check {
+    border-style: dashed;
+    border-color: var(--color-text);
+    color: var(--color-text);
+  }
+}
+
+.count {
+  font-size: 0.75rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-warn);
+  color: var(--color-bg);
+}
+
+.confirm {
+  margin-block: 0.5rem 0;
 }
 
 /* Event page */

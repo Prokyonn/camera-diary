@@ -20,6 +20,7 @@
                 {% if event.effectiveVerdict %}<span class="badge verdict-{{ event.effectiveVerdict.value }}">{{ event.effectiveVerdict.label }}</span>{% endif %}
                 {% if event.subject and not event.falseAlarm %}<span class="badge">{{ subject_label(event) }}</span>{% endif %}
                 {% if event.unusual and not event.falseAlarm %}<span class="badge is-unusual">Unusual</span>{% endif %}
+                {% if event.needsReview %}<span class="badge is-check">Check</span>{% endif %}
                 {% if event.side and event.side.value != 'unclear' %}<span class="badge">{{ event.side.label }}</span>{% endif %}
             </p>
         </header>

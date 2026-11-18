@@ -8,6 +8,9 @@ use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
+use App\Application\Description\PastCorrections;
+use App\Application\Description\SceneBaseline;
+use App\Application\Description\SceneBaselines;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Individual\IndividualReferences;
 use App\Application\Individual\ReferencePhotos;
@@ -29,6 +32,9 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         private HomeContext $homeContext,
         private SettingsProviderInterface $settings,
         private ReferencePhotos $referencePhotos,
+        private PastCorrections $pastCorrections,
+        private SceneBaselines $sceneBaselines,
+        private CorrectionNotes $correctionNotes,
     ) {
     }
 
@@ -40,8 +46,16 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         );
 
         $references = $this->referencePhotos->forEvent($event);
+        $baseline = $this->sceneBaselines->forEvent($event);
+        $corrections = $this->correctionNotes->notes($this->pastCorrections->forEvent($event));
         $output = $this->client->request(
-            new Prompt($this->instructions($event, $references), [...$this->references($references), $this->context($event, $hints), ...$images]),
+            new Prompt($this->instructions($event, $references, $baseline), [
+                ...$this->references($references),
+                ...$this->baseline($baseline),
+                ...('' === $corrections ? [] : [$corrections]),
+                $this->context($event, $hints),
+                ...$images,
+            ]),
             EventDescriptionOutput::class,
         );
 
@@ -53,6 +67,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $this->individual($output),
             $output->summary,
             $output->unusual,
+            $output->confidence,
             $this->client->modelName(),
         );
     }
@@ -60,7 +75,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
     /**
      * @param list<IndividualReferences> $references
      */
-    private function instructions(CameraEvent $event, array $references): string
+    private function instructions(CameraEvent $event, array $references, ?SceneBaseline $baseline): string
     {
         $notes = $this->homeContext->notes();
 
@@ -70,6 +85,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             Camera: {$this->homeContext->describeCamera($event->getCamera())}
 
             The frames are in time order; the subject may only appear in a later frame.
+            {$this->baselineInstruction($baseline)}
             Common false alarms: {$this->commonFalseAlarms()}.
             Describe people neutrally and never guess their names. Hints from the home are given when available; they may be unrelated to what the frames show.
             {$this->knownIndividuals($references)}
@@ -88,6 +104,28 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         }
 
         return 'Known individuals: their reference photos come before the event. Name one only if the subject clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt.';
+    }
+
+    private function baselineInstruction(?SceneBaseline $baseline): string
+    {
+        return $baseline instanceof SceneBaseline
+            ? 'The usual view shows the scene with nothing happening: look for what is new or has moved in the event\'s frames, and treat what is in both as background.'
+            : '';
+    }
+
+    /**
+     * @return list<string|PromptImage>
+     */
+    private function baseline(?SceneBaseline $baseline): array
+    {
+        if (!$baseline instanceof SceneBaseline) {
+            return [];
+        }
+
+        return [
+            \sprintf('The camera\'s usual view with nothing happening, from %s, for comparison. Not part of the event.', $this->homeTimeZone->toLocal($baseline->recordedAt)->format('j F, H:i')),
+            new PromptImage($this->frameStorage->absolutePath($baseline->framePath)),
+        ];
     }
 
     /**

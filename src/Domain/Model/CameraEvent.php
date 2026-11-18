@@ -95,6 +95,9 @@ class CameraEvent
     #[ORM\Column(options: ['default' => false])]
     private bool $unusual = false;
 
+    #[ORM\Column(length: 8, nullable: true)]
+    private ?Confidence $confidence = null;
+
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $model = null;
 
@@ -106,6 +109,10 @@ class CameraEvent
 
     #[ORM\Column(length: 16, nullable: true)]
     private ?Verdict $verdictOverride = null;
+
+    /** when the owner last confirmed or corrected the AI's answer */
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $reviewedAt = null;
 
     /**
      * @param list<string> $detectionTypes names from the detection types vocabulary
@@ -280,6 +287,42 @@ class CameraEvent
         return $this->unusual;
     }
 
+    public function getConfidence(): ?Confidence
+    {
+        return $this->confidence;
+    }
+
+    public function getReviewedAt(): ?DateTimeImmutable
+    {
+        return $this->reviewedAt;
+    }
+
+    /**
+     * Described, but the AI was not sure and the owner has not looked at it yet.
+     */
+    public function needsReview(): bool
+    {
+        return EventStatus::Described === $this->status
+            && !$this->reviewedAt instanceof DateTimeImmutable
+            && \in_array($this->confidence, [Confidence::Medium, Confidence::Low], true);
+    }
+
+    /**
+     * The owner changed the AI's answer: the verdict, the known individual, or gave a label.
+     */
+    public function isCorrected(): bool
+    {
+        if (null !== $this->label) {
+            return true;
+        }
+
+        if ($this->verdictOverride instanceof Verdict && $this->verdictOverride !== $this->verdict) {
+            return true;
+        }
+
+        return null !== $this->individualOverride && $this->individualOverride !== ($this->individual ?? self::NO_KNOWN_INDIVIDUAL);
+    }
+
     public function getModel(): ?string
     {
         return $this->model;
@@ -372,6 +415,7 @@ class CameraEvent
         ?string $individual,
         string $summary,
         bool $unusual,
+        Confidence $confidence,
         string $model,
         DateTimeImmutable $describedAt,
     ): void {
@@ -382,6 +426,7 @@ class CameraEvent
         $this->individual = null === $individual ? null : $this->termName($individual);
         $this->summary = $summary;
         $this->unusual = $unusual;
+        $this->confidence = $confidence;
         $this->model = $model;
         $this->describedAt = $describedAt;
         $this->status = EventStatus::Described;
@@ -415,6 +460,14 @@ class CameraEvent
         $this->label = '' === $label ? null : $label;
         $this->verdictOverride = $verdictOverride;
         $this->individualOverride = null === $individualOverride ? null : $this->termName($individualOverride);
+    }
+
+    /**
+     * The owner looked at the AI's answer, and confirmed or corrected it.
+     */
+    public function markReviewed(DateTimeImmutable $reviewedAt): void
+    {
+        $this->reviewedAt = $reviewedAt;
     }
 
     /**

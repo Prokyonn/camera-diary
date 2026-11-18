@@ -6,6 +6,8 @@ namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Exception\CameraEventNotFoundException;
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
+use App\Domain\Model\EventStatus;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +38,8 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
         'dueAt',
         'falseAlarm',
         'framesRemoved',
+        'needsReview',
+        'reviewed',
     ];
 
     /** @var EntityRepository<CameraEvent> */
@@ -130,6 +134,14 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
             $queryBuilder->andWhere($filters['framesRemoved'] ? 'event.framesRemovedAt IS NOT NULL' : 'event.framesRemovedAt IS NULL');
         }
 
+        if (isset($filters['needsReview'])) {
+            $this->filterNeedsReview($queryBuilder, $filters['needsReview']);
+        }
+
+        if (isset($filters['reviewed'])) {
+            $queryBuilder->andWhere($filters['reviewed'] ? 'event.reviewedAt IS NOT NULL' : 'event.reviewedAt IS NULL');
+        }
+
         OrderBy::apply($queryBuilder, 'event', $sortBy);
 
         return $queryBuilder;
@@ -146,5 +158,14 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
                 .' OR (event.verdictOverride IS NULL AND (event.verdict IS NULL OR event.verdict <> :falseAlarmVerdict))';
 
         $queryBuilder->andWhere($condition)->setParameter('falseAlarmVerdict', Verdict::FalseAlarm);
+    }
+
+    private function filterNeedsReview(QueryBuilder $queryBuilder, bool $needsReview): void
+    {
+        $condition = 'event.status = :reviewStatus AND event.reviewedAt IS NULL AND event.confidence IN (:unsure)';
+        $queryBuilder
+            ->andWhere($needsReview ? $condition : 'NOT ('.$condition.') OR event.confidence IS NULL')
+            ->setParameter('reviewStatus', EventStatus::Described)
+            ->setParameter('unsure', [Confidence::Medium->value, Confidence::Low->value]);
     }
 }

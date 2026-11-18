@@ -43,25 +43,25 @@ final class FilesystemReferencePhotoStoreTest extends TestCase
     {
         $store = new FilesystemReferencePhotoStore($this->directory, $this->clock);
 
-        $older = $store->add('anna', $this->frame);
+        $older = $store->add('sam', $this->frame);
         $this->clock->sleep(60);
-        $newer = $store->add('anna', $this->frame, new CropBox(0.5, 0.25, 0.25, 0.5));
+        $newer = $store->add('sam', $this->frame, new CropBox(0.5, 0.25, 0.25, 0.5));
 
         self::assertStringStartsWith('20261117-164704-', (string) $newer->storedId);
         self::assertSame([200, 100], $this->imageSize($older->path));
         self::assertSame([50, 50], $this->imageSize($newer->path), 'Only the box is kept.');
-        self::assertEquals([$newer, $older], $store->findBy('anna'));
+        self::assertEquals([$newer, $older], $store->findBy('sam'));
         self::assertSame([], $store->findBy('luna'));
     }
 
     public function testRemovesAPhoto(): void
     {
         $store = new FilesystemReferencePhotoStore($this->directory, $this->clock);
-        $photo = $store->add('anna', $this->frame);
+        $photo = $store->add('sam', $this->frame);
 
-        $store->remove('anna', (string) $photo->storedId);
+        $store->remove('sam', (string) $photo->storedId);
 
-        self::assertSame([], $store->findBy('anna'));
+        self::assertSame([], $store->findBy('sam'));
         self::assertFileDoesNotExist($photo->path);
     }
 
@@ -69,14 +69,14 @@ final class FilesystemReferencePhotoStoreTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new FilesystemReferencePhotoStore($this->directory, $this->clock)->remove('anna', '../../events.sqlite');
+        new FilesystemReferencePhotoStore($this->directory, $this->clock)->remove('sam', '../../events.sqlite');
     }
 
     public function testRejectsAnUnreadableImage(): void
     {
         $this->expectException(InvalidReferencePhotoException::class);
 
-        new FilesystemReferencePhotoStore($this->directory, $this->clock)->add('anna', __FILE__);
+        new FilesystemReferencePhotoStore($this->directory, $this->clock)->add('sam', __FILE__);
     }
 
     /**

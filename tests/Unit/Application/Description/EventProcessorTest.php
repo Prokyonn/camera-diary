@@ -22,6 +22,7 @@ use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
 use App\Application\Settings\CallPool;
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
@@ -103,7 +104,7 @@ final class EventProcessorTest extends TestCase
 
         $this->hints->hintsFor($event)->willReturn(['07:17:02 Luna came in through the cat flap']);
         $this->describer->describe($event, ['Doorbell rang', '07:17:02 Luna came in through the cat flap'])->willReturn(
-            new EventDescription(Verdict::Real, null, Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat to the door.', true, 'test-model'),
+            new EventDescription(Verdict::Real, null, Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat to the door.', true, Confidence::High, 'test-model'),
         );
         $this->unitOfWork->flush()->shouldBeCalledOnce();
         $this->indexer->index($event)->shouldBeCalledOnce();

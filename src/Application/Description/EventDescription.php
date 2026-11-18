@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Description;
 
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
 
@@ -22,6 +23,7 @@ final readonly class EventDescription
         public ?string $individual,
         public string $summary,
         public bool $unusual,
+        public Confidence $confidence,
         public string $model,
     ) {
     }

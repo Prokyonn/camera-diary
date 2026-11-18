@@ -38,6 +38,13 @@
                 {% if event.falseAlarm and event.falseAlarmCause %}({{ event.falseAlarmCause|term_label('false_alarm_causes') }}){% endif %}
                 {% if event.verdictOverride %}<small>set by hand; the AI said {{ event.verdict.label|default('nothing') }}</small>{% endif %}
             </dd>
+            {% if event.confidence %}
+                <dt>AI</dt>
+                <dd>
+                    {{ event.confidence.label }}{% if event.reviewedAt %}, checked {{ event.reviewedAt|date('j M H:i') }}{% endif %}
+                    {% if event.needsReview %}{{ include('event/_confirm.html.twig', {event: event, return: 'event'}) }}{% endif %}
+                </dd>
+            {% endif %}
             <dt>Side</dt>
             <dd>{{ event.side.label }}</dd>
             <dt>Subject</dt>

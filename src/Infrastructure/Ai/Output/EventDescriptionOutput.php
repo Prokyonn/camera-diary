@@ -6,6 +6,7 @@ namespace App\Infrastructure\Ai\Output;
 
 use App\Application\Settings\Individual;
 use App\Application\Settings\VocabularyKind;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
 use Symfony\AI\Platform\Contract\JsonSchema\Attribute\Schema;
@@ -36,6 +37,8 @@ final readonly class EventDescriptionOutput
         public string $summary,
         #[Schema(description: 'true only if the event matches the rule for unusual events in the instructions')]
         public bool $unusual,
+        #[Schema(description: 'How sure you are of verdict, subject and known individual: high when the frames are clear, medium or low when the subject is small, dark, blurred, partly hidden or only in one frame')]
+        public Confidence $confidence = Confidence::High,
     ) {
     }
 }

@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Infrastructure\Doctrine;
 
 use App\Domain\Exception\CameraEventNotFoundException;
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
@@ -65,6 +66,19 @@ final class DoctrineCameraEventRepositoryTest extends KernelTestCase
 
         self::assertSame([$web], $this->repository->findBy(['falseAlarm' => true]));
         self::assertSame([$corrected, $pending, $real], $this->repository->findBy(['falseAlarm' => false], ['startedAt' => 'asc']));
+    }
+
+    public function testFindsUnsureEventsNobodyReviewed(): void
+    {
+        $unsure = CameraEventFactory::described('Something dark at the hedge.', '2026-11-06 17:00:00', confidence: Confidence::Low);
+        $reviewed = CameraEventFactory::described('A shape at the gate.', '2026-11-06 17:10:00', confidence: Confidence::Medium);
+        $reviewed->markReviewed(CameraEventFactory::utc('2026-11-06 18:00:00'));
+        $sure = CameraEventFactory::described('A grey cat.', '2026-11-06 17:20:00');
+        $this->store($unsure, $reviewed, $sure, CameraEventFactory::create('2026-11-06 17:30:00'));
+
+        self::assertSame([$unsure], $this->repository->findBy(['needsReview' => true]));
+        self::assertSame(1, $this->repository->countBy(['needsReview' => true]));
+        self::assertSame([$reviewed], $this->repository->findBy(['reviewed' => true], ['reviewedAt' => 'desc']));
     }
 
     public function testFindsPendingEventsThatAreDue(): void

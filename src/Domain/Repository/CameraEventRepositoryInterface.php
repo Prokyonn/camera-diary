@@ -29,11 +29,15 @@ use DateTimeImmutable;
  *     dueAt?: DateTimeImmutable,
  *     falseAlarm?: bool,
  *     framesRemoved?: bool,
+ *     needsReview?: bool,
+ *     reviewed?: bool,
  * }
- * @phpstan-type CameraEventSortBy array{startedAt?: 'asc'|'desc', id?: 'asc'|'desc'}
+ * @phpstan-type CameraEventSortBy array{startedAt?: 'asc'|'desc', reviewedAt?: 'asc'|'desc', id?: 'asc'|'desc'}
  *
  * Filter semantics: `dueAt` matches events without a retry time or with one at or before it; `falseAlarm: true`
- * matches events whose effective verdict (manual override, else the AI's) is a false alarm, `false` all others.
+ * matches events whose effective verdict (manual override, else the AI's) is a false alarm, `false` all others;
+ * `needsReview: true` matches described events the AI was not sure of and the owner has not reviewed (see
+ * CameraEvent::needsReview()); `reviewed` matches events the owner confirmed or corrected.
  */
 interface CameraEventRepositoryInterface
 {

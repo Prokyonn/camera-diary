@@ -28,6 +28,11 @@ interface FrameStorageInterface
     public function imageSize(string $relativePath): array;
 
     /**
+     * Whether the frame has (almost) no colour, as an infrared camera records at night; false for unreadable files.
+     */
+    public function isMonochrome(string $relativePath): bool;
+
+    /**
      * @param list<string> $relativePaths
      */
     public function remove(array $relativePaths): void;

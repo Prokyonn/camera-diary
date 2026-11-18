@@ -1,0 +1,6 @@
+{# Variables: event, return ('event' or 'review') #}
+<form class="confirm" method="post" action="{{ path('event_confirm', {id: event.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('confirm-event') }}">
+    <input type="hidden" name="return" value="{{ return }}">
+    <button type="submit">Looks right</button>
+</form>

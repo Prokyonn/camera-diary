@@ -127,6 +127,7 @@ final readonly class EventProcessor
             $description->individual,
             $description->summary,
             $description->unusual,
+            $description->confidence,
             $description->model,
             $this->clock->now(),
         );

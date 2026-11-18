@@ -5,16 +5,19 @@ declare(strict_types=1);
 namespace App\Tests\Functional\UserInterface\Controller;
 
 use App\Application\Individual\ReferencePhotoStoreInterface;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Support\ResetsStorage;
 use App\Tests\Support\StoresEvents;
 use App\UserInterface\Controller\EventController;
+use App\UserInterface\Controller\ReviewController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 #[CoversClass(EventController::class)]
+#[CoversClass(ReviewController::class)]
 final class EventControllerTest extends WebTestCase
 {
     use ResetsStorage;
@@ -54,6 +57,39 @@ final class EventControllerTest extends WebTestCase
         $saved = self::getContainer()->get(CameraEventRepositoryInterface::class)->getOneBy(['id' => $id]);
         self::assertSame('the postman', $saved->getLabel());
         self::assertSame(Verdict::FalseAlarm, $saved->getEffectiveVerdict());
+    }
+
+    public function testConfirmsAnUnsureAnswerFromTheCheckList(): void
+    {
+        $client = self::createClient();
+        $this->resetStorage(self::getContainer());
+        $event = CameraEventFactory::described('Something dark at the hedge.', confidence: Confidence::Low);
+        $this->storeEvents(self::getContainer(), $event);
+        $id = $event->getId();
+
+        $client->request('GET', '/check');
+        self::assertSelectorTextContains('nav', 'Check 1');
+        self::assertSelectorTextContains('.cards', 'Something dark at the hedge.');
+        $client->submitForm('Looks right');
+
+        self::assertResponseRedirects('/check', 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('.empty', 'Nothing to check.');
+        $saved = self::getContainer()->get(CameraEventRepositoryInterface::class)->getOneBy(['id' => $id]);
+        self::assertNotNull($saved->getReviewedAt());
+        self::assertFalse($saved->isCorrected());
+    }
+
+    public function testRejectsAConfirmationWithoutToken(): void
+    {
+        $client = self::createClient();
+        $this->resetStorage(self::getContainer());
+        $event = CameraEventFactory::described('A shape.', confidence: Confidence::Low);
+        $this->storeEvents(self::getContainer(), $event);
+
+        $client->request('POST', '/events/'.$event->getId().'/confirm');
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     public function testCorrectsTheIndividual(): void

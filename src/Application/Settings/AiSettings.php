@@ -8,7 +8,9 @@ final readonly class AiSettings
 {
     /**
      * @param list<CallPool> $callPools
-     * @param int            $referencePhotos reference photos per known individual the AI gets with an event
+     * @param int            $referencePhotos    reference photos per known individual the AI gets with an event
+     * @param int            $correctionExamples the owner's latest corrections on the same camera the AI gets as examples
+     * @param bool           $sceneBaseline      whether the AI gets the camera's latest empty view in the same light
      */
     public function __construct(
         public int $dailyCallLimit,
@@ -16,6 +18,8 @@ final readonly class AiSettings
         public string $homeContext,
         public string $unusualRule,
         public int $referencePhotos,
+        public int $correctionExamples,
+        public bool $sceneBaseline,
     ) {
     }
 

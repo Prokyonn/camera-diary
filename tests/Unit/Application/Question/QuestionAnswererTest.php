@@ -110,14 +110,14 @@ final class QuestionAnswererTest extends TestCase
     public function testReadsAllEventsOfATimeRangeWithTheKeywordMatchesFirst(): void
     {
         $criteria = new SearchCriteria(text: 'orange bucket', from: CameraEventFactory::utc('2026-11-17 00:00:00'), subjects: ['person']);
-        $walk = CameraEventFactory::described('Anna walks across the lawn.', id: 1);
-        $bucket = CameraEventFactory::described('Anna carries an orange bucket.', id: 2);
+        $walk = CameraEventFactory::described('Sam walks across the lawn.', id: 1);
+        $bucket = CameraEventFactory::described('Sam carries an orange bucket.', id: 2);
         $this->planner->plan(Argument::cetera())->willReturn($criteria);
         $this->search->search($criteria->withText('')->withLimit(200))->willReturn(new SearchResult([$walk, $bucket], 2));
         $this->search->search($criteria->withLimit(6))->willReturn(new SearchResult([$bucket], 1));
-        $this->writer->answer('How often was Anna outside today?', [$bucket, $walk], 2)->willReturn(new Answer('Twice.', []))->shouldBeCalledOnce();
+        $this->writer->answer('How often was Sam outside today?', [$bucket, $walk], 2)->willReturn(new Answer('Twice.', []))->shouldBeCalledOnce();
 
-        self::assertSame('Twice.', $this->answerer()->answer('How often was Anna outside today?')->answer);
+        self::assertSame('Twice.', $this->answerer()->answer('How often was Sam outside today?')->answer);
     }
 
     public function testFallsBackToTheKeywordMatchesForABusyTimeRange(): void

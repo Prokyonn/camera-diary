@@ -59,7 +59,7 @@ final readonly class SealEventIndexer implements EventIndexerInterface
     }
 
     /**
-     * "Anna Person" for a known individual, so a search for either finds the event; else "Other cat" or "Cat".
+     * "Sam Person" for a known individual, so a search for either finds the event; else "Other cat" or "Cat".
      */
     private function subjectText(string $subject, ?string $individual): string
     {

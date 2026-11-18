@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Factory;
 
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
 use DateTimeImmutable;
@@ -51,9 +52,10 @@ final class CameraEventFactory
         ?string $falseAlarmCause = null,
         ?int $id = null,
         ?string $individual = null,
+        Confidence $confidence = Confidence::High,
     ): CameraEvent {
         $event = self::withFrames($startedAt, $camera, $id);
-        $event->describe($verdict, $falseAlarmCause, $side, $subject, $individual, $summary, false, 'test-model', self::utc($startedAt)->modify('+5 minutes'));
+        $event->describe($verdict, $falseAlarmCause, $side, $subject, $individual, $summary, false, $confidence, 'test-model', self::utc($startedAt)->modify('+5 minutes'));
 
         return $event;
     }

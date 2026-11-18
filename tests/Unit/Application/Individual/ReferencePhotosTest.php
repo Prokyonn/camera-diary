@@ -40,7 +40,7 @@ final class ReferencePhotosTest extends TestCase
     public function testGivesTheAiThePhotosOfTheIndividualsForTheDetectionTypes(): void
     {
         $this->store->findBy('luna')->willReturn([new ReferencePhoto('/data/luna/new.jpg', 'new.jpg'), new ReferencePhoto('/data/luna/old.jpg', 'old.jpg')]);
-        $this->store->findBy('anna')->shouldNotBeCalled();
+        $this->store->findBy('sam')->shouldNotBeCalled();
 
         $references = $this->referencePhotos(['reference_photos' => 2])->forEvent(CameraEventFactory::create(type: 'animal'));
 
@@ -51,7 +51,7 @@ final class ReferencePhotosTest extends TestCase
 
     public function testLeavesOutIndividualsWithoutPhotos(): void
     {
-        $this->store->findBy('anna')->willReturn([]);
+        $this->store->findBy('sam')->willReturn([]);
 
         self::assertSame([], $this->referencePhotos()->forEvent(CameraEventFactory::create(type: 'person')));
     }
@@ -61,19 +61,19 @@ final class ReferencePhotosTest extends TestCase
         $event = CameraEventFactory::withFrames(id: 1);
         $crop = new CropBox(0.5, 0, 0.5, 1);
         $this->frameStorage->absolutePath($event->getFramePaths()[0] ?? '')->willReturn('/frames/frame-0.jpg');
-        $this->store->add('anna', '/frames/frame-0.jpg', $crop)->willReturn(new ReferencePhoto('/data/anna/x.jpg', 'x.jpg'))->shouldBeCalledOnce();
+        $this->store->add('sam', '/frames/frame-0.jpg', $crop)->willReturn(new ReferencePhoto('/data/sam/x.jpg', 'x.jpg'))->shouldBeCalledOnce();
 
-        $anna = $this->settingsProvider($this->config())->settings()->individual('anna') ?? self::fail('Anna is missing.');
-        $this->referencePhotos()->addFromFrame($event, 0, $anna, $crop);
+        $sam = $this->settingsProvider($this->config())->settings()->individual('sam') ?? self::fail('Sam is missing.');
+        $this->referencePhotos()->addFromFrame($event, 0, $sam, $crop);
     }
 
     public function testRejectsAFrameTheEventDoesNotHave(): void
     {
-        $anna = $this->settingsProvider($this->config())->settings()->individual('anna') ?? self::fail('Anna is missing.');
+        $sam = $this->settingsProvider($this->config())->settings()->individual('sam') ?? self::fail('Sam is missing.');
 
         $this->expectException(InvalidReferencePhotoException::class);
 
-        $this->referencePhotos()->addFromFrame(CameraEventFactory::withFrames(id: 1), 2, $anna, null);
+        $this->referencePhotos()->addFromFrame(CameraEventFactory::withFrames(id: 1), 2, $sam, null);
     }
 
     /**
@@ -95,7 +95,7 @@ final class ReferencePhotosTest extends TestCase
             'ai' => $ai,
             'individuals' => [
                 'luna' => ['subject' => 'cat', 'photos' => [__FILE__], 'detection_types' => ['animal']],
-                'anna' => ['subject' => 'person', 'detection_types' => ['person']],
+                'sam' => ['subject' => 'person', 'detection_types' => ['person']],
             ],
         ];
     }

@@ -85,6 +85,8 @@ final class SettingsConfiguration implements ConfigurationInterface
                 ->scalarNode('home_context')->defaultValue('')->info('Free text every prompt gets, e.g. "Our cat is called Luna."')->end()
                 ->scalarNode('unusual_rule')->defaultValue(self::DEFAULT_UNUSUAL_RULE)->info('Which events the AI flags as unusual')->end()
                 ->integerNode('reference_photos')->min(1)->defaultValue(6)->info('Reference photos per known individual the AI gets with an event: the settings\' ones first, then the newest added in the app')->end()
+                ->integerNode('correction_examples')->min(0)->defaultValue(6)->info('Your latest corrections on the same camera the AI gets as examples with an event; 0 for none')->end()
+                ->booleanNode('scene_baseline')->defaultTrue()->info('Send the camera\'s latest empty view in the same light (a false alarm with nothing visible) with each event, so the AI sees what changed')->end()
             ->end();
 
         return $node;

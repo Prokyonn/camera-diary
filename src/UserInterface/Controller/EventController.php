@@ -20,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -61,6 +62,21 @@ final class EventController extends AbstractController
             'form' => $form,
             'reference_form' => $referenceForm,
         ]);
+    }
+
+    #[Route('/events/{id:event}/confirm', name: 'event_confirm', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function confirm(CameraEvent $event, Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('confirm-event', $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $this->labeler->confirm($event);
+        $this->addFlash('success', 'Confirmed.');
+
+        return 'review' === $request->getPayload()->getString('return')
+            ? $this->redirectToRoute('review', status: Response::HTTP_SEE_OTHER)
+            : $this->redirectToRoute('event_show', ['id' => $event->getId()], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/events/{id:event}/frames/{index}.jpg', name: 'event_frame', requirements: ['id' => '\d+', 'index' => '\d'], methods: ['GET'])]

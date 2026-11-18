@@ -21,6 +21,10 @@ ai:
     unusual_rule: A person on our property who does not seem to belong there, or anyone on our property at night.
     # Reference photos per known individual the AI gets with an event (default 6)
     reference_photos: 6
+    # Your latest corrections on the same camera the AI gets as examples (default 6, 0 for none)
+    correction_examples: 6
+    # Send the camera's latest empty view in the same light with each event (default true)
+    scene_baseline: true
 
 # The vocabularies merge with the defaults: add a name, change a label or hint, or remove one with "name: false".
 # Names use lower-case letters, digits and "_". The label is shown in the app, the description helps the AI.

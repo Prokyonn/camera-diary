@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Domain\Model;
 
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
@@ -85,7 +86,7 @@ final class CameraEventTest extends TestCase
         $event = CameraEventFactory::create();
         $describedAt = CameraEventFactory::utc('2026-11-06 06:20:00');
 
-        $event->describe(Verdict::Real, 'insect', Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat.', true, 'test-model', $describedAt);
+        $event->describe(Verdict::Real, 'insect', Side::OurProperty, 'cat', 'luna', 'A grey cat drags the doormat.', true, Confidence::Low, 'test-model', $describedAt);
 
         self::assertSame(EventStatus::Described, $event->getStatus());
         self::assertSame(Verdict::Real, $event->getEffectiveVerdict());
@@ -162,5 +163,35 @@ final class CameraEventTest extends TestCase
 
         $event->relabel(null, null, null);
         self::assertSame('luna', $event->getEffectiveIndividual());
+    }
+
+    public function testAnUnsureAnswerNeedsReviewUntilTheOwnerLooked(): void
+    {
+        self::assertFalse(CameraEventFactory::described('A cat.')->needsReview(), 'A sure answer needs no review.');
+        self::assertFalse(CameraEventFactory::create()->needsReview(), 'A pending event has nothing to review.');
+
+        $event = CameraEventFactory::described('Something dark at the hedge.', confidence: Confidence::Low);
+        self::assertTrue($event->needsReview());
+
+        $event->markReviewed(CameraEventFactory::utc('2026-11-06 07:00:00'));
+        self::assertFalse($event->needsReview());
+        self::assertFalse($event->isCorrected(), 'Confirming changes nothing.');
+    }
+
+    public function testACorrectionChangesTheAisAnswer(): void
+    {
+        $event = CameraEventFactory::described('A cat.', individual: 'luna');
+
+        $event->relabel(null, Verdict::Real, 'luna');
+        self::assertFalse($event->isCorrected(), 'The same verdict and individual confirm the answer.');
+
+        $event->relabel(null, Verdict::FalseAlarm, null);
+        self::assertTrue($event->isCorrected());
+
+        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL);
+        self::assertTrue($event->isCorrected());
+
+        $event->relabel('the neighbour\'s cat', null, null);
+        self::assertTrue($event->isCorrected());
     }
 }

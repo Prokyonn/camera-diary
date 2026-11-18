@@ -6,14 +6,19 @@ namespace App\Tests\Functional\Infrastructure\Ai;
 
 use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Description\PastCorrections;
+use App\Application\Description\SceneBaselines;
 use App\Application\Individual\ReferencePhotos;
 use App\Application\Individual\ReferencePhotoStoreInterface;
 use App\Application\Settings\SettingsProviderInterface;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
+use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
 use App\Infrastructure\Ai\AiEventDescriber;
 use App\Infrastructure\Ai\Client\PlatformStructuredClient;
+use App\Infrastructure\Ai\CorrectionNotes;
 use App\Infrastructure\Ai\HomeContext;
 use App\Infrastructure\Ai\Output\VocabularyResponseFormatFactory;
 use App\Infrastructure\Media\FilesystemFrameStorage;
@@ -23,7 +28,9 @@ use App\Tests\Support\FakePlatform;
 use App\Tests\Support\ProvidesSettings;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 use Symfony\AI\Platform\Exception\RateLimitExceededException;
 use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
 use Symfony\Component\Filesystem\Filesystem;
@@ -31,6 +38,9 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(AiEventDescriber::class)]
 #[CoversClass(PlatformStructuredClient::class)]
 #[CoversClass(HomeContext::class)]
+#[CoversClass(CorrectionNotes::class)]
+#[CoversClass(PastCorrections::class)]
+#[CoversClass(SceneBaselines::class)]
 final class AiEventDescriberTest extends TestCase
 {
     use ProphecyTrait;
@@ -39,6 +49,9 @@ final class AiEventDescriberTest extends TestCase
     private string $framesDir;
 
     private FakePlatform $platform;
+
+    /** @var ObjectProphecy<CameraEventRepositoryInterface> */
+    private ObjectProphecy $events;
 
     protected function setUp(): void
     {
@@ -49,6 +62,8 @@ final class AiEventDescriberTest extends TestCase
         new Filesystem()->mkdir($this->framesDir.'/terrace');
         imagejpeg($image, $this->framesDir.'/terrace/frame-0.jpg');
         imagejpeg($image, $this->framesDir.'/luna.jpg');
+        $this->events = $this->prophesize(CameraEventRepositoryInterface::class);
+        $this->events->findBy(Argument::cetera())->willReturn([]);
         $this->platform = new FakePlatform(new VocabularyResponseFormatFactory(new ResponseFormatFactory(), $this->settings()));
     }
 
@@ -90,6 +105,28 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('"enum":["unknown","luna"]', $options, 'The JSON schema lists the known individuals.');
         self::assertSame(2, substr_count($input, '"type":"image_url"'), 'The reference photo and the frame.');
         self::assertLessThan(strpos($input, 'The camera reported'), strpos($input, 'Reference photos'), 'The reference photos come before the event.');
+    }
+
+    public function testComparesWithTheUsualViewAndLearnsFromCorrections(): void
+    {
+        $this->platform->respondWith('{"verdict":"false_alarm","falseAlarmCause":"other","side":"our_property","subject":"nothing","individual":"unknown","summary":"The hedge moves in the wind.","unusual":false,"confidence":"medium"}');
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+        $empty = CameraEventFactory::described('The empty terrace.', '2026-11-05 22:00:00', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'nothing', id: 2);
+        $empty->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+        $hedge = CameraEventFactory::described('A person in dark clothes at the hedge.', '2026-11-04 21:10:00', subject: 'person', id: 3);
+        $hedge->relabel('the hedge in the wind', Verdict::FalseAlarm, null);
+        $hedge->markReviewed(CameraEventFactory::utc('2026-11-05 08:00:00'));
+        $this->events->findBy(Argument::withEntry('falseAlarm', true), Argument::cetera())->willReturn([$event, $empty]);
+        $this->events->findBy(Argument::withEntry('reviewed', true), Argument::cetera())->willReturn([$hedge]);
+
+        $description = $this->describer()->describe($event, []);
+
+        self::assertSame(Confidence::Medium, $description->confidence);
+        $input = json_encode($this->platform->calls()[0]['input'] ?? self::fail('The AI was not called.'), \JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('usual view with nothing happening, from 5 November, 23:00', $input);
+        self::assertSame(3, substr_count($input, '"type":"image_url"'), 'The reference photo, the usual view and the frame.');
+        self::assertStringContainsString('- Wed 4 Nov, 22:10: you said real, person: \\"A person in dark clothes at the hedge.\\" The owner: false alarm; labelled it \\"the hedge in the wind\\".', $input);
     }
 
     public function testDropsAnIndividualOfAnotherSubject(): void
@@ -159,6 +196,9 @@ final class AiEventDescriberTest extends TestCase
             new HomeContext($this->prophesize(CameraRepositoryInterface::class)->reveal(), $this->settings()),
             $this->settings(),
             new ReferencePhotos($this->settings(), $store->reveal(), $frameStorage),
+            new PastCorrections($this->events->reveal(), $this->settings()),
+            new SceneBaselines($this->events->reveal(), $frameStorage, $this->settings()),
+            new CorrectionNotes($homeTimeZone, $this->settings()),
         );
     }
 

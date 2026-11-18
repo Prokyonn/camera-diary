@@ -16,6 +16,7 @@ use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
 use App\Application\Settings\CallPool;
 use App\Domain\Model\CameraEvent;
+use App\Domain\Model\Confidence;
 use App\Domain\Model\Side;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
@@ -53,7 +54,7 @@ final class PendingEventRunnerTest extends TestCase
         $this->budget = $this->prophesize(AiCallBudgetInterface::class);
         $this->describer = $this->prophesize(EventDescriberInterface::class);
         $this->describer->describe(Argument::cetera())->willReturn(
-            new EventDescription(Verdict::Real, null, Side::OurProperty, 'person', null, 'The postman at the door.', false, 'test-model'),
+            new EventDescription(Verdict::Real, null, Side::OurProperty, 'person', null, 'The postman at the door.', false, Confidence::High, 'test-model'),
         );
     }
 
