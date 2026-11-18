@@ -1,6 +1,6 @@
 # Demo: docker compose up --build, then open http://localhost:8080
 # Pick the AI in a .env file next to this one (see README), e.g. AI_PLATFORM=gemini and GEMINI_API_KEY=...
-# Optional settings (limits, vocabularies): camera-diary.example.yaml, copied into the data volume as camera-diary.yaml
+# Without any AI, the demo loads the answers recorded from a real run. The demo home's settings: demo/camera-diary.yaml.
 name: camera-diary
 
 x-app: &app
@@ -16,6 +16,7 @@ x-app: &app
     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     VERTEX_AI_API_KEY: ${VERTEX_AI_API_KEY:-}
     OLLAMA_HOST_URL: ${OLLAMA_HOST_URL:-http://host.docker.internal:11434}
+    CAMERA_DIARY_CONFIG: ${CAMERA_DIARY_CONFIG:-/app/demo/camera-diary.yaml}
   extra_hosts:
     - host.docker.internal:host-gateway
   volumes:
@@ -30,7 +31,7 @@ services:
       - mkdir -p var/data/locks
         && bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
         && bin/console cmsig:seal:index-create
-        && bin/console app:demo
+        && if [ "$$AI_PLATFORM" = gemini ] && [ -z "$$GEMINI_API_KEY" ]; then bin/console app:demo --recorded; else bin/console app:demo; fi
 
   web:
     <<: *app

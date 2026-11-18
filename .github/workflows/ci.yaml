@@ -40,3 +40,11 @@ jobs:
         run: |
           docker run --rm --entrypoint php camera-diary:ci -r 'foreach (["gd", "intl", "pdo_sqlite"] as $e) { extension_loaded($e) or exit("missing $e\n"); }'
           docker run --rm --entrypoint ffmpeg camera-diary:ci -version
+      - name: A fresh install migrates and loads the recorded demo
+        run: |
+          docker run --rm -e APP_SECRET=ci -e CAMERA_DIARY_CONFIG=/app/demo/camera-diary.yaml camera-diary:ci sh -c '
+            mkdir -p var/data/locks
+            && bin/console doctrine:migrations:migrate --no-interaction
+            && bin/console doctrine:schema:validate
+            && bin/console cmsig:seal:index-create
+            && bin/console app:demo --recorded'

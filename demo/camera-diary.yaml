@@ -1,0 +1,29 @@
+# Settings of the demo home. Docker Compose uses this file; with PHP, set CAMERA_DIARY_CONFIG=demo/camera-diary.yaml.
+# All keys: camera-diary.example.yaml.
+
+ai:
+    daily_call_limit: 500
+    home_context: >-
+        Our cat is called Mochi; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog and
+        the neighbours' cats visit the garden at night.
+    unusual_rule: >-
+        A person on our property who does not seem to belong there, anyone on our property at night, or a cat other
+        than Mochi at or in the cat flap.
+
+subjects:
+    fox:
+        description: a red fox
+    hedgehog: ~
+    badger: ~
+
+false_alarm_causes:
+    wind:
+        description: plants, branches or leaves moving in the wind
+
+individuals:
+    mochi:
+        label: Mochi
+        subject: cat
+        description: black-and-white cat with a black patch over one eye, a white chest and white legs
+        photos: [individuals/mochi-sitting.jpg, individuals/mochi-side.jpg, individuals/mochi-front.jpg]
+        detection_types: [animal]

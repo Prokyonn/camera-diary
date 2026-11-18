@@ -92,11 +92,11 @@ final readonly class DemoCommand
 
             $event = $result->event;
             $events[$key] = $event;
-            if ($recorded && null !== $entry['recorded']) {
+            if ($recorded && isset($entry['recorded'])) {
                 $this->replay->replay($event, $this->description($entry['recorded']));
             }
 
-            if ($result->created && null !== $entry['correction']) {
+            if ($result->created && isset($entry['correction'])) {
                 $correction = $entry['correction'];
                 $this->labeler->relabel($event, $correction['label'], null === $correction['verdict'] ? null : Verdict::from($correction['verdict']), $correction['individual']);
             }

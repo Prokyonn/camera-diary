@@ -1,7 +1,27 @@
-# Sample events for `bin/console app:demo`. Each one is placed at the latest past occurrence of its local time of day.
-# The clips are openly licensed, see demo/CREDITS.md.
+# A week in a demo home for `bin/console app:demo`. Each event is placed at the latest past occurrence of its local
+# time of day, days_ago days back. Without an AI, `app:demo --recorded` stores the answers below, recorded from a
+# real run with Gemini; with one, the worker describes the clips itself. The clips are openly licensed, see
+# demo/CREDITS.md.
 
 cameras:
+    back-door:
+        name: Back door
+        scene: Trail camera facing the back door of the house with the cat flap, the bins, a low brick shed and the lawn in front. Everything in view is our property.
+    shed:
+        name: Shed
+        scene: Infrared camera under the shed roof, looking along the storage shelves. Our property.
+    side-yard:
+        name: Side yard
+        scene: Infrared camera low at the wooden fence of the side yard, aimed at a stone where food is put out. Our property; the fence is the boundary.
+    lawn:
+        name: Lawn
+        scene: Day camera over the front lawn and the flower bed by the wall. Our property.
+    patio:
+        name: Patio
+        scene: Night camera at ground level on the patio, where we scatter food for the foxes; the lawn and the park lights behind. Our property up to the hedge.
+    beds:
+        name: Flower beds
+        scene: Infrared camera low over the back flower bed with leaf litter. Our property.
     garden:
         name: Garden
         scene: Back garden with an infrared camera; a paved path runs along a bed of ferns and potted plants. Everything in view is our property.
@@ -14,38 +34,452 @@ cameras:
     street:
         name: Street
         scene: Camera above the front door, looking down at the public sidewalk and the house fronts across. The sidewalk is not our property.
+    parking:
+        name: Parking
+        scene: Camera above the garage, looking over the shared parking area and the road. Only the bollards and the paved square in front of them are ours.
     courtyard:
         name: Courtyard
         scene: High view from an upper floor over the shared courtyard; trees, a lawn, a garage roof and parked cars. Only the lawn in front of the garage is ours.
 
 events:
-    demo-badger:
-        camera: garden
-        clip: clips/badger-night.mp4
-        time: '21:40'
+    # Today
+    demo-shed-0a:
+        camera: shed
+        clip: clips/shed-spider-1.mp4
+        time: '02:06'
+        days_ago: 0
         detections: [animal]
-        hints: [The cat was inside all evening]
-    demo-fox:
-        camera: woods
-        clip: clips/fox-night.mp4
-        time: '23:15'
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly in front of the camera lens, lit up by the infrared light."
+    demo-backdoor-night:
+        camera: back-door
+        clip: clips/backdoor-night-cat.mp4
+        time: '02:41'
+        days_ago: 0
         detections: [animal]
-        hints: [Bait at the tree was refilled at dusk]
-    demo-fox-cubs:
-        camera: hedge
-        clip: clips/fox-cubs-day.mp4
-        time: '17:05'
+        hints: ["Cat flap stayed shut"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A tabby cat walks across the lawn at night, moving towards the right edge of the frame."
+    demo-shed-0b:
+        camera: shed
+        clip: clips/shed-spider-2.mp4
+        time: '03:51'
+        days_ago: 0
         detections: [animal]
-        hints: []
-    demo-person:
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly in front of the camera lens, illuminated brightly by infrared light."
+    demo-mochi-out:
+        camera: back-door
+        clip: clips/backdoor-mochi-out.mp4
+        time: '07:12'
+        days_ago: 0
+        detections: [animal]
+        hints: ["Cat flap opened outwards"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            individual: mochi
+            summary: "Mochi wanders around outside near the entrance to the low brick shed."
+    demo-backdoor-empty-0:
+        camera: back-door
+        clip: clips/backdoor-empty.mp4
+        time: '11:30'
+        days_ago: 0
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: nothing
+            side: unclear
+            subject: nothing
+            summary: "The back yard, bins, shed and lawn are visible with nothing happening."
+    demo-mochi-flap:
+        camera: back-door
+        clip: clips/backdoor-mochi-flap.mp4
+        time: '16:48'
+        days_ago: 0
+        detections: [animal]
+        hints: ["Cat flap opened inwards"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            individual: mochi
+            summary: "Mochi pushes her head through the cat flap in the back door to go inside."
+
+    # Yesterday
+    demo-shed-1:
+        camera: shed
+        clip: clips/shed-spider-1.mp4
+        time: '01:15'
+        days_ago: 1
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly across the camera lens, illuminated brightly by the infrared light."
+    demo-street-snow:
         camera: street
         clip: clips/person-snow.mp4
         time: '08:10'
+        days_ago: 1
         detections: [person]
-        hints: [Doorbell did not ring]
+        hints: ["Doorbell did not ring"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: outside
+            subject: person
+            summary: "A person in a grey winter coat and dark trousers walks along the snow-covered sidewalk holding an open black umbrella."
+    demo-grey-flap:
+        camera: back-door
+        clip: clips/backdoor-grey-flap.mp4
+        time: '10:05'
+        days_ago: 1
+        detections: [animal]
+        hints: ["Mochi was outside"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A grey cat is outside on the patio, moving near the entrance to the low brick shed."
+    demo-grey-lawn:
+        camera: back-door
+        clip: clips/backdoor-grey-lawn.mp4
+        time: '10:07'
+        days_ago: 1
+        detections: [animal]
+        hints: ["Cat flap opened inwards", "Mochi was outside"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A grey cat walks toward the back door and enters through the cat flap."
+            unusual: true
+    demo-mochi-dusk:
+        camera: back-door
+        clip: clips/backdoor-mochi-dusk.mp4
+        time: '16:30'
+        days_ago: 1
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            individual: mochi
+            summary: "Mochi, a black-and-white cat, is outside by the back door near the cat flap and the low brick shed."
+    demo-patio-1:
+        camera: patio
+        clip: clips/patio-foxes.mp4
+        time: '23:10'
+        days_ago: 1
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: fox
+            summary: "A fox walks on the grass at night and sniffs at the lawn near the patio."
+
+    # 2 days ago
+    demo-beds-2:
+        camera: beds
+        clip: clips/hedge-hedgehog.mp4
+        time: '00:30'
+        days_ago: 2
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: hedgehog
+            summary: "A hedgehog wanders through the leaf litter and twigs in the flower bed at night."
+    demo-blackbird:
+        camera: back-door
+        clip: clips/backdoor-blackbird.mp4
+        time: '09:15'
+        days_ago: 2
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: bird
+            summary: "Two birds, a blackbird and a great tit, forage on the grass."
     demo-rain:
         camera: courtyard
         clip: clips/rain-courtyard.mp4
         time: '14:20'
+        days_ago: 2
         detections: [motion]
-        hints: [Weather station reports heavy rain]
+        hints: ["Weather station reports heavy rain"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: rain
+            side: unclear
+            subject: nothing
+            summary: "Heavy rain falls across the courtyard, with streaks visible in the camera view."
+    demo-sideyard:
+        camera: side-yard
+        clip: clips/sideyard-cat-night.mp4
+        time: '22:30'
+        days_ago: 2
+        detections: [animal]
+        hints: ["Mochi was inside all evening"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A cat is seen from behind sitting near the wooden fence."
+    demo-shed-2:
+        camera: shed
+        clip: clips/shed-spider-2.mp4
+        time: '23:40'
+        days_ago: 2
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly across the camera lens, brightly lit by infrared light."
+
+    # 3 days ago
+    demo-shed-3:
+        camera: shed
+        clip: clips/shed-spider-1.mp4
+        time: '02:30'
+        days_ago: 3
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly in front of the camera lens, lit up by the infrared light."
+    demo-parking-cat:
+        camera: parking
+        clip: clips/parking-cat.mp4
+        time: '08:20'
+        days_ago: 3
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: outside
+            subject: cat
+            summary: "A tabby cat crouches and stalks along the pavement next to the bollards, watching a small bird nearby."
+    demo-parking-jogger:
+        camera: parking
+        clip: clips/parking-jogger.mp4
+        time: '08:21'
+        days_ago: 3
+        detections: [person, animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: outside
+            subject: person
+            summary: "A person in a blue t-shirt and shorts jogs down the road, passing a dark tabby cat standing on the pavement."
+    demo-backdoor-empty-3:
+        camera: back-door
+        clip: clips/backdoor-empty.mp4
+        time: '13:10'
+        days_ago: 3
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: nothing
+            side: unclear
+            subject: nothing
+            summary: "No subject or movement is visible in the yard."
+    demo-mochi-path-3:
+        camera: back-door
+        clip: clips/backdoor-mochi-path.mp4
+        time: '15:20'
+        days_ago: 3
+        detections: [animal]
+        hints: ["Cat flap opened inwards"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            individual: mochi
+            summary: "Mochi walks past the back door and enters the opening of the low brick shed."
+
+    # 4 days ago
+    demo-shed-4:
+        camera: shed
+        clip: clips/shed-spider-2.mp4
+        time: '00:50'
+        days_ago: 4
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly in front of the camera lens, glowing brightly in the infrared light."
+    demo-lawn-cat:
+        camera: lawn
+        clip: clips/lawn-cat.mp4
+        time: '14:00'
+        days_ago: 4
+        detections: [animal]
+        hints: ["Mochi was inside"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A grey-and-white cat sits on the front lawn."
+    demo-badger:
+        camera: garden
+        clip: clips/badger-night.mp4
+        time: '21:40'
+        days_ago: 4
+        detections: [animal]
+        hints: ["Mochi was inside all evening"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: badger
+            summary: "A badger walks along the paved path in the garden at night."
+    demo-patio-4:
+        camera: patio
+        clip: clips/patio-foxes.mp4
+        time: '21:50'
+        days_ago: 4
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: fox
+            summary: "A fox walks across the lawn at night towards the scattered food on the patio."
+
+    # 5 days ago
+    demo-shed-5:
+        camera: shed
+        clip: clips/shed-spider-1.mp4
+        time: '03:10'
+        days_ago: 5
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly across the camera lens, lit up by infrared light."
+    demo-fox-woods:
+        camera: woods
+        clip: clips/fox-night.mp4
+        time: '23:15'
+        days_ago: 5
+        detections: [animal]
+        hints: ["Bait at the tree was refilled at dusk"]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: fox
+            summary: "A fox approaches a rock ledge and eats from a bowl placed there."
+    demo-beds-5:
+        camera: beds
+        clip: clips/hedge-hedgehog.mp4
+        time: '23:45'
+        days_ago: 5
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: hedgehog
+            summary: "A hedgehog snuffles through the leaf litter in the flower bed at night."
+
+    # 6 days ago
+    demo-mochi-path-6:
+        camera: back-door
+        clip: clips/backdoor-mochi-path.mp4
+        time: '08:05'
+        days_ago: 6
+        detections: [animal]
+        hints: ["Cat flap opened inwards"]
+        correction: {individual: mochi}
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: cat
+            summary: "A black-and-white cat is outside by the back door near the cat flap before turning and entering the opening of the low brick shed."
+            unusual: true
+    demo-fox-cubs:
+        camera: hedge
+        clip: clips/fox-cubs-day.mp4
+        time: '17:05'
+        days_ago: 6
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: real
+            side: our_property
+            subject: fox
+            summary: "Two young foxes interact among the tall grass and plants in the garden."
+    demo-shed-6:
+        camera: shed
+        clip: clips/shed-spider-2.mp4
+        time: '22:20'
+        days_ago: 6
+        detections: [animal]
+        recorded:
+            model: gemini-flash-latest
+            verdict: false_alarm
+            false_alarm_cause: spider_web
+            side: our_property
+            subject: nothing
+            summary: "A spider crawls directly in front of the camera lens, illuminated by the infrared light."
+
+# Questions asked on the Ask page in the recorded run. The answers are the AI's, without the dates, because
+# the demo moves the events to the current week.
+questions:
+    - question: "When did the strange grey cat come in through our cat flap?"
+      answer: "The strange grey cat entered through the cat flap at 10:07."
+      events: [demo-grey-lawn, demo-mochi-flap, demo-grey-flap, demo-mochi-path-6, demo-backdoor-night, demo-mochi-out, demo-mochi-path-3, demo-mochi-dusk]
+    - question: "How often was Mochi outside in the last seven days?"
+      answer: "Mochi was recorded outside in five events across four days."
+      events: [demo-mochi-out, demo-mochi-flap, demo-mochi-dusk, demo-mochi-path-3, demo-mochi-path-6]
+    - question: "Which camera has the most false alarms, and why?"
+      answer: "The Shed camera has the most false alarms, with eight recorded incidents. These alarms were caused by a spider crawling directly across the camera lens and being illuminated by infrared light."
+      events: [demo-shed-0b, demo-shed-0a, demo-shed-1, demo-shed-2, demo-shed-3, demo-shed-4, demo-shed-5, demo-shed-6, demo-backdoor-empty-0, demo-rain, demo-backdoor-empty-3]
