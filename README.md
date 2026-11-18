@@ -25,13 +25,13 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **One structured output, five providers.** The AI's answer is a PHP class (`EventDescriptionOutput`). Symfony AI turns it into a JSON schema, and a decorated response format factory fills its `enum`s from the settings, so the vocabulary you configure is exactly what the model may answer. Gemini, Vertex AI and Ollama get it natively through the platform; a small adapter gives the same schema and images to the Claude Code and Codex CLIs, so a Claude or ChatGPT subscription works too.
 - **Multimodal prompts that teach.** Each event's prompt holds the reference photos of the known individuals, the camera's usual empty view, the owner's latest corrections on that camera as text, the home's hints (e.g. the cat flap opened inwards), and the frames.
 - **Images both ways over MCP.** `get_camera_event` returns the frames as `ImageContent`, so Claude looks at what the camera saw instead of trusting a description. `camera_activity` gives exact counts, `correct_camera_event` writes a correction back into the learning loop, and the `daily_report` prompt asks for a report of a day.
-- **The AI plans the search.** A question becomes a structured search plan (subjects and known individuals as exact filters, cameras, time range), and the answer cites the events it used.
+- **The AI plans the search.** A question becomes a structured search plan (known individuals as exact filters, subjects, cameras, time range), and the answer cites the events it used. For a time range of up to 200 events the AI reads all of them, the best matches first, so a subject picked too narrowly cannot hide an event.
 
 Tags: Symfony AI Platform, Structured Output, Multimodal / Vision, Multi-provider, MCP, MCP SDK, Human in the Loop.
 
 ## Try it in five minutes
 
-The demo is a week in a made-up home: Mochi the black-and-white cat at the cat flap, a strange grey cat that comes in through it, a spider in front of the shed camera every night, foxes, a hedgehog, a badger, a jogger and the rain. The clips are openly licensed, see [demo/CREDITS.md](demo/CREDITS.md).
+The demo is a week in a made-up home: Mochi the black-and-white cat at the cat flap, a strange grey cat that comes in through it, two tomcats facing off by the bins, a spider in front of the shed camera every night, foxes, a marten, a badger, a hedgehog, a jogger and the rain. The clips are public domain, CC0 or CC BY, see [demo/CREDITS.md](demo/CREDITS.md).
 
 ### With Docker
 
@@ -60,7 +60,7 @@ With the stack running, connect Claude to the MCP server:
 claude mcp add --transport http camera-diary http://localhost:8080/mcp
 ```
 
-Then ask, e.g., "What did Mochi do yesterday? Show me the frames." or "The grey cat on Monday morning was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
+Then ask, e.g., "What did Mochi do yesterday? Show me the frames." or "The grey cat that came in through the cat flap was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
 
 ### With PHP
 

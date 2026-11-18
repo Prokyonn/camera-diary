@@ -4,17 +4,19 @@
 ai:
     daily_call_limit: 500
     home_context: >-
-        Our cat is called Mochi; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog and
-        the neighbours' cats visit the garden at night.
+        Our cat is called Mochi; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog, a
+        badger, a marten and the neighbours' cats visit the garden.
     unusual_rule: >-
-        A person on our property who does not seem to belong there, anyone on our property at night, or a cat other
-        than Mochi at or in the cat flap.
+        A person on our property who does not seem to belong there, anyone on our property at night, a cat other than
+        Mochi at or in the cat flap, or cats fighting or facing off on our property.
 
 subjects:
     fox:
         description: a red fox
     hedgehog: ~
     badger: ~
+    marten:
+        description: a stone marten or pine marten; slim brown body, long bushy tail, pale throat patch
 
 false_alarm_causes:
     wind:
