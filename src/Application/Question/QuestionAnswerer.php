@@ -27,7 +27,13 @@ final readonly class QuestionAnswerer
 
     public function answer(string $question): QuestionResult
     {
-        $found = $this->events($this->criteria($question));
+        $criteria = $this->criteria($question);
+        $found = $this->events($criteria);
+        $broadened = [] === $found->events && !$criteria->isBroad();
+        if ($broadened) {
+            $found = $this->events($criteria->broadened());
+        }
+
         $events = $found->events;
 
         if ([] === $events) {
@@ -39,7 +45,7 @@ final readonly class QuestionAnswerer
         }
 
         try {
-            $answer = $this->writer->answer($question, $events, $found->total);
+            $answer = $this->writer->answer($question, $events, $found->total, $broadened);
         } catch (AiRequestFailedException $exception) {
             $this->logger->warning('The AI could not answer: {message}', ['message' => $exception->getMessage()]);
 

@@ -27,13 +27,15 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
     ) {
     }
 
-    public function answer(string $question, array $events, int $total): Answer
+    public function answer(string $question, array $events, int $total, bool $broadened): Answer
     {
         $parts = [
             'Question: '.$question,
-            \count($events) < $total
-                ? \sprintf('%d events match; here are the %d most relevant.', $total, \count($events))
-                : \sprintf('These are all %d events that match.', $total),
+            match (true) {
+                $broadened => \sprintf('No event matched the exact search (camera, side, subject or keywords), so here are %d of the %d events of the same time span; say that nothing matched exactly, then answer from these if they help.', \count($events), $total),
+                \count($events) < $total => \sprintf('%d events match; here are the %d most relevant.', $total, \count($events)),
+                default => \sprintf('These are all %d events that match.', $total),
+            },
         ];
         $withFrames = $this->settings->settings()->questions->answerEvents;
         foreach ($events as $index => $event) {

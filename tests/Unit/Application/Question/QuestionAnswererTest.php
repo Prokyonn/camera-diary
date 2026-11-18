@@ -56,7 +56,7 @@ final class QuestionAnswererTest extends TestCase
         $second = CameraEventFactory::described('A grey cat drags the doormat.', id: 2);
         $this->planner->plan('When was the grey cat here?', 12)->willReturn($criteria);
         $this->search->search($criteria)->willReturn(new SearchResult([$first, $second], 2));
-        $this->writer->answer('When was the grey cat here?', [$first, $second], 2)->willReturn(new Answer('On 6 November at 07:16.', [2]));
+        $this->writer->answer('When was the grey cat here?', [$first, $second], 2, false)->willReturn(new Answer('On 6 November at 07:16.', [2]));
 
         $result = $this->answerer()->answer('When was the grey cat here?');
 
@@ -77,8 +77,24 @@ final class QuestionAnswererTest extends TestCase
     {
         $this->planner->plan(Argument::cetera())->willThrow(new AiRequestFailedException('timeout'));
         $this->search->search(Argument::that(static fn (SearchCriteria $criteria): bool => 'grey cat' === $criteria->text))->willReturn(new SearchResult([], 0))->shouldBeCalledOnce();
+        $this->search->search(Argument::that(static fn (SearchCriteria $criteria): bool => $criteria->isBroad()))->willReturn(new SearchResult([], 0));
 
         $this->answerer()->answer('grey cat');
+    }
+
+    public function testWidensASearchThatFoundNothing(): void
+    {
+        $from = CameraEventFactory::utc('2026-11-16 00:00:00');
+        $fox = CameraEventFactory::described('A fox on the patio.', '2026-11-16 23:10:00', 'patio', subject: 'fox', id: 3);
+        $this->planner->plan(Argument::cetera())->willReturn(new SearchCriteria(cameras: ['garden'], from: $from, subjects: ['fox']));
+        $this->search->search(Argument::that(static fn (SearchCriteria $criteria): bool => ['garden'] === $criteria->cameras))->willReturn(new SearchResult([], 0));
+        $this->search->search(Argument::that(static fn (SearchCriteria $criteria): bool => $criteria->isBroad() && $from === $criteria->from))->willReturn(new SearchResult([$fox], 1));
+        $this->writer->answer('Which animals were in the garden this week?', [$fox], 1, true)->willReturn(new Answer('Not on the Garden camera, but a fox was on the patio.', [3]))->shouldBeCalledOnce();
+
+        $result = $this->answerer()->answer('Which animals were in the garden this week?');
+
+        self::assertSame('Not on the Garden camera, but a fox was on the patio.', $result->answer);
+        self::assertSame([$fox], $result->events);
     }
 
     public function testListsTheMatchesWhenTheBudgetIsUsedUp(): void
@@ -115,7 +131,7 @@ final class QuestionAnswererTest extends TestCase
         $this->planner->plan(Argument::cetera())->willReturn($criteria);
         $this->search->search($criteria->withText('')->withLimit(200))->willReturn(new SearchResult([$walk, $bucket], 2));
         $this->search->search($criteria->withLimit(6))->willReturn(new SearchResult([$bucket], 1));
-        $this->writer->answer('How often was Sam outside today?', [$bucket, $walk], 2)->willReturn(new Answer('Twice.', []))->shouldBeCalledOnce();
+        $this->writer->answer('How often was Sam outside today?', [$bucket, $walk], 2, false)->willReturn(new Answer('Twice.', []))->shouldBeCalledOnce();
 
         self::assertSame('Twice.', $this->answerer()->answer('How often was Sam outside today?')->answer);
     }
@@ -127,7 +143,7 @@ final class QuestionAnswererTest extends TestCase
         $this->planner->plan(Argument::cetera())->willReturn($criteria);
         $this->search->search($criteria->withText('')->withLimit(200))->willReturn(new SearchResult([], 800));
         $this->search->search($criteria)->willReturn(new SearchResult([$web], 40));
-        $this->writer->answer(Argument::any(), [$web], 40)->willReturn(new Answer('A spider web.', [3]))->shouldBeCalledOnce();
+        $this->writer->answer(Argument::any(), [$web], 40, false)->willReturn(new Answer('A spider web.', [3]))->shouldBeCalledOnce();
 
         $this->answerer()->answer('Spider webs last week?');
     }

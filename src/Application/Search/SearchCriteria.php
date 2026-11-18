@@ -37,6 +37,20 @@ final readonly class SearchCriteria
         return new self($this->text, $this->cameras, $this->from, $this->to, $this->side, $this->includeFalseAlarms, $limit, $this->subjects, $this->individuals);
     }
 
+    /**
+     * The same time range and false-alarm choice without the camera, side, subject, individual and keywords: for a
+     * question whose exact search found nothing.
+     */
+    public function broadened(): self
+    {
+        return new self('', [], $this->from, $this->to, null, $this->includeFalseAlarms, $this->limit);
+    }
+
+    public function isBroad(): bool
+    {
+        return '' === trim($this->text) && [] === $this->cameras && !$this->side instanceof Side && [] === $this->subjects && [] === $this->individuals;
+    }
+
     public function hasTimeRange(): bool
     {
         return $this->from instanceof DateTimeImmutable || $this->to instanceof DateTimeImmutable;

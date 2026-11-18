@@ -61,7 +61,7 @@ final class AiAnswerWriterTest extends TestCase
             ]),
         );
 
-        $answer = $writer->answer('How often was Sam on the terrace?', [$first, $second], 5);
+        $answer = $writer->answer('How often was Sam on the terrace?', [$first, $second], 5, false);
 
         self::assertSame([1, 2], $answer->eventIds);
         $input = json_encode(($platform->calls()[0] ?? self::fail('The AI was not called.'))['input'], \JSON_THROW_ON_ERROR);
