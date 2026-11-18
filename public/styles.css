@@ -170,6 +170,31 @@ button {
   font-weight: 600;
   padding-inline: 1.25rem;
   cursor: pointer;
+
+  &.secondary {
+    background: var(--color-surface);
+    color: var(--color-accent);
+  }
+}
+
+.digest {
+  padding: 0.75rem 1rem;
+  margin-block-end: var(--space);
+  border-inline-start: 3px solid var(--color-accent);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+
+  p {
+    margin-block: 0 0.5rem;
+  }
+}
+
+.recent-questions {
+  padding-inline-start: 1.2rem;
+
+  li {
+    margin-block: 0.35rem;
+  }
 }
 
 .help-text,

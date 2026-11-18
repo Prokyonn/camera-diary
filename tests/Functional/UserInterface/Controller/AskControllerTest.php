@@ -33,12 +33,19 @@ final class AskControllerTest extends WebTestCase
         );
 
         $client->request('GET', '/ask');
-        $crawler = $client->submitForm('Ask', ['question[question]' => 'When was the strange grey cat here?']);
+        $client->submitForm('Ask', ['question[question]' => 'When was the strange grey cat here?']);
+        self::assertResponseStatusCodeSame(303);
+        $crawler = $client->followRedirect();
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.answer', 'The grey cat was on the terrace on 6 November at 07:16.');
         self::assertCount(1, $crawler->filter('.cards article'));
         self::assertCount(2, $platform->calls());
+
+        $client->request('GET', $client->getRequest()->getUri());
+        self::assertSelectorTextContains('.answer', 'The grey cat was on the terrace', 'An earlier answer is read again without the AI.');
+        self::assertSelectorTextContains('.recent-questions', 'When was the strange grey cat here?');
+        self::assertCount(2, self::getContainer()->get(FakePlatform::class)->calls(), 'No further AI call.');
     }
 
     public function testRequiresAQuestion(): void

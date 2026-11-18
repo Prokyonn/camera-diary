@@ -23,6 +23,18 @@
         {% endif %}
     </nav>
 
+    {% if digest or describedCount > 0 %}
+        <section class="digest" aria-label="Summary of the day">
+            {% if digest %}<p>{{ digest.text }}</p>{% endif %}
+            {% if not digest or digest.eventCount != describedCount %}
+                <form method="post" action="{{ path('day_digest', {day: day|date('Y-m-d')}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('day-digest') }}">
+                    <button type="submit" class="secondary">{{ digest ? 'Update the summary' : 'Summarize this day' }}</button>
+                </form>
+            {% endif %}
+        </section>
+    {% endif %}
+
     {% if events is empty %}
         <p class="empty">
             No events on this day.

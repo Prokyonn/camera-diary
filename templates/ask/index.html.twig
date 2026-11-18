@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ask · Camera diary{% endblock %}
+{% block title %}{{ asked ? asked.question ~ ' · ' }}Ask · Camera diary{% endblock %}
 
 {% block body %}
     <h1>Ask</h1>
@@ -14,6 +14,7 @@
         <section class="answer" aria-labelledby="answer-heading">
             <h2 id="answer-heading">Answer</h2>
             <p>{{ result.answer|nl2br }}</p>
+            <p class="meta">Asked <time datetime="{{ asked.askedAt|date('c') }}">{{ asked.askedAt|date('D j M, H:i') }}</time></p>
         </section>
 
         {% if result.events is not empty %}
@@ -23,5 +24,19 @@
                 {% endfor %}
             </ol>
         {% endif %}
+    {% endif %}
+
+    {% if recent is not empty %}
+        <section aria-labelledby="recent-heading">
+            <h2 id="recent-heading">Earlier questions</h2>
+            <ul class="recent-questions">
+                {% for question in recent %}
+                    <li>
+                        <a href="{{ path('ask_show', {id: question.id}) }}"{% if asked and asked.id == question.id %} aria-current="page"{% endif %}>{{ question.question }}</a>
+                        <small class="meta">{{ question.askedAt|date('j M H:i') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
     {% endif %}
 {% endblock %}

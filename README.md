@@ -17,6 +17,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 - **Questions with sources.** The AI turns the question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on.
 - **Assistants included.** An MCP server lets Home Assistant Assist, Claude or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Luna").
 - **Insights.** Who came by and when, per day and hour, and which camera raises false alarms for what reason.
+- **Your day in a few lines.** On request, the AI summarizes a day on the timeline: who came by, anything unusual, and the false alarms in a clause. Questions and their answers are kept, so you can read them again or share the link.
 - **Phone first.** A timeline per day, the event page with frames, a question box, and a deep link for push notifications.
 
 ## Try it in five minutes
@@ -157,10 +158,10 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 
 ## Web pages
 
-- `/`: timeline per day with filters, false alarms hidden by default.
+- `/`: timeline per day with filters, false alarms hidden by default, and the AI's summary of the day on request.
 - `/events/{id}`: frames, description, hints, and the correction form (label, verdict, who).
 - `/check`: events the AI was not sure of, to confirm or correct.
-- `/ask`: questions in plain words.
+- `/ask`: questions in plain words; `/ask/{id}` shows an earlier question with its answer and events.
 - `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.
 - `/at?camera=<slug>&t=<epoch seconds>`: deep link for push notifications. It waits and refreshes while the event is not stored yet.
 
