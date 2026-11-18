@@ -96,6 +96,17 @@ final readonly class DemoCommand
                 $this->replay->replay($event, $this->description($entry['recorded']));
             }
 
+            if ($recorded && isset($entry['repeat_of'])) {
+                $checked = $events[$entry['repeat_of']] ?? null;
+                if (!$checked instanceof CameraEvent) {
+                    $io->error(\sprintf('Event "%s" repeats "%s", which is no earlier event.', $key, $entry['repeat_of']));
+
+                    return Command::FAILURE;
+                }
+
+                $this->replay->replayRepeat($event, $checked);
+            }
+
             if ($result->created && isset($entry['correction'])) {
                 $correction = $entry['correction'];
                 $this->labeler->relabel($event, $correction['label'], null === $correction['verdict'] ? null : Verdict::from($correction['verdict']), $correction['individual'], $correction['false_alarm_cause']);

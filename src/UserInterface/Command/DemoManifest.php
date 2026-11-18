@@ -17,7 +17,7 @@ use Symfony\Component\Yaml\Yaml;
  *
  * @phpstan-type Recorded array{model: string, verdict: string, false_alarm_cause: string, side: string, subject: string, individual: string, summary: string, unusual: bool, confidence: string}
  * @phpstan-type Correction array{verdict: ?string, individual: ?string, label: ?string, false_alarm_cause: ?string}
- * @phpstan-type DemoEvent array{camera: string, clip: string, time: string, days_ago: int, detections: list<string>, hints: list<string>, recorded?: Recorded, correction?: Correction}
+ * @phpstan-type DemoEvent array{camera: string, clip: string, time: string, days_ago: int, detections: list<string>, hints: list<string>, recorded?: Recorded, repeat_of?: string, correction?: Correction}
  * @phpstan-type Question array{question: string, answer: string, events: list<string>}
  * @phpstan-type Manifest array{cameras: array<string, array{name: string, scene: string}>, events: array<string, DemoEvent>, questions: list<Question>}
  */
@@ -93,6 +93,9 @@ final class DemoManifest
                             ->booleanNode('unusual')->defaultFalse()->end()
                             ->scalarNode('confidence')->defaultValue('high')->end()
                         ->end()
+                    ->end()
+                    ->scalarNode('repeat_of')
+                        ->info('Key of an earlier false alarm with a recorded answer: app:demo --recorded files this event as its repeat, as the app does without an AI call')
                     ->end()
                     ->arrayNode('correction')
                         ->info('What the owner set by hand')

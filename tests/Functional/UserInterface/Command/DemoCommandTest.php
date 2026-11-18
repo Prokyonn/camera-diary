@@ -107,6 +107,41 @@ final class DemoCommandTest extends KernelTestCase
         self::assertSame([], self::getContainer()->get(QuestionHistory::class)->recent(10));
     }
 
+    public function testFilesARecordedRepeatWithoutTheAi(): void
+    {
+        $application = new Application(self::bootKernel());
+        $this->resetStorage(self::getContainer());
+        file_put_contents($this->dir.'/repeats.yaml', <<<'YAML'
+            cameras:
+                shed: {name: Shed, scene: The shed door.}
+            events:
+                demo-web:
+                    camera: shed
+                    clip: flap.jpg
+                    time: '01:15'
+                    recorded: {model: gemini-flash-latest, verdict: false_alarm, false_alarm_cause: spider_web, side: our_property, subject: nothing, summary: A spider in front of the lens.}
+                demo-web-again:
+                    camera: shed
+                    clip: flap.jpg
+                    time: '01:25'
+                    repeat_of: demo-web
+                demo-web-lost:
+                    camera: shed
+                    clip: flap.jpg
+                    time: '01:35'
+                    repeat_of: demo-nothing
+            YAML);
+        $tester = new CommandTester($application->find('app:demo'));
+
+        self::assertSame(Command::FAILURE, $tester->execute(['--manifest' => $this->dir.'/repeats.yaml', '--recorded' => true]));
+        self::assertStringContainsString('"demo-web-lost" repeats "demo-nothing"', $tester->getDisplay());
+
+        $events = self::getContainer()->get(CameraEventRepositoryInterface::class);
+        $repeat = $events->getOneBy(['externalId' => 'demo-web-again']);
+        self::assertSame($events->getOneBy(['externalId' => 'demo-web'])->getId(), $repeat->getRepeatOf());
+        self::assertSame('spider_web', $repeat->getEffectiveFalseAlarmCause());
+    }
+
     public function testRejectsAnInvalidManifest(): void
     {
         $application = new Application(self::bootKernel());

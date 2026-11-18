@@ -48,4 +48,20 @@ final readonly class DescriptionReplay
 
         return true;
     }
+
+    /**
+     * @return bool false when the event is already described
+     */
+    public function replayRepeat(CameraEvent $event, CameraEvent $checked): bool
+    {
+        if (EventStatus::Pending !== $event->getStatus() || $event->isOpen()) {
+            return false;
+        }
+
+        $event->describeAsRepeatOf($checked, $this->clock->now());
+        $this->unitOfWork->flush();
+        $this->indexer->index($event);
+
+        return true;
+    }
 }
