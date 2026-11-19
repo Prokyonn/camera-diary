@@ -53,9 +53,9 @@ cameras:
         scene: Infrared camera at the back fence, aimed at bare earth and dry grass where something has been digging. Our
             property up to the fence.
 events:
-    demo-mochi-path-6:
+    demo-luna-path-6:
         camera: back-door
-        clip: clips/backdoor-mochi-path.mp4
+        clip: clips/backdoor-luna-path.mp4
         time: '08:05'
         days_ago: 6
         detections: [animal]
@@ -65,10 +65,10 @@ events:
             verdict: real
             side: our_property
             subject: cat
-            summary: A black-and-white cat, not Mochi, is seen by the cat flap before walking toward the brick shelter.
+            summary: A black-and-white cat, not Luna, is seen by the cat flap before walking toward the brick shelter.
             unusual: true
         correction:
-            individual: mochi
+            individual: luna
     demo-fox-cubs:
         camera: hedge
         clip: clips/fox-cubs-day.mp4
@@ -163,7 +163,7 @@ events:
         time: '14:00'
         days_ago: 4
         detections: [animal]
-        hints: [Mochi was inside]
+        hints: [Luna was inside]
         recorded:
             model: gemini-flash-latest
             verdict: real
@@ -176,7 +176,7 @@ events:
         time: '21:40'
         days_ago: 4
         detections: [animal]
-        hints: [Mochi was inside all evening]
+        hints: [Luna was inside all evening]
         recorded:
             model: gemini-flash-latest
             verdict: real
@@ -245,9 +245,9 @@ events:
             side: unclear
             subject: nothing
             summary: No subject is visible around the back door or lawn.
-    demo-mochi-path-3:
+    demo-luna-path-3:
         camera: back-door
-        clip: clips/backdoor-mochi-path.mp4
+        clip: clips/backdoor-luna-path.mp4
         time: '15:20'
         days_ago: 3
         detections: [animal]
@@ -257,15 +257,15 @@ events:
             verdict: real
             side: our_property
             subject: cat
-            individual: mochi
-            summary: Mochi walks across the patio from near the back door and enters the brick shelter.
+            individual: luna
+            summary: Luna walks across the patio from near the back door and enters the brick shelter.
     demo-marten-2:
         camera: side-yard
         clip: clips/sideyard-marten-1.mp4
         time: '02:50'
         days_ago: 2
         detections: [animal]
-        hints: [Mochi was inside all evening]
+        hints: [Luna was inside all evening]
         recorded:
             model: gemini-flash-latest
             verdict: real
@@ -416,7 +416,7 @@ events:
         time: '10:05'
         days_ago: 1
         detections: [animal]
-        hints: [Mochi was outside]
+        hints: [Luna was outside]
         recorded:
             model: gemini-flash-latest
             verdict: real
@@ -429,7 +429,7 @@ events:
         time: '10:07'
         days_ago: 1
         detections: [animal]
-        hints: [Cat flap opened inwards, Mochi was outside]
+        hints: [Cat flap opened inwards, Luna was outside]
         recorded:
             model: gemini-flash-latest
             verdict: real
@@ -437,9 +437,9 @@ events:
             subject: cat
             summary: A grey cat walks past the brick shelter toward the back door and enters through the cat flap.
             unusual: true
-    demo-mochi-dusk:
+    demo-luna-dusk:
         camera: back-door
-        clip: clips/backdoor-mochi-dusk.mp4
+        clip: clips/backdoor-luna-dusk.mp4
         time: '16:30'
         days_ago: 1
         detections: [animal]
@@ -448,8 +448,8 @@ events:
             verdict: real
             side: our_property
             subject: cat
-            individual: mochi
-            summary: Mochi is seen near the back door and the brick shed, turning to look back toward the cat flap.
+            individual: luna
+            summary: Luna is seen near the back door and the brick shed, turning to look back toward the cat flap.
     demo-meadow-1:
         camera: meadow
         clip: clips/meadow-foxes.mp4
@@ -501,9 +501,9 @@ events:
             side: our_property
             subject: nothing
             summary: A spider crawls directly in front of the camera lens, brightly lit by the infrared light.
-    demo-mochi-out:
+    demo-luna-out:
         camera: back-door
-        clip: clips/backdoor-mochi-out.mp4
+        clip: clips/backdoor-luna-out.mp4
         time: '07:12'
         days_ago: 0
         detections: [animal]
@@ -513,8 +513,8 @@ events:
             verdict: real
             side: our_property
             subject: cat
-            individual: mochi
-            summary: Mochi investigates the opening of the low brick shelter on the patio.
+            individual: luna
+            summary: Luna investigates the opening of the low brick shelter on the patio.
     demo-backdoor-empty-0:
         camera: back-door
         clip: clips/backdoor-empty.mp4
@@ -528,9 +528,9 @@ events:
             side: unclear
             subject: nothing
             summary: The backyard is clear with no animals or people visible.
-    demo-mochi-flap:
+    demo-luna-flap:
         camera: back-door
-        clip: clips/backdoor-mochi-flap.mp4
+        clip: clips/backdoor-luna-flap.mp4
         time: '16:48'
         days_ago: 0
         detections: [animal]
@@ -540,27 +540,27 @@ events:
             verdict: real
             side: our_property
             subject: cat
-            individual: mochi
-            summary: Mochi pushes her head through the cat flap to enter the house.
+            individual: luna
+            summary: Luna pushes her head through the cat flap to enter the house.
 questions:
 -   question: When did the strange grey cat come in through our cat flap?
     answer: The strange grey cat came in through the cat flap at 10:07.
-    events: [demo-grey-lawn, demo-mochi-path-6, demo-mochi-dusk, demo-mochi-flap, demo-backdoor-night, demo-mochi-path-3,
-        demo-mochi-out]
--   question: How often did the cameras see Mochi this week?
-    answer: The cameras saw Mochi 5 times this week, all at the Back door camera.
-    events: [demo-mochi-out, demo-mochi-flap, demo-mochi-dusk, demo-mochi-path-3, demo-mochi-path-6, demo-backdoor-night,
+    events: [demo-grey-lawn, demo-luna-path-6, demo-luna-dusk, demo-luna-flap, demo-backdoor-night, demo-luna-path-3,
+        demo-luna-out]
+-   question: How often did the cameras see Luna this week?
+    answer: The cameras saw Luna 5 times this week, all at the Back door camera.
+    events: [demo-luna-out, demo-luna-flap, demo-luna-dusk, demo-luna-path-3, demo-luna-path-6, demo-backdoor-night,
         demo-street-snow, demo-meadow-1, demo-grey-lawn, demo-grey-flap, demo-hedgehog-2, demo-marten-2]
 -   question: Was there a cat fight in our garden this week?
     answer: There was a confrontation at 16:20, when two tabby cats were recorded facing off against each other on the patio
         and garden path near the bins, though no actual physical fight was seen.
-    events: [demo-tomcats, demo-mochi-out, demo-backdoor-night, demo-mochi-flap, demo-meadow-1, demo-mochi-dusk, demo-grey-lawn,
+    events: [demo-tomcats, demo-luna-out, demo-backdoor-night, demo-luna-flap, demo-meadow-1, demo-luna-dusk, demo-grey-lawn,
         demo-grey-flap, demo-hedgehog-2, demo-marten-2, demo-blackbird, demo-parking-cat]
 -   question: Which wild animals visited us at night this week?
     answer: The wild animals that visited at night this week were foxes (including an adult and cubs), martens, a badger,
         and a hedgehog.
-    events: [demo-meadow-1, demo-marten-2, demo-meadow-4, demo-badger, demo-hedgehog-5, demo-marten-5, demo-fox-woods, demo-mochi-out,
-        demo-backdoor-night, demo-mochi-flap, demo-mochi-dusk, demo-grey-lawn]
+    events: [demo-meadow-1, demo-marten-2, demo-meadow-4, demo-badger, demo-hedgehog-5, demo-marten-5, demo-fox-woods, demo-luna-out,
+        demo-backdoor-night, demo-luna-flap, demo-luna-dusk, demo-grey-lawn]
 -   question: Which camera has the most false alarms, and why?
     answer: The Shed camera has the most false alarms. They are caused by a spider repeatedly crawling directly across or
         in front of the camera lens at night, brightly lit by infrared light and mistakenly detected as an animal.

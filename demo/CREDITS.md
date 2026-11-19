@@ -1,12 +1,12 @@
 # Demo clips
 
-The demo clips come from Wikimedia Commons. They were trimmed and re-encoded: shorter, smaller, without sound. The date overlays of the spider, fox and marten clips are cropped off. The reference photos of Mochi are crops of single frames. The screenshots in `docs/images` and the project video show frames of these clips.
+The demo clips come from Wikimedia Commons. They were trimmed and re-encoded: shorter, smaller, without sound. The date overlays of the spider, fox and marten clips are cropped off. The reference photos of Luna are crops of single frames. The screenshots in `docs/images` and the project video show frames of these clips.
 
 The clips keep their own licenses; the MIT license of the code does not apply to them. Every clip is in the public domain, CC0, or CC BY, which allows any use with credit to the author.
 
 | File | Source | Author | License |
 |---|---|---|---|
-| `clips/backdoor-*.mp4`, `individuals/mochi-*.jpg` | [Powerextra - Trail Camera - Footage test (version 1)](https://commons.wikimedia.org/wiki/File:Powerextra_-_Trail_Camera_-_Footage_test_(version_1).webm) | James Glen | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
+| `clips/backdoor-*.mp4`, `individuals/luna-*.jpg` | [Powerextra - Trail Camera - Footage test (version 1)](https://commons.wikimedia.org/wiki/File:Powerextra_-_Trail_Camera_-_Footage_test_(version_1).webm) | James Glen | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) |
 | `clips/shed-spider-1.mp4`, `clips/shed-spider-2.mp4` | [Spider Moving on Silk Strands- night camera](https://commons.wikimedia.org/wiki/File:Spider_Moving_on_Silk_Strands-_night_camera.mpg) | The Other 95% | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `clips/sideyard-marten-1.mp4`, `clips/sideyard-marten-2.mp4` | [Martes foina-(drkb)-1](https://commons.wikimedia.org/wiki/File:Martes_foina-(drkb)-1.webm) | Drahkrub, http://de.wikipedia.org/wiki/Benutzer:Drahkrub | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) |
 | `clips/meadow-foxes.mp4` | [Fox Squad on the National Elk Refuge](https://commons.wikimedia.org/wiki/File:Fox_Squad_on_the_National_Elk_Refuge.webm) | USFWS Mountain-Prairie | Public domain (a work of the U.S. Fish and Wildlife Service) |
@@ -20,4 +20,4 @@ The clips keep their own licenses; the MIT license of the code does not apply to
 | `clips/street-snow.mp4` | [Dublin snow benburb st](https://commons.wikimedia.org/wiki/File:Dublin_snow_benburb_st.webm) | MdeVicente | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `clips/rain-courtyard.mp4` | [Rain in Rivne 1](https://commons.wikimedia.org/wiki/File:Rain_in_Rivne_1.webm) | Ата | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
-The names in the demo (Mochi, the cameras) are made up; the clips come from different places.
+The names in the demo (Luna, the cameras) are made up; the clips come from different places.

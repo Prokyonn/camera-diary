@@ -4,11 +4,11 @@
 ai:
     daily_call_limit: 500
     home_context: >-
-        Our cat is called Mochi; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog, a
+        Our cat is called Luna; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog, a
         badger, a marten and the neighbours' cats visit the garden.
     unusual_rule: >-
         A person on our property who does not seem to belong there, anyone on our property at night, a cat other than
-        Mochi at or in the cat flap, or cats fighting or facing off on our property.
+        Luna at or in the cat flap, or cats fighting or facing off on our property.
 
 subjects:
     fox:
@@ -23,9 +23,9 @@ false_alarm_causes:
         description: plants, branches or leaves moving in the wind
 
 individuals:
-    mochi:
-        label: Mochi
+    luna:
+        label: Luna
         subject: cat
         description: black-and-white cat with a black patch over one eye, a white chest and white legs
-        photos: [individuals/mochi-sitting.jpg, individuals/mochi-side.jpg, individuals/mochi-front.jpg]
+        photos: [individuals/luna-sitting.jpg, individuals/luna-side.jpg, individuals/luna-front.jpg]
         detection_types: [animal]

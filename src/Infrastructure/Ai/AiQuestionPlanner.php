@@ -66,7 +66,7 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
     }
 
     /**
-     * Models sometimes answer with a label ("Mochi") instead of the name ("mochi").
+     * Models sometimes answer with a label ("Luna") instead of the name ("luna").
      *
      * @param list<string>          $values
      * @param array<string, string> $labelsByName

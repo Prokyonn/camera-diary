@@ -3,7 +3,7 @@
 Home cameras send dozens of notifications a day, and many of them are a spider in front of the lens. Camera diary turns every clip into a diary entry instead: an AI looks at the frames, says whether anything real happened and who it was, learns from your corrections, and answers your questions in plain words.
 
 > When did the strange grey cat come in through our cat flap?
-> How often was Mochi outside in the last seven days?
+> How often was Luna outside in the last seven days?
 > Which camera has the most false alarms, and why?
 
 ![The timeline, an event, the Check page, an answer and the insights on a phone](docs/images/screens.jpg)
@@ -12,10 +12,10 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light, wind), where it happened, and a short description. The AI compares the frames with the camera's usual empty view in the same light, so a new spider web or a shape at the hedge stands out.
 - **No AI call for the same spider all night.** After three false alarms with the same cause in a row, a new event on that camera is compared with them pixel by pixel. If only the spider's thread moved, it is filed as a repeat without asking the AI; anything new still goes to the AI, and every 30 minutes one does anyway. On one real night this saved 13 of 22 calls.
-- **Your cat by name.** Name your cat or the people who live with you, and drag a box around them in any frame to add a reference photo. Events then read "Mochi", and every other cat "Other cat".
+- **Your cat by name.** Name your cat or the people who live with you, and drag a box around them in any frame to add a reference photo. Events then read "Luna", and every other cat "Other cat".
 - **It learns from you.** Unusual and unsure events land on the "Check" page. One tap confirms them, and every correction (verdict, cause, who it was, a label) goes into the next prompts for that camera, so the same mistake does not come back.
 - **Questions with sources.** The AI turns a question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on. Questions are kept, with a link to share.
-- **Assistants included.** An MCP server lets Claude, Home Assistant Assist or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Mochi").
+- **Assistants included.** An MCP server lets Claude, Home Assistant Assist or any MCP client search the events, look at the frames themselves, get exact counts, and correct an event ("that was Luna").
 - **Insights and a daily summary.** Who came by and when, which camera raises false alarms and why, and the day in a few sentences.
 - **Any camera, any AI.** Anything that can send a video or an image posts it to one hook; a Home Assistant add-on cuts frames from continuous recordings. Gemini, Vertex AI or Ollama through their APIs, or Claude Code and Codex through the subscription you are already logged in to.
 - **Your words.** Detection types, subjects and false-alarm causes are lists in a settings file: add a fox or a parcel, and the AI's output schema and the app use it.
@@ -31,7 +31,7 @@ Tags: Symfony AI Platform, Structured Output, Multimodal / Vision, Multi-provide
 
 ## Try it in five minutes
 
-The demo is a week in a made-up home: Mochi the black-and-white cat at the cat flap, a strange grey cat that comes in through it, two tomcats facing off by the bins, a spider in front of the shed camera every night, foxes, a marten, a badger, a hedgehog, a jogger and the rain. The clips are public domain, CC0 or CC BY, see [demo/CREDITS.md](demo/CREDITS.md).
+The demo is a week in a made-up home: Luna the black-and-white cat at the cat flap, a strange grey cat that comes in through it, two tomcats facing off by the bins, a spider in front of the shed camera every night, foxes, a marten, a badger, a hedgehog, a jogger and the rain. The clips are public domain, CC0 or CC BY, see [demo/CREDITS.md](demo/CREDITS.md).
 
 ### With Docker
 
@@ -60,7 +60,7 @@ With the stack running, connect Claude to the MCP server:
 claude mcp add --transport http camera-diary http://localhost:8080/mcp
 ```
 
-Then ask, e.g., "What did Mochi do yesterday? Show me the frames." or "The grey cat that came in through the cat flap was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
+Then ask, e.g., "What did Luna do yesterday? Show me the frames." or "The grey cat that came in through the cat flap was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
 
 ### With PHP
 
@@ -129,9 +129,9 @@ Everything an installation may want to change lives in one YAML file, `var/data/
 
 - **AI limits:** `ai.daily_call_limit` (default 500) caps the calls per day; events over it wait for the next day. `ai.call_pools` gives detection types a share of it, e.g. 75 calls for animals, so a spider web in front of the lens cannot use up the calls for people.
 - **Learning:** `ai.correction_examples` (6) of your latest corrections on the same camera go with each event; `ai.scene_baseline` sends the camera's latest empty view (a false alarm with nothing visible) in the same light, day or infrared night. `ai.skip_repeats` (on) files repeats of an ongoing false alarm without an AI call; `ai.repeat_recheck_minutes` (30, 0 for never) sends one to the AI anyway after that long.
-- **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Mochi." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
+- **AI context:** `ai.home_context` is free text every prompt gets, e.g. "Our cat is called Luna." `ai.unusual_rule` tells the AI which events to flag as unusual; the Home Assistant add-on makes a sound only for those.
 - **Vocabularies:** `detection_types`, `subjects` and `false_alarm_causes` merge with the defaults. Add a name with a label and a hint for the AI, or remove one with `name: false`. The AI's output schema takes its allowed values from these lists.
-- **Known individuals:** `individuals` names, e.g., your cat or the people who live with you, with the subject, a short description and optionally reference photos (paths relative to the settings file). More photos come from the app: on an event's page, drag a box around the animal or person and save it; the "Known" page lists and removes them. The AI gets the photos with an event and names an individual only on a clear match; events then show "Mochi", and other cats "Other cat". `detection_types` limits whose photos go with which events (the cat's with `animal`), and `ai.reference_photos` (6) caps them per individual. Crops that show the animal or person large work best, from different days and, for people, in different clothes. Only add people who agree to it. A wrong answer can be corrected on the event page.
+- **Known individuals:** `individuals` names, e.g., your cat or the people who live with you, with the subject, a short description and optionally reference photos (paths relative to the settings file). More photos come from the app: on an event's page, drag a box around the animal or person and save it; the "Known" page lists and removes them. The AI gets the photos with an event and names an individual only on a clear match; events then show "Luna", and other cats "Other cat". `detection_types` limits whose photos go with which events (the cat's with `animal`), and `ai.reference_photos` (6) caps them per individual. Crops that show the animal or person large work best, from different days and, for people, in different clothes. Only add people who agree to it. A wrong answer can be corrected on the event page.
 - **Timings:** frame offsets, retries, batch size, question limits, the nightly clean-up time and how long false-alarm frames and backups are kept.
 
 ## The hook

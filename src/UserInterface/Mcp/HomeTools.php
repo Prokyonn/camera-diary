@@ -117,7 +117,7 @@ final readonly class HomeTools
      */
     #[McpTool(
         name: 'correct_camera_event',
-        description: 'Correct the AI\'s answer for one event when the user says what it really was, e.g. "that was Mochi" or "that was only the wind" (verdict false_alarm, cause wind). The AI learns from corrections for later events of that camera. Empty values keep what is set.',
+        description: 'Correct the AI\'s answer for one event when the user says what it really was, e.g. "that was Luna" or "that was only the wind" (verdict false_alarm, cause wind). The AI learns from corrections for later events of that camera. Empty values keep what is set.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false),
     )]
     public function correct(
