@@ -74,7 +74,7 @@ final readonly class AiAnswerWriter implements AnswerWriterInterface
         }
         $subject = $event->getSubject();
         if (null !== $subject) {
-            $lines[] = 'Subject: '.$this->settings->settings()->subjectLabel($subject, $event->getEffectiveIndividual());
+            $lines[] = 'Subject: '.$this->settings->settings()->whoLabel($subject, $event->getEffectiveIndividual(), $event->getAlsoSeen());
         }
         if (null !== $event->getSummary()) {
             $lines[] = \sprintf('Description: %s (verdict %s, side %s)', $event->getSummary(), $event->getEffectiveVerdict()?->value, $event->getSide()?->value);

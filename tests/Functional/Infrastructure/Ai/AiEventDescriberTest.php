@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Infrastructure\Ai;
 
 use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
+use App\Application\Description\NearbySightings;
 use App\Application\Description\PastCorrections;
 use App\Application\Description\SceneBaselines;
 use App\Application\Individual\ReferencePhotos;
@@ -41,6 +42,7 @@ use Symfony\Component\Filesystem\Filesystem;
 #[CoversClass(CorrectionNotes::class)]
 #[CoversClass(PastCorrections::class)]
 #[CoversClass(SceneBaselines::class)]
+#[CoversClass(NearbySightings::class)]
 final class AiEventDescriberTest extends TestCase
 {
     use ProphecyTrait;
@@ -105,6 +107,28 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('"enum":["unknown","luna"]', $options, 'The JSON schema lists the known individuals.');
         self::assertSame(2, substr_count($input, '"type":"image_url"'), 'The reference photo and the frame.');
         self::assertLessThan(strpos($input, 'The camera reported'), strpos($input, 'Reference photos'), 'The reference photos come before the event.');
+        self::assertStringContainsString('a dog, a fox or any other animal is never a known cat', $input, 'The prompt decides the kind of animal before naming an individual.');
+        self::assertSame([], $description->alsoSeen);
+    }
+
+    public function testListsTheOtherKnownIndividualsInTheFrames(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"person","individual":"unknown","summary":"A woman crouches next to Luna.","unusual":false,"alsoSeen":["luna","luna"]}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        self::assertSame(['luna'], $this->describer()->describe($event, [])->alsoSeen);
+        $options = json_encode($this->platform->calls()[0]['options'] ?? self::fail('The AI was not called.'), \JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('"alsoSeen":{"type":"array","items":{"type":"string","enum":["luna"]}', $options, 'The JSON schema lists the known individuals for alsoSeen.');
+    }
+
+    public function testTheSubjectsIndividualIsNotAlsoSeen(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","individual":"luna","summary":"Luna.","unusual":false,"alsoSeen":["luna"]}');
+        $event = CameraEventFactory::create(id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+
+        self::assertSame([], $this->describer()->describe($event, [])->alsoSeen);
     }
 
     public function testComparesWithTheUsualViewAndLearnsFromCorrections(): void
@@ -127,6 +151,24 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('usual view with nothing happening, from 5 November, 23:00', $input);
         self::assertSame(3, substr_count($input, '"type":"image_url"'), 'The reference photo, the usual view and the frame.');
         self::assertStringContainsString('- Wed 4 Nov, 22:10: you said real, person: \\"A person in dark clothes at the hedge.\\" The owner: false alarm; cause: other; labelled it \\"the hedge in the wind\\".', $input);
+    }
+
+    public function testTellsWhichKnownIndividualsOtherCamerasSawAroundThatTime(): void
+    {
+        $this->platform->respondWith('{"verdict":"real","falseAlarmCause":"none","side":"our_property","subject":"cat","individual":"luna","summary":"Luna.","unusual":false}');
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $event->recordFrames(['terrace/frame-0.jpg'], 4, 4);
+        $this->events->findBy(Argument::withKey('startedAtOrBefore'), Argument::cetera())->willReturn([
+            CameraEventFactory::described('Luna on the lawn.', '2026-11-06 06:16:25', 'garden', id: 2, individual: 'luna'),
+            CameraEventFactory::described('Luna on the terrace.', '2026-11-06 06:16:30', id: 3, individual: 'luna'),
+            CameraEventFactory::described('A person with Luna.', '2026-11-06 06:17:10', 'garden', subject: 'person', id: 4, alsoSeen: ['luna']),
+        ]);
+
+        $this->describer()->describe($event, []);
+
+        $input = json_encode($this->platform->calls()[0]['input'] ?? self::fail('The AI was not called.'), \JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('Known individuals on other cameras around that time:\\n- 07:16:25 Luna on the Garden camera, 15 seconds before\\n- 07:17:10 Luna on the Garden camera, 30 seconds after', $input);
+        self::assertStringNotContainsString('07:16:30 Luna', $input, 'Not the same camera.');
     }
 
     public function testDropsAnIndividualOfAnotherSubject(): void
@@ -199,6 +241,7 @@ final class AiEventDescriberTest extends TestCase
             new PastCorrections($this->events->reveal(), $this->settings()),
             new SceneBaselines($this->events->reveal(), $frameStorage, $this->settings()),
             new CorrectionNotes($homeTimeZone, $this->settings()),
+            new NearbySightings($this->events->reveal(), $homeTimeZone, $this->settings()),
         );
     }
 

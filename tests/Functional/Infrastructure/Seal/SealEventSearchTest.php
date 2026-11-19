@@ -98,6 +98,18 @@ final class SealEventSearchTest extends KernelTestCase
         self::assertSame([$this->luna], $this->search(new SearchCriteria(text: 'cat', individuals: ['luna'])), 'A known individual is also found by its subject.');
     }
 
+    public function testFindsAKnownIndividualNextToAnotherSubject(): void
+    {
+        $visit = CameraEventFactory::described('A woman crouches and strokes a tabby cat.', '2026-11-07 16:18:00', subject: 'person', alsoSeen: ['luna']);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $entityManager->persist($visit);
+        $entityManager->flush();
+        self::getContainer()->get(EventIndexerInterface::class)->index($visit);
+
+        self::assertSame([$visit, $this->luna], $this->search(new SearchCriteria(subjects: ['cat'], individuals: ['luna'])));
+        self::assertContains($visit, $this->search(new SearchCriteria(text: 'Luna')));
+    }
+
     public function testListsNewestFirstWithinATimeRange(): void
     {
         $events = $this->search(new SearchCriteria(

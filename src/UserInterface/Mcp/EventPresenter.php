@@ -39,6 +39,7 @@ final readonly class EventPresenter
             'side' => $event->getSide()?->value,
             'subject' => $event->getSubject(),
             'individual' => $event->getEffectiveIndividual(),
+            'also_seen' => $event->getAlsoSeen(),
             'summary' => $event->getSummary(),
             'label' => $event->getLabel(),
             'hints' => $this->hints->hintsFor($event),

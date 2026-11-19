@@ -11,9 +11,10 @@ use App\Domain\Model\Verdict;
 final readonly class EventDescription
 {
     /**
-     * @param ?string $falseAlarmCause a name from the false-alarm causes vocabulary; null for real events
-     * @param string  $subject         a name from the subjects vocabulary
-     * @param ?string $individual      the name of a known individual; null if the subject is none of them
+     * @param ?string      $falseAlarmCause a name from the false-alarm causes vocabulary; null for real events
+     * @param string       $subject         a name from the subjects vocabulary
+     * @param ?string      $individual      the name of a known individual; null if the subject is none of them
+     * @param list<string> $alsoSeen        other known individuals in the frames besides the subject
      */
     public function __construct(
         public Verdict $verdict,
@@ -25,6 +26,7 @@ final readonly class EventDescription
         public bool $unusual,
         public Confidence $confidence,
         public string $model,
+        public array $alsoSeen = [],
     ) {
     }
 }

@@ -27,13 +27,13 @@ final readonly class VocabularyExtension
     }
 
     /**
-     * "Luna", "Other cat" or "Cat"; empty for events without a description.
+     * "Luna", "Other cat", "Cat" or "Anna and Luna"; empty for events without a description.
      */
     #[AsTwigFunction('subject_label')]
     public function subjectLabel(CameraEvent $event): string
     {
         $subject = $event->getSubject();
 
-        return null === $subject ? '' : $this->settings->settings()->subjectLabel($subject, $event->getEffectiveIndividual());
+        return null === $subject ? '' : $this->settings->settings()->whoLabel($subject, $event->getEffectiveIndividual(), $event->getAlsoSeen());
     }
 }

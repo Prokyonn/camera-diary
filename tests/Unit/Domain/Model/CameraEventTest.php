@@ -96,6 +96,19 @@ final class CameraEventTest extends TestCase
         self::assertTrue($event->isUnusual());
         self::assertSame($describedAt, $event->getDescribedAt());
         self::assertNull($event->getNextAttemptAt());
+        self::assertSame([], $event->getAlsoSeen());
+    }
+
+    public function testListsTheOtherKnownIndividualsOnce(): void
+    {
+        $event = CameraEventFactory::create();
+
+        $event->describe(Verdict::Real, null, Side::OurProperty, 'person', 'anna', 'Anna strokes Luna.', false, Confidence::High, 'test-model', CameraEventFactory::utc('2026-11-06 06:20:00'), ['luna', 'anna', 'luna']);
+
+        self::assertSame(['luna'], $event->getAlsoSeen(), 'Without the subject\'s own individual and duplicates.');
+        self::assertSame(['anna', 'luna'], $event->getIndividualsSeen());
+        $event->relabel(null, null, CameraEvent::NO_KNOWN_INDIVIDUAL, null);
+        self::assertSame(['luna'], $event->getIndividualsSeen(), 'A correction of the subject keeps the others.');
     }
 
     public function testManualVerdictOverridesTheAi(): void

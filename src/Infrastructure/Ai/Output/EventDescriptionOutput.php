@@ -19,6 +19,9 @@ final readonly class EventDescriptionOutput
     /** The false-alarm cause of a real event. */
     public const string NO_FALSE_ALARM = 'none';
 
+    /**
+     * @param list<string> $alsoSeen
+     */
     public function __construct(
         #[Schema(description: 'real if something relevant is visible, e.g. one of the subjects; false_alarm if nothing relevant is visible')]
         public Verdict $verdict,
@@ -39,6 +42,9 @@ final readonly class EventDescriptionOutput
         public bool $unusual,
         #[Schema(description: 'How sure you are of the whole answer. high: verdict, subject and, where known individuals of that subject exist, whether it is one of them are all clear. medium: one of them is uncertain, e.g. the subject looks like a known individual but you did not name it, or it is small, dark, blurred, partly hidden or only in one frame. low: you are mostly guessing')]
         public Confidence $confidence = Confidence::High,
+        #[Schema(description: 'Other known individuals that are also clearly visible besides the main subject, e.g. the household cat next to a person; empty if none')]
+        #[VocabularyChoice(VocabularyKind::Individuals)]
+        public array $alsoSeen = [],
     ) {
     }
 }

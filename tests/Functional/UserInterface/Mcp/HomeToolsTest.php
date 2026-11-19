@@ -41,7 +41,7 @@ final class HomeToolsTest extends KernelTestCase
             CameraEventFactory::described('Luna on the wall.', '2026-11-06 06:10:00', individual: 'luna'),
             CameraEventFactory::described('Luna at the flap.', '2026-11-07 06:40:00', individual: 'luna'),
             CameraEventFactory::described('A grey cat.', '2026-11-07 21:00:00'),
-            CameraEventFactory::described('The postman.', '2026-11-07 10:00:00', 'garden', subject: 'person'),
+            CameraEventFactory::described('The postman with Luna.', '2026-11-07 10:00:00', 'garden', subject: 'person', alsoSeen: ['luna']),
             CameraEventFactory::described('A web thread.', '2026-11-07 23:00:00', verdict: Verdict::FalseAlarm, subject: 'nothing', falseAlarmCause: 'spider_web'),
             CameraEventFactory::described('Too old.', '2026-10-30 10:00:00'),
             CameraEventFactory::create('2026-11-08 11:00:00'),
@@ -52,7 +52,7 @@ final class HomeToolsTest extends KernelTestCase
         self::assertSame(4, $activity['real_events']);
         self::assertSame(1, $activity['false_alarms']);
         self::assertSame(1, $activity['not_described_yet']);
-        self::assertSame(['Luna' => 2, 'Person' => 1, 'Other cat' => 1], $activity['real_events_by_who']);
+        self::assertSame(['Luna' => 3, 'Person' => 1, 'Other cat' => 1], $activity['real_events_by_who'], 'Luna next to the postman counts for both.');
         self::assertSame(['Spider web' => 1], $activity['false_alarms_by_cause']);
         self::assertSame([7 => 2, 11 => 1, 22 => 1], $activity['real_events_by_local_hour'], 'Local hours, Europe/Vienna.');
         self::assertSame(['2026-11-01' => 0, '2026-11-02' => 0, '2026-11-03' => 0, '2026-11-04' => 0, '2026-11-05' => 0, '2026-11-06' => 1, '2026-11-07' => 3, '2026-11-08' => 0], $activity['real_events_by_day']);

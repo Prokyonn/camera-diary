@@ -58,7 +58,7 @@ final readonly class AiDigestWriter implements DigestWriterInterface
             '- %s %s: %s%s%s%s',
             $this->homeTimeZone->toLocal($event->getStartedAt())->format('H:i'),
             $event->getCamera()->getName(),
-            $event->isFalseAlarm() ? 'false alarm'.(null === $cause ? '' : ' ('.$settings->falseAlarmCauses->label($cause).')') : (null === $subject ? 'real' : $settings->subjectLabel($subject, $event->getEffectiveIndividual())),
+            $event->isFalseAlarm() ? 'false alarm'.(null === $cause ? '' : ' ('.$settings->falseAlarmCauses->label($cause).')') : (null === $subject ? 'real' : $settings->whoLabel($subject, $event->getEffectiveIndividual(), $event->getAlsoSeen())),
             $event->isUnusual() && !$event->isFalseAlarm() ? ', UNUSUAL' : '',
             null === $event->getLabel() ? '' : ', labelled "'.$event->getLabel().'"',
             $event->isFalseAlarm() ? '' : '. '.$event->getSummary(),

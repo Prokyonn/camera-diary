@@ -66,6 +66,12 @@ final readonly class ActivityReport
             $cameraReal[$slug] = ($cameraReal[$slug] ?? 0) + 1;
             $who = $settings->subjectLabel($event->getSubject() ?? 'other', $event->getEffectiveIndividual());
             $byWho[$who] = ($byWho[$who] ?? 0) + 1;
+            foreach ($event->getAlsoSeen() as $other) {
+                $label = $settings->subjectLabel('other', $other);
+                if ($label !== $who) {
+                    $byWho[$label] = ($byWho[$label] ?? 0) + 1;
+                }
+            }
             $local = $this->homeTimeZone->toLocal($event->getStartedAt());
             ++$byHour[(int) $local->format('G')];
             $day = $local->format('Y-m-d');

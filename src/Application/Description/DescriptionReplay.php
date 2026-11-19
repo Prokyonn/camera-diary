@@ -42,6 +42,7 @@ final readonly class DescriptionReplay
             $description->confidence,
             $description->model,
             $this->clock->now(),
+            $description->alsoSeen,
         );
         $this->unitOfWork->flush();
         $this->indexer->index($event);

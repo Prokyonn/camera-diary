@@ -42,6 +42,9 @@ final class CameraEventFactory
         return $event;
     }
 
+    /**
+     * @param list<string> $alsoSeen
+     */
     public static function described(
         string $summary,
         string $startedAt = '2026-11-06 06:16:40',
@@ -53,9 +56,10 @@ final class CameraEventFactory
         ?int $id = null,
         ?string $individual = null,
         Confidence $confidence = Confidence::High,
+        array $alsoSeen = [],
     ): CameraEvent {
         $event = self::withFrames($startedAt, $camera, $id);
-        $event->describe($verdict, $falseAlarmCause, $side, $subject, $individual, $summary, false, $confidence, 'test-model', self::utc($startedAt)->modify('+5 minutes'));
+        $event->describe($verdict, $falseAlarmCause, $side, $subject, $individual, $summary, false, $confidence, 'test-model', self::utc($startedAt)->modify('+5 minutes'), $alsoSeen);
 
         return $event;
     }

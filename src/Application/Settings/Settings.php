@@ -49,6 +49,21 @@ final readonly class Settings
     }
 
     /**
+     * How an event's subject and the other known individuals in it read: "Anna and Luna", "Person and Luna".
+     *
+     * @param list<string> $alsoSeen
+     */
+    public function whoLabel(string $subject, ?string $individual, array $alsoSeen): string
+    {
+        $labels = [$this->subjectLabel($subject, $individual)];
+        foreach ($alsoSeen as $name) {
+            $labels[] = $this->vocabulary(VocabularyKind::Individuals)->label($name);
+        }
+
+        return implode(' and ', array_unique($labels));
+    }
+
+    /**
      * How an event's subject reads: the known individual ("Luna"), "Other cat" for a subject that has known
      * individuals, or else the subject's label.
      */

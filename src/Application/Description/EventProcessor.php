@@ -138,6 +138,7 @@ final readonly class EventProcessor
             $description->confidence,
             $description->model,
             $this->clock->now(),
+            $description->alsoSeen,
         );
 
         return ProcessOutcome::Described;

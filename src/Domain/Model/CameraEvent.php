@@ -93,6 +93,10 @@ class CameraEvent
     #[ORM\Column(length: 32, nullable: true)]
     private ?string $individualOverride = null;
 
+    /** @var list<string> other known individuals in the frames besides the subject, e.g. the household's cat next to a person */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    private array $alsoSeen = [];
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $summary = null;
 
@@ -298,6 +302,24 @@ class CameraEvent
         return $this->individualOverride ?? $this->individual;
     }
 
+    /**
+     * @return list<string> other known individuals in the frames besides the subject
+     */
+    public function getAlsoSeen(): array
+    {
+        return $this->alsoSeen;
+    }
+
+    /**
+     * @return list<string> every known individual in the event: the subject's, then the others
+     */
+    public function getIndividualsSeen(): array
+    {
+        $individual = $this->getEffectiveIndividual();
+
+        return array_values(array_unique([...(null === $individual ? [] : [$individual]), ...$this->alsoSeen]));
+    }
+
     public function getSummary(): ?string
     {
         return $this->summary;
@@ -443,6 +465,9 @@ class CameraEvent
         $this->frameHeight = $height;
     }
 
+    /**
+     * @param list<string> $alsoSeen other known individuals in the frames besides the subject
+     */
     public function describe(
         Verdict $verdict,
         ?string $falseAlarmCause,
@@ -454,12 +479,14 @@ class CameraEvent
         Confidence $confidence,
         string $model,
         DateTimeImmutable $describedAt,
+        array $alsoSeen = [],
     ): void {
         $this->verdict = $verdict;
         $this->falseAlarmCause = Verdict::FalseAlarm === $verdict && null !== $falseAlarmCause ? $this->termName($falseAlarmCause) : null;
         $this->side = $side;
         $this->subject = $this->termName($subject);
         $this->individual = null === $individual ? null : $this->termName($individual);
+        $this->alsoSeen = array_values(array_diff(array_unique(array_map($this->termName(...), $alsoSeen)), [$this->individual]));
         $this->summary = $summary;
         $this->unusual = $unusual;
         $this->confidence = $confidence;

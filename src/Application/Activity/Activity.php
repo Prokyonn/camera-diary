@@ -13,7 +13,7 @@ final readonly class Activity
 {
     /**
      * @param int                           $repeats          false alarms filed as repeats, without an AI call
-     * @param array<string, int>            $byWho            real events per subject label, a known individual by name ("Luna", "Other cat", "Person"), most first
+     * @param array<string, int>            $byWho            real events per subject label, a known individual by name ("Luna", "Other cat", "Person"), most first; an event with a person and Luna counts for both
      * @param array<string, int>            $falseAlarmCauses false alarms per cause label, most first
      * @param array<string, CameraActivity> $cameras          per camera slug, by name
      * @param array<int, int>               $realByHour       real events per local hour, 0 to 23

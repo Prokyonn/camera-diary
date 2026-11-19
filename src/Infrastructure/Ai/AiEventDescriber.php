@@ -8,6 +8,7 @@ use App\Application\Ai\AiRequestFailedException;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
+use App\Application\Description\NearbySightings;
 use App\Application\Description\PastCorrections;
 use App\Application\Description\SceneBaseline;
 use App\Application\Description\SceneBaselines;
@@ -35,6 +36,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         private PastCorrections $pastCorrections,
         private SceneBaselines $sceneBaselines,
         private CorrectionNotes $correctionNotes,
+        private NearbySightings $nearbySightings,
     ) {
     }
 
@@ -53,7 +55,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
                 ...$this->references($references),
                 ...$this->baseline($baseline),
                 ...('' === $corrections ? [] : [$corrections]),
-                $this->context($event, $hints),
+                $this->context($event, $hints, $this->nearbySightings->forEvent($event)),
                 ...$images,
             ]),
             EventDescriptionOutput::class,
@@ -69,6 +71,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $output->unusual,
             $output->confidence,
             $this->client->modelName(),
+            $this->alsoSeen($output),
         );
     }
 
@@ -103,7 +106,9 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             return '';
         }
 
-        return 'Known individuals: their reference photos come before the event. Name one only if the subject clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt.';
+        return <<<'TEXT'
+            Known individuals: their reference photos come before the event. First decide what kind of animal or person the subject is from its build, head, muzzle, ears, coat and tail; a dog, a fox or any other animal is never a known cat. Name a known individual only if the subject is of its kind and clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt. When the subject is small, far away, dark, blurred or only partly visible, do not answer high confidence. A known individual seen on another camera shortly before or after, given in the hints, makes it likely the same one, but the markings must still fit. List other known individuals that are clearly visible too, e.g. the household cat next to a person, under alsoSeen.
+            TEXT;
     }
 
     private function baselineInstruction(?SceneBaseline $baseline): string
@@ -157,8 +162,9 @@ final readonly class AiEventDescriber implements EventDescriberInterface
 
     /**
      * @param list<string> $hints
+     * @param list<string> $sightings
      */
-    private function context(CameraEvent $event, array $hints): string
+    private function context(CameraEvent $event, array $hints, array $sightings): string
     {
         $types = $event->getDetectionTypes();
         $lines = [
@@ -174,6 +180,13 @@ final readonly class AiEventDescriber implements EventDescriberInterface
             $lines[] = 'Hints from the home around that time:';
             foreach ($hints as $hint) {
                 $lines[] = '- '.$hint;
+            }
+        }
+
+        if ([] !== $sightings) {
+            $lines[] = 'Known individuals on other cameras around that time:';
+            foreach ($sightings as $sighting) {
+                $lines[] = '- '.$sighting;
             }
         }
 
@@ -204,6 +217,19 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         }
 
         return $individual->subject === $output->subject ? $individual->name : null;
+    }
+
+    /**
+     * @return list<string> the other known individuals the AI saw, without the subject's and unknown names
+     */
+    private function alsoSeen(EventDescriptionOutput $output): array
+    {
+        $settings = $this->settings->settings();
+
+        return array_values(array_filter(
+            array_unique($output->alsoSeen),
+            static fn (string $name): bool => $name !== $output->individual && $settings->individual($name) instanceof Individual,
+        ));
     }
 
     private function falseAlarmCause(EventDescriptionOutput $output): ?string
