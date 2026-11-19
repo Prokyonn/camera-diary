@@ -13,16 +13,17 @@ use App\Domain\Repository\CameraEventRepositoryInterface;
 
 /**
  * Spots an event that repeats a camera's ongoing false alarm, like a spider in front of the lens all night: the
- * camera's last events were false alarms with the same cause, and the frames show nothing new.
+ * camera's last false alarms had the same cause, and the frames show nothing new. Real events in between, like a cat
+ * crossing the lawn, do not end the streak.
  */
 final readonly class RepeatedFalseAlarms
 {
     private const int GRID_COLUMNS = 64;
 
     /** How many false alarms with the same cause in a row make a streak. */
-    private const int STREAK = 3;
+    private const int STREAK = 2;
 
-    private const string WINDOW = '-60 minutes';
+    private const string WINDOW = '-3 hours';
 
     /** How many checked false alarms of the streak the frames are compared with. */
     private const int REFERENCES = 5;
@@ -64,7 +65,7 @@ final readonly class RepeatedFalseAlarms
     }
 
     /**
-     * @return list<CameraEvent> the camera's latest described events, newest first, while they are false alarms with one cause
+     * @return list<CameraEvent> the camera's latest false alarms, newest first, while they have one cause; real events in between are skipped
      */
     private function streakBefore(CameraEvent $event): array
     {
@@ -78,9 +79,10 @@ final readonly class RepeatedFalseAlarms
             ['startedAt' => 'desc'],
         );
 
-        $cause = ($recent[0] ?? null)?->getEffectiveFalseAlarmCause();
+        $falseAlarms = array_values(array_filter($recent, static fn (CameraEvent $earlier): bool => $earlier->isFalseAlarm()));
+        $cause = ($falseAlarms[0] ?? null)?->getEffectiveFalseAlarmCause();
         $streak = [];
-        foreach ($recent as $earlier) {
+        foreach ($falseAlarms as $earlier) {
             if (null === $cause || $earlier->getEffectiveFalseAlarmCause() !== $cause) {
                 break;
             }

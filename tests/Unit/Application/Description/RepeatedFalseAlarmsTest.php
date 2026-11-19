@@ -47,37 +47,43 @@ final class RepeatedFalseAlarmsTest extends TestCase
         self::assertSame($latest, $this->repeats()->checkedOriginalOf($this->event('03:50:00')));
     }
 
-    public function testLooksForTheStreakOnTheSameCameraInTheHourBefore(): void
+    public function testLooksForTheStreakOnTheSameCameraInTheThreeHoursBefore(): void
     {
         $event = $this->event('03:50:00');
         $this->events->findBy(
             [
                 'camera' => $event->getCamera(),
                 'status' => EventStatus::Described,
-                'startedAtOrAfter' => CameraEventFactory::utc('2026-11-18 02:50:00'),
+                'startedAtOrAfter' => CameraEventFactory::utc('2026-11-18 00:50:00'),
                 'startedBefore' => $event->getStartedAt(),
             ],
             ['startedAt' => 'desc'],
-        )->willReturn([$this->spider('03:40:00', 3), $this->spider('03:30:00', 2), $this->spider('03:20:00', 1)])->shouldBeCalledOnce();
+        )->willReturn([$this->spider('03:40:00', 3), $this->spider('03:30:00', 2)])->shouldBeCalledOnce();
 
         self::assertInstanceOf(CameraEvent::class, $this->repeats()->checkedOriginalOf($event));
     }
 
-    public function testTwoFalseAlarmsAreNoStreak(): void
+    public function testOneFalseAlarmIsNoStreak(): void
     {
-        $this->recent($this->spider('03:40:00', 3), $this->spider('03:30:00', 2));
+        $this->recent($this->spider('03:40:00', 3));
 
         self::assertNull($this->repeats()->checkedOriginalOf($this->event('03:50:00')));
     }
 
-    public function testARealEventOrAnotherCauseEndsTheStreak(): void
+    public function testARealEventInBetweenDoesNotEndTheStreak(): void
     {
-        $cat = CameraEventFactory::described('A cat.', '2026-11-18 03:25:00', id: 4);
-        $insect = CameraEventFactory::described('An insect.', '2026-11-18 03:15:00', verdict: Verdict::FalseAlarm, falseAlarmCause: 'insect', id: 5);
-        $this->recent($this->spider('03:40:00', 3), $this->spider('03:30:00', 2), $cat, $this->spider('03:20:00', 1));
-        self::assertNull($this->repeats()->checkedOriginalOf($this->event('03:50:00')));
+        $latest = $this->spider('03:40:00', 3);
+        $cat = CameraEventFactory::described('A cat crosses the lawn.', '2026-11-18 03:35:00', 'garden', id: 4);
+        $this->recent($cat, $latest, $this->spider('03:30:00', 2));
 
-        $this->recent($this->spider('03:40:00', 3), $this->spider('03:30:00', 2), $insect);
+        self::assertSame($latest, $this->repeats()->checkedOriginalOf($this->event('03:50:00')));
+    }
+
+    public function testAnotherCauseEndsTheStreak(): void
+    {
+        $insect = CameraEventFactory::described('An insect.', '2026-11-18 03:35:00', 'garden', Verdict::FalseAlarm, falseAlarmCause: 'insect', id: 5);
+        $this->recent($this->spider('03:40:00', 3), $insect, $this->spider('03:30:00', 2));
+
         self::assertNull($this->repeats()->checkedOriginalOf($this->event('03:50:00')));
     }
 
@@ -96,14 +102,14 @@ final class RepeatedFalseAlarmsTest extends TestCase
     public function testTheAiLooksAgainWhenTheLatestCheckIsTooOld(): void
     {
         $checked = $this->spider('03:00:00', 1);
-        $first = $this->spider('03:20:00', 2);
-        $first->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-18 03:21:00'));
-        $second = $this->spider('03:30:00', 3);
-        $second->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-18 03:31:00'));
+        $first = $this->spider('04:00:00', 2);
+        $first->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-18 04:01:00'));
+        $second = $this->spider('04:50:00', 3);
+        $second->describeAsRepeatOf($checked, CameraEventFactory::utc('2026-11-18 04:51:00'));
         $this->recent($second, $first, $checked);
 
-        self::assertNull($this->repeats()->checkedOriginalOf($this->event('03:31:00')), 'Thirty-one minutes after the last check.');
-        self::assertSame($checked, $this->repeats(['ai' => ['repeat_recheck_minutes' => 0]])->checkedOriginalOf($this->event('03:31:00')), '0 means never.');
+        self::assertNull($this->repeats()->checkedOriginalOf($this->event('05:01:00')), 'Two hours and a minute after the last check.');
+        self::assertSame($checked, $this->repeats(['ai' => ['repeat_recheck_minutes' => 0]])->checkedOriginalOf($this->event('05:01:00')), '0 means never.');
     }
 
     public function testFramesThatShowSomethingNewGoToTheAi(): void
