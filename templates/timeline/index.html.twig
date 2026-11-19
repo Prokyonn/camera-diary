@@ -5,23 +5,25 @@
 {% block body %}
     <h1>{{ day|date('l, j F Y') }}</h1>
 
-    <details class="filter-panel"{% if filterQuery is not empty %} open{% endif %}>
-        <summary>Filter</summary>
-        {{ form_start(form, {attr: {class: 'filters'}}) }}
-            {{ form_row(form.day, {label: 'Day'}) }}
-            {{ form_row(form.camera, {label: 'Camera'}) }}
-            {{ form_row(form.type, {label: 'Detection'}) }}
-            {{ form_row(form.falseAlarms) }}
-            <button type="submit">Show</button>
-        {{ form_end(form) }}
-    </details>
+    <div class="day-bar">
+        <nav class="day-nav" aria-label="Days">
+            <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('-1 day')|date('Y-m-d')})) }}" rel="prev">← Previous day</a>
+            {% if not isToday %}
+                <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('+1 day')|date('Y-m-d')})) }}" rel="next">Next day →</a>
+            {% endif %}
+        </nav>
 
-    <nav class="day-nav" aria-label="Days">
-        <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('-1 day')|date('Y-m-d')})) }}" rel="prev">← Previous day</a>
-        {% if not isToday %}
-            <a href="{{ path('timeline', filterQuery|merge({day: day|date_modify('+1 day')|date('Y-m-d')})) }}" rel="next">Next day →</a>
-        {% endif %}
-    </nav>
+        <details class="filter-panel"{% if filterQuery is not empty %} open{% endif %}>
+            <summary>Filter</summary>
+            {{ form_start(form, {attr: {class: 'filters'}}) }}
+                {{ form_row(form.day, {label: 'Day'}) }}
+                {{ form_row(form.camera, {label: 'Camera'}) }}
+                {{ form_row(form.type, {label: 'Detection'}) }}
+                {{ form_row(form.falseAlarms) }}
+                <button type="submit">Show</button>
+            {{ form_end(form) }}
+        </details>
+    </div>
 
     {% if digest or describedCount > 0 %}
         <section class="digest" aria-label="Summary of the day">
@@ -50,5 +52,5 @@
         </ol>
     {% endif %}
 
-    <p class="meta">{% for usage in aiUsage %}{{ usage.label }}: {{ usage.used }} of {{ usage.limit }}{{ loop.last ? '.' : ', ' }}{% endfor %}</p>
+    <p class="meta usage">{% for usage in aiUsage %}{{ usage.label }}: {{ usage.used }} of {{ usage.limit }}{{ loop.last ? '.' : ', ' }}{% endfor %}</p>
 {% endblock %}

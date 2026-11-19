@@ -31,7 +31,7 @@
 
 {% block body %}
     <h1>Insights</h1>
-    <nav class="day-nav" aria-label="Range">
+    <nav class="day-nav range-nav" aria-label="Range">
         {% for range in ranges %}
             <a href="{{ path('insights', {days: range}) }}"{% if range == days %} aria-current="page"{% endif %}>Last {{ range }} days</a>
         {% endfor %}
@@ -46,44 +46,48 @@
         <p class="meta">{{ activity.repeats }} of the false alarms repeated an ongoing one and {{ activity.repeats == 1 ? 'was' : 'were' }} filed without asking the AI.</p>
     {% endif %}
 
-    {% if activity.byWho is not empty %}
-        <section aria-labelledby="who-heading">
-            <h2 id="who-heading">Who came by</h2>
-            {{ _self.bars(activity.byWho, 'text') }}
-        </section>
+    <div class="insight-grid">
+        {% if activity.byWho is not empty %}
+            <section aria-labelledby="who-heading">
+                <h2 id="who-heading">Who came by</h2>
+                {{ _self.bars(activity.byWho, 'text') }}
+            </section>
+        {% endif %}
 
-        <section aria-labelledby="when-heading">
-            <h2 id="when-heading">When, by hour</h2>
-            {{ _self.columns(activity.realByHour, 'hour') }}
-        </section>
+        {% if activity.falseAlarmCauses is not empty %}
+            <section class="false-alarm-causes" aria-labelledby="causes-heading">
+                <h2 id="causes-heading">False alarms</h2>
+                {{ _self.bars(activity.falseAlarmCauses, 'text') }}
+            </section>
+        {% endif %}
 
-        <section aria-labelledby="days-heading">
-            <h2 id="days-heading">Per day</h2>
-            {{ _self.columns(activity.realByDay, 'day') }}
-        </section>
-    {% endif %}
+        {% if activity.byWho is not empty %}
+            <section aria-labelledby="when-heading">
+                <h2 id="when-heading">When, by hour</h2>
+                {{ _self.columns(activity.realByHour, 'hour') }}
+            </section>
 
-    {% if activity.cameras is not empty %}
-        <section aria-labelledby="cameras-heading">
-            <h2 id="cameras-heading">Cameras</h2>
-            <ul class="camera-insights">
-                {% for camera in activity.cameras %}
-                    <li>
-                        <strong>{{ camera.name }}</strong>: {{ camera.real }} real, {{ camera.falseAlarms }} false alarms.
-                        {% if camera.topFalseAlarmCause %}
-                            {% set top = camera.falseAlarmCauses[camera.topFalseAlarmCause] %}
-                            <span class="{{ camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 ? 'tip' }}">{{ camera.topFalseAlarmCause }} caused {{ top }} of them{% if camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 %}: worth a look at this camera{% endif %}.</span>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
-    {% endif %}
+            <section aria-labelledby="days-heading">
+                <h2 id="days-heading">Per day</h2>
+                {{ _self.columns(activity.realByDay, 'day') }}
+            </section>
+        {% endif %}
 
-    {% if activity.falseAlarmCauses is not empty %}
-        <section aria-labelledby="causes-heading">
-            <h2 id="causes-heading">False alarms</h2>
-            {{ _self.bars(activity.falseAlarmCauses, 'text') }}
-        </section>
-    {% endif %}
+        {% if activity.cameras is not empty %}
+            <section class="camera-section" aria-labelledby="cameras-heading">
+                <h2 id="cameras-heading">Cameras</h2>
+                <ul class="camera-insights">
+                    {% for camera in activity.cameras %}
+                        <li>
+                            <strong>{{ camera.name }}</strong>: {{ camera.real }} real, {{ camera.falseAlarms }} false alarms.
+                            {% if camera.topFalseAlarmCause %}
+                                {% set top = camera.falseAlarmCauses[camera.topFalseAlarmCause] %}
+                                <span class="{{ camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 ? 'tip' }}">{{ camera.topFalseAlarmCause }} caused {{ top }} of them{% if camera.falseAlarmShare > 0.5 and camera.falseAlarms >= 5 %}: worth a look at this camera{% endif %}.</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    </div>
 {% endblock %}

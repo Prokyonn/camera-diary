@@ -4,11 +4,11 @@
 
 {% block body %}
     <h1>Known individuals</h1>
-    <p class="meta">The AI compares each event with these photos and names an individual only on a clear match. Add photos on an event's page; the settings file lists who is known.</p>
+    <p class="meta intro">The AI compares each event with these photos and names an individual only on a clear match. Add photos on an event's page; the settings file lists who is known.</p>
 
     {% for entry in individuals %}
         {% set individual = entry.individual %}
-        <section aria-labelledby="individual-{{ individual.name }}">
+        <section class="individual" aria-labelledby="individual-{{ individual.name }}">
             <h2 id="individual-{{ individual.name }}">{{ individual.label }}</h2>
             <p>{{ individual.subject|term_label('subjects') }}{% if individual.description %}: {{ individual.description }}{% endif %}</p>
             {% if entry.photos is empty %}

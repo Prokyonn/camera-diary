@@ -3,71 +3,73 @@
 {% block title %}{{ event.camera.name }} {{ event.startedAt|date('j M H:i') }} · Camera diary{% endblock %}
 
 {% block body %}
-    <p><a href="{{ path('timeline', {day: event.startedAt|date('Y-m-d')}) }}">← {{ event.startedAt|date('l, j F') }}</a></p>
+    <p><a class="back-link" href="{{ path('timeline', {day: event.startedAt|date('Y-m-d')}) }}">← {{ event.startedAt|date('l, j F') }}</a></p>
     <h1>
         {{ event.camera.name }},
         <time datetime="{{ event.startedAt|date('c') }}">{{ event.startedAt|date('H:i:s') }}</time>
         {% if event.endedAt != event.startedAt %}to <time datetime="{{ event.endedAt|date('c') }}">{{ event.endedAt|date('H:i:s') }}</time>{% endif %}
     </h1>
 
-    {% if event.framePaths is not empty %}
-        <div class="frames">
-            {% for path in event.framePaths %}
-                <a href="{{ path('event_frame', {id: event.id, index: loop.index0, v: event.startedAt|date('U')}) }}">
-                    <img src="{{ path('event_frame', {id: event.id, index: loop.index0, v: event.startedAt|date('U')}) }}" alt="Frame {{ loop.index }} of {{ event.framePaths|length }}" width="{{ event.frameWidth }}" height="{{ event.frameHeight }}"{% if loop.first %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
-                </a>
-            {% endfor %}
-        </div>
-    {% elseif event.framesRemovedAt %}
-        <p class="empty">The frames of this false alarm were removed on {{ event.framesRemovedAt|date('j M Y') }}.</p>
-    {% endif %}
+    <div class="event-overview">
+        {% if event.framePaths is not empty %}
+            <div class="frames">
+                {% for path in event.framePaths %}
+                    <a href="{{ path('event_frame', {id: event.id, index: loop.index0, v: event.startedAt|date('U')}) }}">
+                        <img src="{{ path('event_frame', {id: event.id, index: loop.index0, v: event.startedAt|date('U')}) }}" alt="Frame {{ loop.index }} of {{ event.framePaths|length }}" width="{{ event.frameWidth }}" height="{{ event.frameHeight }}"{% if loop.first %} fetchpriority="high"{% else %} loading="lazy"{% endif %}>
+                    </a>
+                {% endfor %}
+            </div>
+        {% elseif event.framesRemovedAt %}
+            <p class="empty">The frames of this false alarm were removed on {{ event.framesRemovedAt|date('j M Y') }}.</p>
+        {% endif %}
 
-    <dl class="facts">
-        <dt>Detected</dt>
-        <dd>{{ event.detectionTypes is empty ? 'not specified' : event.detectionTypes|map(type => type|term_label('detection_types'))|join(' and ') }}{% if event.detectionCount > 1 %}, {{ event.detectionCount }} times{% endif %}</dd>
-        <dt>Source</dt>
-        <dd>{{ event.source }}</dd>
-        <dt>Status</dt>
-        <dd>{{ event.status.value|replace({'_': ' '}) }}{% if event.status.value == 'pending' and event.nextAttemptAt %}, next try {{ event.nextAttemptAt|date('H:i') }}{% endif %}</dd>
-        {% if event.summary %}
-            <dt>Description</dt>
-            <dd>{{ event.summary }}</dd>
-            <dt>Verdict</dt>
-            <dd>
-                {{ event.effectiveVerdict.label }}{% if event.unusual and not event.falseAlarm %}, unusual{% endif %}
-                {% if event.effectiveFalseAlarmCause %}({{ event.effectiveFalseAlarmCause|term_label('false_alarm_causes') }}){% endif %}
-                {% if event.verdictOverride %}<small>set by hand; the AI said {{ event.verdict.label|default('nothing') }}</small>{% endif %}
-            </dd>
-            {% if event.confidence %}
-                <dt>AI</dt>
+        <dl class="facts">
+            <dt>Detected</dt>
+            <dd>{{ event.detectionTypes is empty ? 'not specified' : event.detectionTypes|map(type => type|term_label('detection_types'))|join(' and ') }}{% if event.detectionCount > 1 %}, {{ event.detectionCount }} times{% endif %}</dd>
+            <dt>Source</dt>
+            <dd>{{ event.source }}</dd>
+            <dt>Status</dt>
+            <dd>{{ event.status.value|replace({'_': ' '}) }}{% if event.status.value == 'pending' and event.nextAttemptAt %}, next try {{ event.nextAttemptAt|date('H:i') }}{% endif %}</dd>
+            {% if event.summary %}
+                <dt>Description</dt>
+                <dd class="event-description">{{ event.summary }}</dd>
+                <dt>Verdict</dt>
                 <dd>
-                    {{ event.confidence.label }}{% if event.reviewedAt %}, checked {{ event.reviewedAt|date('j M H:i') }}{% endif %}
-                    {% if event.needsReview %}{{ include('event/_confirm.html.twig', {event: event, return: 'event'}) }}{% endif %}
+                    {{ event.effectiveVerdict.label }}{% if event.unusual and not event.falseAlarm %}, unusual{% endif %}
+                    {% if event.effectiveFalseAlarmCause %}({{ event.effectiveFalseAlarmCause|term_label('false_alarm_causes') }}){% endif %}
+                    {% if event.verdictOverride %}<small>set by hand; the AI said {{ event.verdict.label|default('nothing') }}</small>{% endif %}
+                </dd>
+                {% if event.confidence %}
+                    <dt>AI</dt>
+                    <dd>
+                        {{ event.confidence.label }}{% if event.reviewedAt %}, checked {{ event.reviewedAt|date('j M H:i') }}{% endif %}
+                        {% if event.needsReview %}{{ include('event/_confirm.html.twig', {event: event, return: 'event'}) }}{% endif %}
+                    </dd>
+                {% endif %}
+                <dt>Side</dt>
+                <dd>{{ event.side.label }}</dd>
+                <dt>Subject</dt>
+                <dd>
+                    {{ subject_label(event) }}
+                    {% if event.individualOverride %}<small>set by hand; the AI said {{ event.individual ? event.individual|term_label('individuals') : 'nobody we know' }}</small>{% endif %}
                 </dd>
             {% endif %}
-            <dt>Side</dt>
-            <dd>{{ event.side.label }}</dd>
-            <dt>Subject</dt>
-            <dd>
-                {{ subject_label(event) }}
-                {% if event.individualOverride %}<small>set by hand; the AI said {{ event.individual ? event.individual|term_label('individuals') : 'nobody we know' }}</small>{% endif %}
-            </dd>
-        {% endif %}
-        {% if hints is not empty %}
-            <dt>Hints</dt>
-            <dd>
-                <ul>
-                    {% for hint in hints %}
-                        <li>{{ hint }}</li>
-                    {% endfor %}
-                </ul>
-            </dd>
-        {% endif %}
-    </dl>
+            {% if hints is not empty %}
+                <dt>Hints</dt>
+                <dd>
+                    <ul>
+                        {% for hint in hints %}
+                            <li>{{ hint }}</li>
+                        {% endfor %}
+                    </ul>
+                </dd>
+            {% endif %}
+        </dl>
+    </div>
 
-    <section aria-labelledby="label-heading">
+    <section class="panel" aria-labelledby="label-heading">
         <h2 id="label-heading">Correct</h2>
-        {{ form_start(form) }}
+        {{ form_start(form, {attr: {class: 'correct-form'}}) }}
             {{ form_row(form.label) }}
             {{ form_row(form.verdictOverride) }}
             {{ form_row(form.falseAlarmCauseOverride) }}
@@ -77,7 +79,7 @@
     </section>
 
     {% if reference_form %}
-        <section aria-labelledby="reference-heading">
+        <section class="panel" aria-labelledby="reference-heading">
             <h2 id="reference-heading">Reference photo</h2>
             <p class="meta">Pick a frame and drag a box around the animal or person; without a box the whole frame is used. The AI compares later events with it (<a href="{{ path('individuals') }}">all reference photos</a>).</p>
             {{ form_start(reference_form, {attr: {class: 'reference-form'}}) }}
