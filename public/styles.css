@@ -87,7 +87,6 @@ img {
 
   nav {
     display: flex;
-    gap: 0.25rem;
     max-inline-size: 60rem;
     margin-inline: auto;
     padding-inline: 0.5rem;
@@ -96,7 +95,8 @@ img {
   }
 
   a {
-    padding: 0.75rem 0.6rem;
+    /* Narrower on phones, so all five links fit 360 px without scrolling. */
+    padding: 0.75rem clamp(0.4rem, 1.6vw, 0.6rem);
     white-space: nowrap;
     color: var(--color-text);
     text-decoration: none;

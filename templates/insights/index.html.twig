@@ -39,11 +39,11 @@
 
     <p class="summary">
         <strong>{{ activity.real }}</strong> real events and <strong>{{ activity.falseAlarms }}</strong> false alarms
-        {%- if activity.real + activity.falseAlarms > 0 %} ({{ (activity.falseAlarms / (activity.real + activity.falseAlarms) * 100)|round }} %){% endif %}
+        {%- if activity.real + activity.falseAlarms > 0 %} ({{ (activity.falseAlarms / (activity.real + activity.falseAlarms) * 100)|round }}&nbsp;%){% endif %}
         {%- if activity.undescribed > 0 %}; {{ activity.undescribed }} not described{% endif %}.
     </p>
     {% if activity.repeats > 0 %}
-        <p class="meta">{{ activity.repeats }} of the false alarms repeated an ongoing one and were filed without asking the AI.</p>
+        <p class="meta">{{ activity.repeats }} of the false alarms repeated an ongoing one and {{ activity.repeats == 1 ? 'was' : 'were' }} filed without asking the AI.</p>
     {% endif %}
 
     {% if activity.byWho is not empty %}

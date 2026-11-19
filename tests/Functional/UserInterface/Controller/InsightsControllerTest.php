@@ -41,6 +41,6 @@ final class InsightsControllerTest extends WebTestCase
         self::assertSelectorTextContains('.summary', '1 real events and 6 false alarms');
         self::assertSelectorTextContains('.bars', 'Luna');
         self::assertSelectorTextContains('.camera-insights .tip', 'Spider web caused 6 of them: worth a look at this camera.');
-        self::assertSelectorTextContains('main', '1 of the false alarms repeated an ongoing one and were filed without asking the AI.');
+        self::assertSelectorTextContains('main', '1 of the false alarms repeated an ongoing one and was filed without asking the AI.');
     }
 }
