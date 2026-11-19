@@ -4,28 +4,26 @@
 ai:
     daily_call_limit: 500
     home_context: >-
-        Our cat is called Luna; she is black and white and uses the cat flap in the back door. Foxes, a hedgehog, a
-        badger, a marten and the neighbours' cats visit the garden.
+        Our cat is called Luna: a brown tabby with a white chest and white paws. We are away this week; our
+        neighbour Anna comes every morning to feed Luna. A fox and the neighbours' cats visit the garden.
     unusual_rule: >-
-        A person on our property who does not seem to belong there, anyone on our property at night, a cat other than
-        Luna at or in the cat flap, or cats fighting or facing off on our property.
+        A person on our property who does not seem to belong there, anyone on our property at night, or cats fighting
+        or facing off on our property.
 
 subjects:
     fox:
         description: a red fox
-    hedgehog: ~
-    badger: ~
-    marten:
-        description: a stone marten or pine marten; slim brown body, long bushy tail, pale throat patch
-
-false_alarm_causes:
-    wind:
-        description: plants, branches or leaves moving in the wind
 
 individuals:
     luna:
         label: Luna
         subject: cat
-        description: black-and-white cat with a black patch over one eye, a white chest and white legs
-        photos: [individuals/luna-sitting.jpg, individuals/luna-side.jpg, individuals/luna-front.jpg]
+        description: brown tabby with dark stripes, a white chest, white paws, green eyes and a ringed tail with a black tip
+        photos: [individuals/luna-sitting-side.jpg, individuals/luna-at-door.jpg, individuals/luna-arched.jpg]
         detection_types: [animal]
+    anna:
+        label: Anna
+        subject: person
+        description: our neighbour; a woman with short grey hair in a bright yellow raincoat
+        photos: [individuals/anna-driveway.jpg]
+        detection_types: [person]

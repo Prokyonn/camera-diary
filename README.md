@@ -2,7 +2,7 @@
 
 Home cameras send dozens of notifications a day, and many of them are a spider in front of the lens. Camera diary turns every clip into a diary entry instead: an AI looks at the frames, says whether anything real happened and who it was, learns from your corrections, and answers your questions in plain words.
 
-> When did the strange grey cat come in through our cat flap?
+> Did a strange cat bother Luna this week?
 > How often was Luna outside in the last seven days?
 > Which camera has the most false alarms, and why?
 
@@ -31,7 +31,7 @@ Tags: Symfony AI Platform, Structured Output, Multimodal / Vision, Multi-provide
 
 ## Try it in five minutes
 
-The demo is a week in a made-up home: Luna the black-and-white cat at the cat flap, a strange grey cat that comes in through it, two tomcats facing off by the bins, a spider in front of the shed camera every night, foxes, a marten, a badger, a hedgehog, a jogger and the rain. The clips are public domain, CC0 or CC BY, see [demo/CREDITS.md](demo/CREDITS.md).
+The demo is a week in a made-up, AI-generated home: Luna the tabby comes home every evening, a strange tomcat squares up to her, the neighbour Anna feeds her every morning while we are away, a spider in front of the shed camera raises alarm after alarm, a fox crosses the lawn, rain, and one night a stranger looks into the car. See [demo/CREDITS.md](demo/CREDITS.md).
 
 ### With Docker
 
@@ -60,7 +60,7 @@ With the stack running, connect Claude to the MCP server:
 claude mcp add --transport http camera-diary http://localhost:8080/mcp
 ```
 
-Then ask, e.g., "What did Luna do yesterday? Show me the frames." or "The grey cat that came in through the cat flap was the neighbours' cat Smokey, please correct it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
+Then ask, e.g., "What did Luna do yesterday? Show me the frames." or "The person at the car last night was my brother Tom, please label it." Claude Desktop connects through [mcp-remote](https://www.npmjs.com/package/mcp-remote): add `"camera-diary": {"command": "npx", "args": ["mcp-remote", "http://localhost:8080/mcp"]}` to its `mcpServers`.
 
 ### With PHP
 
@@ -221,4 +221,4 @@ The tests use a scripted AI platform (`tests/Support/FakePlatform`), a fake Home
 
 ## License
 
-The code is MIT licensed, see [LICENSE](LICENSE). The demo clips keep their own licenses, see [demo/CREDITS.md](demo/CREDITS.md).
+The code is MIT licensed, see [LICENSE](LICENSE). The AI-generated demo clips and photos are CC0, see [demo/CREDITS.md](demo/CREDITS.md).

@@ -1,568 +1,373 @@
 # A week in a demo home for `bin/console app:demo`. Each event is placed at the latest past occurrence of its local
 # time of day, days_ago days back. Without an AI, `app:demo --recorded` stores the answers below, recorded from a
-# real run with Gemini; with one, the worker describes the clips itself. The clips are openly licensed, see
-# demo/CREDITS.md.
+# real run with Gemini; with one, the worker describes the clips itself. The home, its cameras and the clips are
+# AI-generated, see demo/CREDITS.md.
 
 cameras:
-    back-door:
-        name: Back door
-        scene: Trail camera facing the back door of the house with the cat flap, the bins, a low brick shed and the lawn in
-            front. Everything in view is our property.
+    terrace:
+        name: "Terrace"
+        scene: "Camera on the house wall next to the glass terrace door, looking over the terrace with the table, the potted plants, the lawn and the wooden garden shed. Our property."
+    garden:
+        name: "Garden"
+        scene: "Infrared camera high on the back corner of the house, looking along the lawn towards the garden shed and the back fence. Our property."
     shed:
-        name: Shed
-        scene: Infrared camera under the shed roof, looking along the storage shelves. Our property.
-    side-yard:
-        name: Side yard
-        scene: 'Infrared camera low at the side of the house: flower pots, a small shelf and the wooden hedgehog feeding box
-            against the wall. Our property.'
-    lawn:
-        name: Lawn
-        scene: Day camera over the front lawn and the flower bed by the wall. Our property.
-    patio:
-        name: Patio
-        scene: Camera under a garden chair on the patio, looking out over the wet tiles towards the lawn. Our property.
-    woods:
-        name: Woods
-        scene: Wildlife camera at the edge of the woods behind the house, aimed at a tree trunk between rocks. Wild animals
-            are expected here.
-    hedge:
-        name: Hedge
-        scene: Daytime camera at the back hedge of the garden, aimed at an overgrown corner with shrubs and nettles. Our property.
-    street:
-        name: Street
-        scene: Camera at the front window, looking at the snowy sidewalk, the tram tracks and the street. Nothing in view
-            is our property.
-    parking:
-        name: Parking
-        scene: Camera above the garage, looking over the shared parking area and the road. Only the bollards and the paved
-            square in front of them are ours.
-    courtyard:
-        name: Courtyard
-        scene: High view from an upper floor over the shared courtyard; trees, a lawn, a garage roof and parked cars. Only
-            the lawn in front of the garage is ours.
-    bins:
-        name: Bins
-        scene: Day camera low on the garden path by the green bins and the brick wall of the house; gravel, stepping stones
-            and the lawn. Our property.
-    meadow:
-        name: Meadow
-        scene: Infrared camera at the bottom of the garden, aimed at the bare ground in front of the wildflower meadow. Our
-            property; wild animals come through the hedge.
-    fence:
-        name: Back fence
-        scene: Infrared camera at the back fence, aimed at bare earth and dry grass where something has been digging. Our
-            property up to the fence.
+        name: "Shed"
+        scene: "Infrared camera under the roof of the garden shed, looking back at the house and the terrace. Our property."
+    front-door:
+        name: "Front door"
+        scene: "Camera above the front door, looking down at the paved driveway with our car, the hedge and the quiet street. The driveway is ours; the pavement and the street are not."
 events:
-    demo-luna-path-6:
-        camera: back-door
-        clip: clips/backdoor-luna-path.mp4
-        time: '08:05'
+    luna-1:
+        camera: terrace
+        clip: clips/luna-1.mp4
+        time: '16:55'
         days_ago: 6
-        detections: [animal]
-        hints: [Cat flap opened inwards]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: A black-and-white cat, not Luna, is seen by the cat flap before walking toward the brick shelter.
-            unusual: true
-        correction:
-            individual: luna
-    demo-fox-cubs:
-        camera: hedge
-        clip: clips/fox-cubs-day.mp4
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "luna"
+            summary: "Luna walks across the terrace towards the house and sits down by the glass door."
+            unusual: false
+            confidence: "high"
+    spider-1:
+        camera: shed
+        clip: clips/spider-1.mp4
+        time: '22:40'
+        days_ago: 6
+        detections: ["animal"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "spider_web"
+            side: "our_property"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "A large spider crawls directly across the camera lens, illuminated by infrared light."
+            unusual: false
+            confidence: "high"
+    blackbird-1:
+        camera: terrace
+        clip: clips/blackbird-1.mp4
+        time: '10:15'
+        days_ago: 5
+        detections: ["animal"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "bird"
+            individual: "unknown"
+            summary: "A black bird lands on the paved terrace and hops near the edge of the lawn."
+            unusual: false
+            confidence: "high"
+    grey-cat-1:
+        camera: terrace
+        clip: clips/grey-cat-1.mp4
+        time: '14:20'
+        days_ago: 5
+        detections: ["animal"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "unknown"
+            summary: "A grey cat walks across the terrace toward the glass door."
+            unusual: false
+            confidence: "high"
+    luna-2:
+        camera: terrace
+        clip: clips/luna-2.mp4
         time: '17:05'
-        days_ago: 6
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: fox
-            summary: Two young fox cubs move around and interact in the overgrown grass and shrubs.
-    demo-shed-6:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '22:20'
-        days_ago: 6
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly in front of the camera lens, illuminated brightly by the infrared light.
-    demo-shed-5:
-        camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '03:10'
-        days_ago: 5
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly across the camera lens, illuminated brightly by the infrared light.
-    demo-marten-5:
-        camera: side-yard
-        clip: clips/sideyard-marten-2.mp4
-        time: '03:20'
-        days_ago: 5
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: marten
-            summary: A marten walks past the hedgehog feeding box and potted plants in the side yard.
-    demo-hedgehog-5:
-        camera: patio
-        clip: clips/patio-hedgehog.mp4
-        time: '07:55'
-        days_ago: 5
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: hedgehog
-            summary: A hedgehog is on the wet patio tiles, sniffing or drinking from the ground.
-    demo-fox-woods:
-        camera: woods
-        clip: clips/fox-night.mp4
-        time: '23:15'
-        days_ago: 5
-        detections: [animal]
-        hints: [Bait at the tree was refilled at dusk]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: fox
-            summary: A fox approaches a bait bowl placed near a tree trunk among the rocks at night and eats from it.
-    demo-shed-4:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '00:50'
         days_ago: 4
-        detections: [animal]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly across the camera lens, brightly lit by infrared light.
-    demo-lawn-cat:
-        camera: lawn
-        clip: clips/lawn-cat.mp4
-        time: '14:00'
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "luna"
+            summary: "Luna walks across the terrace patio and sits down outside the glass door."
+            unusual: false
+            confidence: "high"
+    fox-1:
+        camera: garden
+        clip: clips/fox-1.mp4
+        time: '23:30'
         days_ago: 4
-        detections: [animal]
-        hints: [Luna was inside]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: A grey-and-white cat sits on the lawn.
-    demo-badger:
-        camera: fence
-        clip: clips/fence-badger.mp4
-        time: '21:40'
-        days_ago: 4
-        detections: [animal]
-        hints: [Luna was inside all evening]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: badger
-            summary: A badger with black-and-white facial stripes moves across the ground at night before leaving the frame.
-    demo-meadow-4:
-        camera: meadow
-        clip: clips/meadow-foxes.mp4
-        time: '21:50'
-        days_ago: 4
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: fox
-            summary: An adult fox stands on the ground while several young fox cubs gather around and nuzzle its muzzle.
-    demo-shed-3:
-        camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '02:30'
-        days_ago: 3
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly in front of the camera lens, illuminated by the infrared light.
-    demo-parking-cat:
-        camera: parking
-        clip: clips/parking-cat.mp4
-        time: '08:20'
-        days_ago: 3
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: A tabby cat crouches and stalks along the bollards on our property, watching a bird on the pavement nearby.
-    demo-parking-jogger:
-        camera: parking
-        clip: clips/parking-jogger.mp4
-        time: '08:21'
-        days_ago: 3
-        detections: [person, animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: outside
-            subject: cat
-            summary: A tabby cat pauses on the pavement outside as a person in a blue shirt and shorts jogs past on the road.
-    demo-backdoor-empty-3:
-        camera: back-door
-        clip: clips/backdoor-empty.mp4
-        time: '13:10'
-        days_ago: 3
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: nothing
-            side: unclear
-            subject: nothing
-            summary: No subject is visible around the back door or lawn.
-    demo-luna-path-3:
-        camera: back-door
-        clip: clips/backdoor-luna-path.mp4
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "fox"
+            individual: "unknown"
+            summary: "A fox walks across the lawn and looks towards the camera."
+            unusual: false
+            confidence: "high"
+    standoff:
+        camera: terrace
+        clip: clips/standoff.mp4
         time: '15:20'
         days_ago: 3
-        detections: [animal]
-        hints: [Cat flap opened inwards]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            individual: luna
-            summary: Luna walks across the patio from near the back door and enters the brick shelter.
-    demo-marten-2:
-        camera: side-yard
-        clip: clips/sideyard-marten-1.mp4
-        time: '02:50'
-        days_ago: 2
-        detections: [animal]
-        hints: [Luna was inside all evening]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: marten
-            summary: A marten explores near the wooden hedgehog feeding box at night.
-    demo-hedgehog-2:
-        camera: patio
-        clip: clips/patio-hedgehog.mp4
-        time: '08:40'
-        days_ago: 2
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: hedgehog
-            summary: A hedgehog sniffs the wet patio tiles near a puddle under the chair.
-    demo-blackbird:
-        camera: back-door
-        clip: clips/backdoor-blackbird.mp4
-        time: '09:15'
-        days_ago: 2
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: bird
-            summary: Two small birds, a great tit and a blackbird, forage on the lawn.
-    demo-rain:
-        camera: courtyard
-        clip: clips/rain-courtyard.mp4
-        time: '14:20'
-        days_ago: 2
-        detections: [motion]
-        hints: [Weather station reports heavy rain]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: rain
-            side: unclear
-            subject: nothing
-            summary: Heavy rain falls across the courtyard with visible rain streaks and no moving subjects.
-    demo-tomcats:
-        camera: bins
-        clip: clips/lawn-tomcats.mp4
-        time: '16:20'
-        days_ago: 2
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: Two tabby cats stand facing off against each other on the stone patio and garden path.
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "luna"
+            summary: "Luna and an unfamiliar ginger cat face off with arched backs on the terrace until the other cat retreats across the lawn."
             unusual: true
-    demo-shed-2:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '23:40'
+            confidence: "high"
+    rain-1:
+        camera: front-door
+        clip: clips/rain-1.mp4
+        time: '19:10'
+        days_ago: 3
+        detections: ["person"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "rain"
+            side: "unclear"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "Rain falls over the wet driveway and street at night, with no people or animals present."
+            unusual: false
+            confidence: "high"
+    anna-1:
+        camera: front-door
+        clip: clips/anna-1.mp4
+        time: '08:05'
         days_ago: 2
-        detections: [animal]
+        detections: ["person"]
         recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly across the camera lens, appearing brightly lit by infrared illumination.
-    demo-shed-1:
-        camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '01:15'
-        days_ago: 1
-        detections: [animal]
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "person"
+            individual: "anna"
+            summary: "Anna stands outside the front door wearing a bright yellow raincoat and holding a bag of cat food."
+            unusual: false
+            confidence: "high"
+    luna-3:
+        camera: terrace
+        clip: clips/luna-3.mp4
+        time: '16:50'
+        days_ago: 2
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly over the camera lens, illuminated by the infrared light.
-    demo-shed-1b:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '01:24'
-        days_ago: 1
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls in front of the camera lens, illuminated by the infrared light.
-    demo-shed-1c:
-        camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '01:37'
-        days_ago: 1
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly in front of the camera lens, illuminated by the infrared light.
-    demo-shed-1d:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '01:46'
-        days_ago: 1
-        detections: [animal]
-        repeat_of: demo-shed-1c
-    demo-shed-1e:
-        camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '01:55'
-        days_ago: 1
-        detections: [animal]
-        repeat_of: demo-shed-1c
-    demo-shed-1f:
-        camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '02:05'
-        days_ago: 1
-        detections: [animal]
-        repeat_of: demo-shed-1c
-    demo-street-snow:
-        camera: street
-        clip: clips/street-snow.mp4
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "luna"
+            summary: "Luna walks across the terrace and sits down next to the glass door, looking inside."
+            unusual: false
+            confidence: "high"
+    anna-2:
+        camera: front-door
+        clip: clips/anna-2.mp4
         time: '08:10'
         days_ago: 1
-        detections: [person]
-        hints: [Doorbell did not ring]
+        detections: ["person"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: outside
-            subject: person
-            summary: A person in dark clothing walks away along the snowy sidewalk with an umbrella, while a tram approaches
-                on the tracks and other individuals stand by parked cars across the street.
-    demo-grey-flap:
-        camera: back-door
-        clip: clips/backdoor-grey-flap.mp4
-        time: '10:05'
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "person"
+            individual: "anna"
+            summary: "Anna stands outside the front door wearing a bright yellow raincoat and holding a bag of cat food."
+            unusual: false
+            confidence: "high"
+    grey-cat-2:
+        camera: terrace
+        clip: clips/grey-cat-2.mp4
+        time: '13:35'
         days_ago: 1
-        detections: [animal]
-        hints: [Luna was outside]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: other_animal
-            summary: A grey squirrel moves across the patio near the brick shelter.
-    demo-grey-lawn:
-        camera: back-door
-        clip: clips/backdoor-grey-lawn.mp4
-        time: '10:07'
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "unknown"
+            summary: "A grey cat walks across the paved terrace toward the glass door."
+            unusual: false
+            confidence: "high"
+    luna-4:
+        camera: terrace
+        clip: clips/luna-4.mp4
+        time: '16:58'
         days_ago: 1
-        detections: [animal]
-        hints: [Cat flap opened inwards, Luna was outside]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: A grey cat walks past the brick shelter toward the back door and enters through the cat flap.
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "cat"
+            individual: "luna"
+            summary: "Luna walks across the terrace patio and sits down in front of the glass door, looking inside."
+            unusual: false
+            confidence: "high"
+    spider-2:
+        camera: shed
+        clip: clips/spider-2.mp4
+        time: '00:40'
+        days_ago: 0
+        detections: ["animal"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "spider_web"
+            side: "our_property"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "A spider crawls close in front of the camera lens, illuminated by the infrared light."
+            unusual: false
+            confidence: "high"
+    spider-3:
+        camera: shed
+        clip: clips/spider-3.mp4
+        time: '01:15'
+        days_ago: 0
+        detections: ["animal"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "spider_web"
+            side: "our_property"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "A spider crawls directly across the camera lens, illuminated by infrared light."
+            unusual: false
+            confidence: "high"
+    spider-4:
+        camera: shed
+        clip: clips/spider-4.mp4
+        time: '01:50'
+        days_ago: 0
+        detections: ["animal"]
+        repeat_of: spider-3
+    stranger:
+        camera: front-door
+        clip: clips/stranger.mp4
+        time: '02:14'
+        days_ago: 0
+        detections: ["person"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "person"
+            individual: "unknown"
+            summary: "A person wearing a dark hooded jacket and dark trousers stands beside the parked car on the driveway, resting a hand on the roof while looking towards the camera."
             unusual: true
-    demo-luna-dusk:
-        camera: back-door
-        clip: clips/backdoor-luna-dusk.mp4
-        time: '16:30'
-        days_ago: 1
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            individual: luna
-            summary: Luna is seen near the back door and the brick shed, turning to look back toward the cat flap.
-    demo-meadow-1:
-        camera: meadow
-        clip: clips/meadow-foxes.mp4
-        time: '23:10'
-        days_ago: 1
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: fox
-            summary: An adult fox stands on the ground while several small fox cubs gather around and nuzzle it.
-    demo-shed-0a:
+            confidence: "high"
+    spider-5:
         camera: shed
-        clip: clips/shed-spider-1.mp4
-        time: '02:06'
+        clip: clips/spider-5.mp4
+        time: '02:25'
         days_ago: 0
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls on its thread close in front of the camera lens, brightly lit by infrared light.
-    demo-backdoor-night:
-        camera: back-door
-        clip: clips/backdoor-night-cat.mp4
-        time: '02:41'
-        days_ago: 0
-        detections: [animal]
-        hints: [Cat flap stayed shut]
-        recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            summary: A cat walks across the lawn on the right side of the yard.
-    demo-shed-0b:
+        detections: ["animal"]
+        repeat_of: spider-3
+    spider-6:
         camera: shed
-        clip: clips/shed-spider-2.mp4
-        time: '03:51'
+        clip: clips/spider-6.mp4
+        time: '03:00'
         days_ago: 0
-        detections: [animal]
-        recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: spider_web
-            side: our_property
-            subject: nothing
-            summary: A spider crawls directly in front of the camera lens, brightly lit by the infrared light.
-    demo-luna-out:
-        camera: back-door
-        clip: clips/backdoor-luna-out.mp4
-        time: '07:12'
+        detections: ["animal"]
+        repeat_of: spider-3
+    spider-7:
+        camera: shed
+        clip: clips/spider-7.mp4
+        time: '03:35'
         days_ago: 0
-        detections: [animal]
-        hints: [Cat flap opened outwards]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            individual: luna
-            summary: Luna investigates the opening of the low brick shelter on the patio.
-    demo-backdoor-empty-0:
-        camera: back-door
-        clip: clips/backdoor-empty.mp4
-        time: '11:30'
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "spider_web"
+            side: "our_property"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "A spider crawls directly in front of the camera lens, illuminated by the infrared light."
+            unusual: false
+            confidence: "high"
+    spider-8:
+        camera: shed
+        clip: clips/spider-8.mp4
+        time: '04:10'
         days_ago: 0
-        detections: [animal]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: false_alarm
-            false_alarm_cause: nothing
-            side: unclear
-            subject: nothing
-            summary: The backyard is clear with no animals or people visible.
-    demo-luna-flap:
-        camera: back-door
-        clip: clips/backdoor-luna-flap.mp4
-        time: '16:48'
+            model: "gemini-flash-latest"
+            verdict: "false_alarm"
+            false_alarm_cause: "spider_web"
+            side: "our_property"
+            subject: "nothing"
+            individual: "unknown"
+            summary: "A spider crawls directly in front of the camera lens, brightly illuminated by the infrared light."
+            unusual: false
+            confidence: "high"
+    fox-2:
+        camera: garden
+        clip: clips/fox-2.mp4
+        time: '05:20'
         days_ago: 0
-        detections: [animal]
-        hints: [Cat flap opened inwards]
+        detections: ["animal"]
         recorded:
-            model: gemini-flash-latest
-            verdict: real
-            side: our_property
-            subject: cat
-            individual: luna
-            summary: Luna pushes her head through the cat flap to enter the house.
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "fox"
+            individual: "unknown"
+            summary: "A fox walks across the lawn at night and glances towards the camera."
+            unusual: false
+            confidence: "high"
+    anna-3:
+        camera: front-door
+        clip: clips/anna-3.mp4
+        time: '08:00'
+        days_ago: 0
+        detections: ["person"]
+        recorded:
+            model: "gemini-flash-latest"
+            verdict: "real"
+            false_alarm_cause: "none"
+            side: "our_property"
+            subject: "person"
+            individual: "anna"
+            summary: "Anna stands outside the front door wearing a bright yellow raincoat and dark trousers while holding a bag of cat food."
+            unusual: false
+            confidence: "high"
 questions:
--   question: When did the strange grey cat come in through our cat flap?
-    answer: The strange grey cat came in through the cat flap at 10:07.
-    events: [demo-grey-lawn, demo-luna-path-6, demo-luna-dusk, demo-luna-flap, demo-backdoor-night, demo-luna-path-3,
-        demo-luna-out]
--   question: How often did the cameras see Luna this week?
-    answer: The cameras saw Luna 5 times this week, all at the Back door camera.
-    events: [demo-luna-out, demo-luna-flap, demo-luna-dusk, demo-luna-path-3, demo-luna-path-6, demo-backdoor-night,
-        demo-street-snow, demo-meadow-1, demo-grey-lawn, demo-grey-flap, demo-hedgehog-2, demo-marten-2]
--   question: Was there a cat fight in our garden this week?
-    answer: There was a confrontation at 16:20, when two tabby cats were recorded facing off against each other on the patio
-        and garden path near the bins, though no actual physical fight was seen.
-    events: [demo-tomcats, demo-luna-out, demo-backdoor-night, demo-luna-flap, demo-meadow-1, demo-luna-dusk, demo-grey-lawn,
-        demo-grey-flap, demo-hedgehog-2, demo-marten-2, demo-blackbird, demo-parking-cat]
--   question: Which wild animals visited us at night this week?
-    answer: The wild animals that visited at night this week were foxes (including an adult and cubs), martens, a badger,
-        and a hedgehog.
-    events: [demo-meadow-1, demo-marten-2, demo-meadow-4, demo-badger, demo-hedgehog-5, demo-marten-5, demo-fox-woods, demo-luna-out,
-        demo-backdoor-night, demo-luna-flap, demo-luna-dusk, demo-grey-lawn]
--   question: Which camera has the most false alarms, and why?
-    answer: The Shed camera has the most false alarms. They are caused by a spider repeatedly crawling directly across or
-        in front of the camera lens at night, brightly lit by infrared light and mistakenly detected as an animal.
-    events: [demo-shed-0b, demo-shed-0a, demo-shed-1f, demo-shed-1e, demo-shed-1d, demo-shed-1c, demo-shed-1b, demo-shed-1,
-        demo-shed-2, demo-shed-3, demo-backdoor-empty-0, demo-rain]
+-   question: "Did a strange cat bother Luna this week?"
+    answer: "Yes, on Monday, 16 November 2026 at 15:20, an unfamiliar ginger cat confronted Luna on the terrace. Both cats arched their backs in a standoff until the ginger cat retreated across the lawn."
+    events: ["standoff", "luna-4", "luna-3", "luna-2", "luna-1"]
+-   question: "When did Anna come to feed Luna?"
+    answer: "Anna arrived holding cat food on Tuesday, 17 November 2026 at 08:05, Wednesday, 18 November 2026 at 08:10, and Thursday, 19 November 2026 at 08:00."
+    events: ["anna-1", "anna-2", "anna-3", "luna-1", "luna-2", "standoff", "luna-3", "luna-4"]
+-   question: "Which camera has the most false alarms, and why?"
+    answer: "The Shed camera has the most false alarms, with 8 occurrences caused by a spider repeatedly crawling directly across the camera lens."
+    events: ["spider-8", "spider-7", "spider-6", "spider-5", "spider-4", "spider-3", "spider-2", "spider-1", "rain-1"]
+-   question: "How often did the cameras see Luna this week?"
+    answer: "Luna was seen by the Terrace camera 5 times this week: on Friday, November 13 at 16:55, Sunday, November 15 at 17:05, Monday, November 16 at 15:20, Tuesday, November 17 at 16:50, and Wednesday, November 18 at 16:58."
+    events: ["luna-4", "luna-3", "standoff", "luna-2", "luna-1"]
