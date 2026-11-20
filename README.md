@@ -89,7 +89,7 @@ AI_MODEL=gpt-6.1-sol
 
 # or Gemini
 AI_PLATFORM=gemini
-AI_MODEL=gemini-flash-latest
+AI_MODEL=gemini-3.8-flash
 GEMINI_API_KEY=...
 
 # or Gemini on Vertex AI (Google Cloud billing, e.g. a subscription's monthly credits)
