@@ -33,3 +33,10 @@ RUN composer dump-autoload --no-dev --classmap-authoritative \
 FROM base
 
 COPY --from=build /app /app
+
+# Runs as an unprivileged user (FrankenPHP may bind port 80 without root). It owns var/ (cache, the data volume) and
+# Caddy's folders. A var/data written by an earlier root container needs `chown -R 1000:1000` once.
+RUN useradd --uid 1000 --no-create-home --shell /usr/sbin/nologin app \
+    && mkdir -p /app/var/data \
+    && chown -R app:app /app/var /data /config
+USER app

@@ -203,7 +203,7 @@ The pages have no login. Run them in a private network, e.g. behind Tailscale Se
 
 ## Running it for real
 
-One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg):
+One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg), as the unprivileged user `app` (uid 1000). A `var/data` written by an older, root-run image needs `chown -R 1000:1000` once:
 
 - **Setup, once per start:** `bin/console doctrine:migrations:migrate` and `bin/console cmsig:seal:index-create`.
 - **Web:** the image's default command.
