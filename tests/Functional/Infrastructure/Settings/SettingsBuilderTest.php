@@ -75,6 +75,8 @@ final class SettingsBuilderTest extends TestCase
         self::assertSame('Luna', $luna->label);
         self::assertSame([$fixtures.'/individuals/luna.jpg'], $luna->photos);
         self::assertSame(['luna'], $settings->vocabulary(VocabularyKind::Individuals)->names());
+        self::assertSame('Luna', $settings->individualLabel('luna'));
+        self::assertSame('Gone cat', $settings->individualLabel('gone_cat'));
         self::assertSame('Luna', $settings->subjectLabel('cat', 'luna'));
         self::assertSame('Other cat', $settings->subjectLabel('cat', null));
         self::assertSame('Dog', $settings->subjectLabel('dog', null));

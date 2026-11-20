@@ -67,7 +67,7 @@ final readonly class ActivityReport
             $who = $settings->subjectLabel($event->getSubject() ?? 'other', $event->getEffectiveIndividual());
             $byWho[$who] = ($byWho[$who] ?? 0) + 1;
             foreach ($event->getAlsoSeen() as $other) {
-                $label = $settings->subjectLabel('other', $other);
+                $label = $settings->individualLabel($other);
                 if ($label !== $who) {
                     $byWho[$label] = ($byWho[$label] ?? 0) + 1;
                 }

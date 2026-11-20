@@ -57,10 +57,15 @@ final readonly class Settings
     {
         $labels = [$this->subjectLabel($subject, $individual)];
         foreach ($alsoSeen as $name) {
-            $labels[] = $this->vocabulary(VocabularyKind::Individuals)->label($name);
+            $labels[] = $this->individualLabel($name);
         }
 
         return implode(' and ', array_unique($labels));
+    }
+
+    public function individualLabel(string $name): string
+    {
+        return $this->vocabulary(VocabularyKind::Individuals)->label($name);
     }
 
     /**
@@ -70,7 +75,7 @@ final readonly class Settings
     public function subjectLabel(string $subject, ?string $individual): string
     {
         if (null !== $individual) {
-            return $this->vocabulary(VocabularyKind::Individuals)->label($individual);
+            return $this->individualLabel($individual);
         }
 
         $label = $this->subjects->label($subject);

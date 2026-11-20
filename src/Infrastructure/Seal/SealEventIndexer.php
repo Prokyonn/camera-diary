@@ -68,7 +68,7 @@ final readonly class SealEventIndexer implements EventIndexerInterface
         $settings = $this->settings->settings();
         $individual = $event->getEffectiveIndividual();
         $label = $settings->subjectLabel($subject, $individual);
-        $others = array_map(static fn (string $other): string => $settings->subjectLabel('other', $other), $event->getAlsoSeen());
+        $others = array_map($settings->individualLabel(...), $event->getAlsoSeen());
 
         return implode(' ', [null === $individual ? $label : $label.' '.$settings->subjects->label($subject), ...$others]);
     }
