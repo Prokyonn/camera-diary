@@ -1,0 +1,38 @@
+# Running it for real, without the demo: docker compose -f compose.prod.yaml up -d --build
+# Compose reads the variables below from a .env.prod.local file next to this one (ignored by Git and kept out of the image):
+#   APP_SECRET, INGEST_TOKEN, MCP_TOKEN (or MCP_OPEN=1 in a private network), DEFAULT_URI (the address you open),
+#   APP_TIMEZONE, the AI (AI_PLATFORM, AI_MODEL and its key, see the README) and, for an assistant on another machine,
+#   MCP_ALLOWED_HOSTS.
+# Everything lives in ./data: the database, the search index, frames, backups and your settings file
+# (data/camera-diary.yaml, see camera-diary.example.yaml).
+name: camera-diary
+
+x-app: &app
+  build: .
+  image: camera-diary:local
+  env_file: .env.prod.local
+  volumes:
+    - ./data:/app/var/data
+
+services:
+  setup:
+    <<: *app
+    command: [sh, -c, 'bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && bin/console cmsig:seal:index-create']
+
+  web:
+    <<: *app
+    restart: unless-stopped
+    # Put a reverse proxy with HTTPS in front, e.g. Tailscale Serve, and keep the port on localhost.
+    ports:
+      - 127.0.0.1:8080:80
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *app
+    restart: unless-stopped
+    command: [bin/console, messenger:consume, scheduler_default, scheduler_home_assistant, --time-limit=3600]
+    depends_on:
+      setup:
+        condition: service_completed_successfully

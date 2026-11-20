@@ -208,7 +208,7 @@ One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg):
   - Every minute it describes up to 20 pending events and runs the add-on import.
   - At 03:30 (`APP_TIMEZONE`) it removes false-alarm frames older than 30 days and writes a database backup (14 kept). All of these are [settings](#settings).
 
-Everything lives in `var/data`: the SQLite database, the Loupe search index, frames, backups, locks and the settings file. Mount it as a volume. `compose.yaml` shows the layout.
+Everything lives in `var/data`: the SQLite database, the Loupe search index, frames, backups, locks and the settings file. Mount it as a volume. `compose.yaml` is the demo; `compose.prod.yaml` is the same layout without demo data, with your own tokens and settings: put the variables it names into `.env.prod.local` and run `docker compose -f compose.prod.yaml up -d --build`.
 
 ## Development
 

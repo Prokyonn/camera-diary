@@ -7,6 +7,7 @@
 .phpunit.cache
 Dockerfile
 compose.yaml
+compose.prod.yaml
 docs
 tests
 addons/*/tests
