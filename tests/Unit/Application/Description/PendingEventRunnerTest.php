@@ -10,6 +10,7 @@ use App\Application\Description\EventDescription;
 use App\Application\Description\EventProcessor;
 use App\Application\Description\HintCollector;
 use App\Application\Description\PendingEventRunner;
+use App\Application\Description\ProcessOutcome;
 use App\Application\Description\RepeatedFalseAlarms;
 use App\Application\Description\SceneChange;
 use App\Application\Frame\FrameSources;
@@ -94,6 +95,27 @@ final class PendingEventRunnerTest extends TestCase
         self::assertSame([], $this->runner(['description' => ['batch_size' => 5]])->run());
     }
 
+    public function testDescribesOneEventUnderTheWorkersLock(): void
+    {
+        $this->budget->tryConsume(null)->willReturn(true);
+        $event = $this->event(1, '06:20:00', 'person');
+        $locks = new LockFactory(new InMemoryStore());
+
+        self::assertSame(ProcessOutcome::Described, $this->runner(locks: $locks)->describe($event));
+        self::assertTrue($locks->createLock(PendingEventRunner::LOCK_KEY)->acquire(), 'The lock is released afterwards.');
+    }
+
+    public function testDoesNotDescribeAnEventWhileAnotherRunHoldsTheLock(): void
+    {
+        $locks = new LockFactory(new InMemoryStore());
+        $workerLock = $locks->createLock(PendingEventRunner::LOCK_KEY);
+        $workerLock->acquire();
+        $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
+
+        self::assertNull($this->runner(locks: $locks)->describe($this->event(1, '06:20:00', 'person')));
+        self::assertNull($this->runner(locks: $locks)->run());
+    }
+
     private function event(int $id, string $time, string $type): CameraEvent
     {
         $event = CameraEventFactory::create('2026-11-06 '.$time, type: $type, id: $id);
@@ -110,7 +132,7 @@ final class PendingEventRunnerTest extends TestCase
     /**
      * @param array<string, mixed> $settings
      */
-    private function runner(array $settings = ['ai' => ['call_pools' => ['animals' => ['detection_types' => ['animal'], 'daily_call_limit' => 75]]]]): PendingEventRunner
+    private function runner(array $settings = ['ai' => ['call_pools' => ['animals' => ['detection_types' => ['animal'], 'daily_call_limit' => 75]]]], ?LockFactory $locks = null): PendingEventRunner
     {
         $settingsProvider = $this->settingsProvider($settings);
         $clock = new MockClock('2026-11-06 06:30:00', 'UTC');
@@ -134,6 +156,6 @@ final class PendingEventRunnerTest extends TestCase
             new NullLogger(),
         );
 
-        return new PendingEventRunner($processor, $this->events->reveal(), new LockFactory(new InMemoryStore()), $this->budget->reveal(), $settingsProvider, $clock);
+        return new PendingEventRunner($processor, $this->events->reveal(), $locks ?? new LockFactory(new InMemoryStore()), $this->budget->reveal(), $settingsProvider, $clock);
     }
 }

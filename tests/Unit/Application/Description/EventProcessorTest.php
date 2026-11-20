@@ -128,6 +128,17 @@ final class EventProcessorTest extends TestCase
         self::assertSame('test-model', $event->getModel());
     }
 
+    public function testRefusesAnOpenEventWithoutTouchingIt(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1, open: true);
+        $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
+        $this->unitOfWork->flush()->shouldNotBeCalled();
+        $this->indexer->index(Argument::any())->shouldNotBeCalled();
+
+        self::assertSame(ProcessOutcome::Open, $this->processor()->process($event));
+        self::assertSame(EventStatus::Pending, $event->getStatus());
+    }
+
     public function testMarksAnEventWithoutFramesAndFrameSourceAsNoFootage(): void
     {
         $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);

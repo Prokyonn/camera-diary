@@ -43,6 +43,10 @@ final readonly class EventProcessor
 
     public function process(CameraEvent $event): ProcessOutcome
     {
+        if ($event->isOpen()) {
+            return ProcessOutcome::Open;
+        }
+
         $outcome = $this->advance($event);
         $this->unitOfWork->flush();
         $this->indexer->index($event);

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Command;
 
-use App\Application\Description\EventProcessor;
+use App\Application\Description\PendingEventRunner;
+use App\Application\Description\ProcessOutcome;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use Symfony\Component\Console\Attribute\Argument;
@@ -17,7 +18,7 @@ final readonly class DescribeCommand
 {
     public function __construct(
         private CameraEventRepositoryInterface $events,
-        private EventProcessor $processor,
+        private PendingEventRunner $runner,
     ) {
     }
 
@@ -30,7 +31,13 @@ final readonly class DescribeCommand
             return Command::FAILURE;
         }
 
-        $outcome = $this->processor->process($event);
+        $outcome = $this->runner->describe($event);
+        if (!$outcome instanceof ProcessOutcome) {
+            $io->error('Another description run is in progress; try again in a minute.');
+
+            return Command::FAILURE;
+        }
+
         $io->definitionList(
             ['Outcome' => $outcome->value],
             ['Verdict' => $event->getVerdict()->value ?? '-'],

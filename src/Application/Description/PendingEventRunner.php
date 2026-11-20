@@ -6,6 +6,7 @@ namespace App\Application\Description;
 
 use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Settings\SettingsProviderInterface;
+use App\Domain\Model\CameraEvent;
 use App\Domain\Model\EventStatus;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use Psr\Clock\ClockInterface;
@@ -16,6 +17,7 @@ use Symfony\Component\Lock\LockFactory;
  */
 final readonly class PendingEventRunner
 {
+    public const string LOCK_KEY = 'camera-event-description';
     private const int LOCK_TTL_SECONDS = 1800;
 
     public function __construct(
@@ -33,13 +35,33 @@ final readonly class PendingEventRunner
      */
     public function run(?int $limit = null): ?array
     {
-        $lock = $this->lockFactory->createLock('camera-event-description', self::LOCK_TTL_SECONDS);
+        return $this->locked(fn (): array => $this->describeDue($limit ?? $this->settings->settings()->description->batchSize));
+    }
+
+    /**
+     * Describes one event now, also if it was described before; null when another run holds the lock.
+     */
+    public function describe(CameraEvent $event): ?ProcessOutcome
+    {
+        return $this->locked(fn (): ProcessOutcome => $this->processor->process($event));
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $work
+     *
+     * @return T|null null when another run holds the lock
+     */
+    private function locked(callable $work): mixed
+    {
+        $lock = $this->lockFactory->createLock(self::LOCK_KEY, self::LOCK_TTL_SECONDS);
         if (!$lock->acquire()) {
             return null;
         }
 
         try {
-            return $this->describeDue($limit ?? $this->settings->settings()->description->batchSize);
+            return $work();
         } finally {
             $lock->release();
         }

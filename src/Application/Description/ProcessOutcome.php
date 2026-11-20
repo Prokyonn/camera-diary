@@ -11,6 +11,7 @@ enum ProcessOutcome: string
     case NoFootage = 'no_footage';
     case Failed = 'failed';
     case OverBudget = 'over_budget';
+    case Open = 'open';
 
     /**
      * @param array<string, int> $counts count per outcome value
