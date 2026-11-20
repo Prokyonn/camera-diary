@@ -50,4 +50,8 @@ Mount the recordings read-only. Only the worker needs them.
 
 ## Removing it
 
-Remove `CameraDiary\HomeAssistant\HomeAssistantBundle` from `config/bundles.php` and `camera-diary/home-assistant` from `composer.json`. The core does not depend on it.
+The add-on is a module of this repository, not a standalone package: it builds on the core's Application and Domain classes, and the core's code (`src/`) does not depend on it. To remove it:
+
+1. Remove `CameraDiary\HomeAssistant\HomeAssistantBundle` from `config/bundles.php`, `camera-diary/home-assistant` and its path repository from `composer.json`, and its `autoload-dev` entry.
+2. Drop `scheduler_home_assistant` from the worker's `messenger:consume` command (`compose.yaml`, your deployment).
+3. Delete the `camera-diary/home-assistant` block in `.env`, the "Home Assistant add-on" test suite and source directory in `phpunit.dist.xml`, the `addons/home-assistant` paths in `phpstan.dist.neon` and `rector.php`, and the test double `tests/Support/FakeHomeAssistant.php` with its entries in `config/packages/framework.yaml` and `config/services.yaml` (`when@test`).

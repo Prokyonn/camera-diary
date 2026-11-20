@@ -1,13 +1,26 @@
 {
     "name": "camera-diary/home-assistant",
-    "description": "Camera diary add-on: imports detections and context signals from Home Assistant and cuts frames from continuous recordings.",
+    "description": "Camera diary add-on: imports detections and context signals from Home Assistant and cuts frames from continuous recordings. A module of the Camera diary repository: it builds on the core's Application and Domain classes and is not installable on its own.",
     "type": "symfony-bundle",
     "license": "MIT",
     "version": "1.0.0",
     "require": {
         "php": ">=8.4",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "doctrine/orm": "^3.7",
+        "psr/clock": "^1.0",
+        "psr/log": "^3.0",
         "symfony/config": "8.1.*",
+        "symfony/console": "8.1.*",
+        "symfony/dependency-injection": "8.1.*",
+        "symfony/event-dispatcher": "8.1.*",
+        "symfony/filesystem": "8.1.*",
         "symfony/http-client": "8.1.*",
+        "symfony/http-kernel": "8.1.*",
+        "symfony/lock": "8.1.*",
+        "symfony/messenger": "8.1.*",
+        "symfony/routing": "8.1.*",
+        "symfony/scheduler": "8.1.*",
         "symfony/yaml": "8.1.*"
     },
     "autoload": {

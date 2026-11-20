@@ -9,14 +9,6 @@ framework:
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
     trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host']
 
-    http_client:
-        scoped_clients:
-            home_assistant.client:
-                base_uri: '%env(HA_URL)%'
-                headers:
-                    Authorization: 'Bearer %env(HA_TOKEN)%'
-                timeout: 30
-
 when@test:
     framework:
         test: true
