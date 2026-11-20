@@ -12,7 +12,7 @@ Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [
 
 - **Real or false alarm.** Every event gets a verdict, the cause of a false alarm (spider web, insect, rain, light, wind), where it happened, and a short description. The AI compares the frames with the camera's usual empty view in the same light, so a new spider web or a shape at the hedge stands out.
 - **No AI call for the same spider all night.** Once a camera's last two false alarms within three hours had the same cause (a cat crossing in between does not count), a new event on that camera is compared with them pixel by pixel. If only the spider's thread moved, it is filed as a repeat without asking the AI; anything new still goes to the AI, and every two hours one does anyway.
-- **Only what matters rings.** With the Home Assistant add-on, the camera's push is replaced by the AI's verdict a minute later: silent for the spider, the fox and the rain, a time-sensitive alert only for what the settings call unusual, such as a stranger at the car at night.
+- **Only what matters rings.** With the Home Assistant add-on, the camera's push is replaced by the AI's verdict a minute later: silent for the spider, the fox and the rain, a loud alert only for what the settings call unusual, such as a stranger at the car at night.
 - **Your cat by name.** Name your cat or the people who live with you, and drag a box around them in any frame to add a reference photo. Events then read "Luna", and every other cat "Other cat".
 - **It learns from you.** Unusual and unsure events land on the "Check" page. One tap confirms them, and every correction (verdict, cause, who it was, a label) goes into the next prompts for that camera, so the same mistake does not come back.
 - **Questions with sources.** The AI turns a question into a search (who, where, when), reads every event of that time span, looks at the best matches' frames, and answers with the events it relies on. Questions are kept, with a link to share.
@@ -128,7 +128,7 @@ Ask and "Summarize this day" call the AI inside the web request. A CLI provider 
 
 ## Settings
 
-Everything an installation may want to change lives in one YAML file, `var/data/camera-diary.yaml` (or `CAMERA_DIARY_CONFIG`). Every key is optional, and a running worker picks up changes. [camera-diary.example.yaml](camera-diary.example.yaml) lists them all; `bin/console app:settings` checks the file.
+Everything an installation may want to change lives in one YAML file, `var/data/camera-diary.yaml` (or `CAMERA_DIARY_CONFIG`). Every key is optional, and a running worker picks up changes, except `maintenance.nightly_at`: the schedule is built when the worker starts. [camera-diary.example.yaml](camera-diary.example.yaml) lists them all; `bin/console app:settings` checks the file.
 
 - **AI limits:** `ai.daily_call_limit` (default 500) caps the calls per day; events over it wait for the next day. `ai.call_pools` gives detection types a share of it, e.g. 75 calls for animals, so a spider web in front of the lens cannot use up the calls for people.
 - **Learning:** `ai.correction_examples` (6) of your latest corrections on the same camera go with each event; `ai.scene_baseline` sends the camera's latest empty view (a false alarm with nothing visible) in the same light, day or infrared night. `ai.skip_repeats` (on) files repeats of an ongoing false alarm without an AI call; `ai.repeat_recheck_minutes` (120, 0 for never) sends one to the AI anyway after that long.
@@ -170,7 +170,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 
 ## Home Assistant add-on
 
-[addons/home-assistant](addons/home-assistant/README.md) imports detections (e.g. Reolink person and animal sensors) from the Home Assistant history. It groups them into events and cuts frames 1, 2 and 3 s after each detection from continuous recordings, e.g. Synology Surveillance Station. It also turns state changes such as a cat flap or a door lock into hints. It can also replace your camera push with the AI verdict a minute or two later. It is a separate Symfony bundle: the core only knows its extension points (frames, hints, open events, a hook after each description).
+[addons/home-assistant](addons/home-assistant/README.md) imports detections (e.g. Reolink person and animal sensors) from the Home Assistant history. It groups them into events and cuts frames 1, 2 and 3 s after an event's first detection from continuous recordings, e.g. Synology Surveillance Station. It also turns state changes such as a cat flap or a door lock into hints. It can also replace your camera push with the AI verdict a minute or two later. It is a separate Symfony bundle: the core only knows its extension points (frames, hints, open events, a hook after each description).
 
 ## Assistants (MCP)
 
@@ -194,6 +194,7 @@ Home Assistant's "Model Context Protocol" integration connects Assist to it, and
 - `/check`: events the AI was not sure of, to confirm or correct.
 - `/ask`: questions in plain words; `/ask/{id}` shows an earlier question with its answer and events.
 - `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.
+- `/individuals` ("Known"): the known individuals and their reference photos, to add or remove.
 - `/at?camera=<slug>&t=<epoch seconds>`: deep link for push notifications. It waits and refreshes while the event is not stored yet.
 
 The pages have no login. Run them in a private network, e.g. behind Tailscale Serve. The hook needs `INGEST_TOKEN`, and MCP needs `MCP_TOKEN` (or `MCP_OPEN=1`). `TRUSTED_PROXIES` (default `private_ranges`, for Tailscale Serve and Docker) decides whose `X-Forwarded-*` headers count; narrow it to your proxy's address where the private network is shared.

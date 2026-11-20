@@ -1,5 +1,6 @@
 # Settings of one Camera diary installation. Copy to var/data/camera-diary.yaml, or point CAMERA_DIARY_CONFIG
-# elsewhere. Every key is optional: what you leave out keeps its default. A running worker picks up changes.
+# elsewhere. Every key is optional: what you leave out keeps its default. A running worker picks up changes, except
+# maintenance.nightly_at, which takes effect when the worker restarts.
 # Check the file with: bin/console app:settings
 
 ai:

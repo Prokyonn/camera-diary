@@ -24,6 +24,8 @@ Ports and adapters:
 | `DatabaseBackupInterface` | `Doctrine\SqliteDatabaseBackup` |
 | `UnitOfWorkInterface` | `Doctrine\DoctrineUnitOfWork` |
 | `SettingsProviderInterface` | `Settings\YamlSettingsProvider` |
+| `DigestWriterInterface` | `Ai\AiDigestWriter` |
+| `ReferencePhotoStoreInterface` | `Media\FilesystemReferencePhotoStore` |
 
 Repositories only offer `add`, `remove`, `findBy`, `findOneBy`, `getOneBy` and `countBy`. Each Doctrine implementation lists its `ALLOWED_FILTER_KEYS` and rejects other keys.
 
@@ -34,6 +36,7 @@ The layering is strict except in these places.
 - **Doctrine ORM attributes on the Domain models:** one class per entity instead of a second mapping class that would only copy its fields.
 - **Symfony Lock (`LockFactory`) and DI attributes in Application:** use cases such as `PendingEventRunner`, `EventIngester` and `CameraRegistry` need mutual exclusion, and `#[Autowire]` and `#[AutowireIterator]` keep their wiring out of YAML; the alternative is a port and an adapter for each, which would only wrap the component.
 - **The add-on reuses the core's `Infrastructure\Doctrine\Repository\FilterKeys` and `OrderBy`:** its repositories apply the same filter and sort rules, and copying the helpers would let them drift.
+- **UserInterface reads through Domain repositories and entity route parameters:** read-only pages and tools (the Check page, the timeline filters, the MCP tools) call `findBy` on a repository interface, and `/events/{id}` and `/ask/{id}` receive the entity through Symfony's entity value resolver. Writes always go through an Application service; a query service per page would only forward the same `findBy`.
 
 ## Settings
 
@@ -107,7 +110,7 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 
 - SEAL with the Loupe adapter, index `camera_event` in `var/data/search` (`config/schemas/camera_event.php`).
 - **Searchable, in rank order:** label, summary, subject, false-alarm cause, hints.
-- **Filterable:** camera, detection types, effective verdict, side, status, start time.
+- **Filterable:** camera, detection types, subject (with those of the other known individuals in the event), known individuals, effective verdict, side, status, start time.
 - The database is the source of truth. Every change re-indexes the event, and `cmsig:seal:reindex` rebuilds the index.
 
 ## Questions
@@ -140,4 +143,4 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 | `RunNightlyMaintenance` | `maintenance.nightly_at` (03:30 local) | remove false-alarm frames older than 30 days, `VACUUM INTO` a backup (14 kept); both configurable |
 | `ImportHistory` (add-on) | every minute | Home Assistant import, see the add-on README |
 
-The default schedule is stateful, so a missed nightly run happens after a restart.
+The default schedule is stateful, so a missed nightly run happens after a restart of the worker. Its state lives in the application cache, so it does not survive a new container (`docker compose up --build`); the next night runs as usual. The schedule is built when the worker starts, so a new `maintenance.nightly_at` needs a restart.
