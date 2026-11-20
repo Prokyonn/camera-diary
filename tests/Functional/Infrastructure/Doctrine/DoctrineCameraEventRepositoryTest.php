@@ -55,6 +55,16 @@ final class DoctrineCameraEventRepositoryTest extends KernelTestCase
         self::assertEquals(CameraEventFactory::utc('2026-11-07 13:55:00'), $events[0]->getStartedAt());
     }
 
+    public function testAnUnderscoreInADetectionTypeIsNoWildcard(): void
+    {
+        $person = CameraEventFactory::create('2026-11-07 13:55:00', 'garden', 'person');
+        $otherAnimal = CameraEventFactory::create('2026-11-07 13:56:00', 'garden', 'other_animal');
+        $this->store($person, $otherAnimal);
+
+        self::assertSame([], $this->repository->findBy(['detectionType' => 'pers_n']));
+        self::assertSame([$otherAnimal], $this->repository->findBy(['detectionType' => 'other_animal']), 'A name with "_" still matches itself.');
+    }
+
     public function testFalseAlarmFilterUsesTheEffectiveVerdict(): void
     {
         $web = CameraEventFactory::described('A web thread.', '2026-11-06 17:36:00', verdict: Verdict::FalseAlarm);

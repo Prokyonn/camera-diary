@@ -122,8 +122,9 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
         }
 
         if (isset($filters['detectionType'])) {
-            $queryBuilder->andWhere('event.detectionTypes LIKE :detectionType')
-                ->setParameter('detectionType', '%"'.$filters['detectionType'].'"%');
+            // The JSON list holds the names in quotes; "_" in a name must not act as LIKE's wildcard.
+            $queryBuilder->andWhere("event.detectionTypes LIKE :detectionType ESCAPE '!'")
+                ->setParameter('detectionType', '%"'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $filters['detectionType']).'"%');
         }
 
         if (isset($filters['falseAlarm'])) {
