@@ -3,7 +3,7 @@ mcp:
         default:
             registry: 'App\UserInterface\Mcp\'
 
-            # DNS rebinding protection: only localhost may call the server by default. To reach it under another host
-            # name (e.g. through Tailscale Serve), list that name under http.allowed_hosts and set MCP_TOKEN.
+            # DNS rebinding protection: only the host names in MCP_ALLOWED_HOSTS may call the server (default: localhost).
             http:
                 path: /mcp
+                allowed_hosts: '%env(csv:MCP_ALLOWED_HOSTS)%'
