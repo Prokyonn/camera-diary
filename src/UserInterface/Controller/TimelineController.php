@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Controller;
 
-use App\Application\Ai\AiCallBudgetInterface;
+use App\Application\Ai\AiUsage;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Digest\DayDigests;
 use App\Application\Digest\DigestNotWrittenException;
-use App\Application\Settings\SettingsProviderInterface;
+use App\Application\Timeline\Timeline;
 use App\Domain\Model\CameraEvent;
-use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\UserInterface\Form\TimelineFilter;
 use App\UserInterface\Form\TimelineFilterType;
 use DateTimeImmutable;
@@ -22,16 +21,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @phpstan-import-type CameraEventFilters from CameraEventRepositoryInterface
- */
 final class TimelineController extends AbstractController
 {
     public function __construct(
-        private readonly CameraEventRepositoryInterface $events,
+        private readonly Timeline $timeline,
         private readonly HomeTimeZone $homeTimeZone,
-        private readonly AiCallBudgetInterface $budget,
-        private readonly SettingsProviderInterface $settings,
+        private readonly AiUsage $aiUsage,
         private readonly ClockInterface $clock,
         private readonly DayDigests $digests,
     ) {
@@ -51,23 +46,10 @@ final class TimelineController extends AbstractController
             $day = new DateTimeImmutable($filter->day->format('Y-m-d'), $this->homeTimeZone->zone());
         }
 
-        [$from, $to] = $this->homeTimeZone->dayBounds($day);
-        $filters = ['startedAtOrAfter' => $from, 'startedBefore' => $to];
-        if (null !== $filter->camera) {
-            $filters['cameraSlug'] = $filter->camera;
-        }
-        if (null !== $filter->type) {
-            $filters['detectionType'] = $filter->type;
-        }
-        if (!$filter->falseAlarms) {
-            $filters['falseAlarm'] = false;
-        }
-
-        $events = $this->events->findBy($filters, ['startedAt' => 'desc']);
-        $latestBefore = [] === $events ? $this->latestBefore($filters, $from) : null;
-        if ($latestBefore instanceof CameraEvent && !$request->query->has('day')) {
+        $timelineDay = $this->timeline->day($day, $filter->camera, $filter->type, $filter->falseAlarms);
+        if ($timelineDay->latestBefore instanceof CameraEvent && !$request->query->has('day')) {
             // A quiet today opens on the latest day with events; "Next day" still leads to today.
-            return $this->redirectToRoute('timeline', [...$request->query->all(), 'day' => $this->homeTimeZone->toLocal($latestBefore->getStartedAt())->format('Y-m-d')]);
+            return $this->redirectToRoute('timeline', [...$request->query->all(), 'day' => $this->homeTimeZone->toLocal($timelineDay->latestBefore->getStartedAt())->format('Y-m-d')]);
         }
 
         return $this->render('timeline/index.html.twig', [
@@ -79,9 +61,9 @@ final class TimelineController extends AbstractController
                 'type' => $filter->type,
                 'falseAlarms' => $filter->falseAlarms ? '1' : null,
             ], static fn (?string $value): bool => null !== $value),
-            'events' => $events,
-            'latestBefore' => $latestBefore,
-            'aiUsage' => $this->aiUsage(),
+            'events' => $timelineDay->events,
+            'latestBefore' => $timelineDay->latestBefore,
+            'aiUsage' => $this->aiUsage->today(),
             'digest' => $this->digests->of($day),
             'describedCount' => $this->digests->eventCount($day),
         ]);
@@ -101,32 +83,5 @@ final class TimelineController extends AbstractController
         }
 
         return $this->redirectToRoute('timeline', ['day' => $day], Response::HTTP_SEE_OTHER);
-    }
-
-    /**
-     * @return list<array{label: string, used: int, limit: int}> today's AI calls in total, then per call pool
-     */
-    private function aiUsage(): array
-    {
-        $ai = $this->settings->settings()->ai;
-        $usage = [['label' => 'AI calls today', 'used' => $this->budget->usedToday(), 'limit' => $ai->dailyCallLimit]];
-        foreach ($ai->callPools as $pool) {
-            $usage[] = ['label' => $pool->label(), 'used' => $this->budget->usedToday($pool), 'limit' => $pool->dailyCallLimit];
-        }
-
-        return $usage;
-    }
-
-    /**
-     * The latest earlier event with the same filters, so an empty day can point to it.
-     *
-     * @param CameraEventFilters $filters
-     */
-    private function latestBefore(array $filters, DateTimeImmutable $from): ?CameraEvent
-    {
-        unset($filters['startedAtOrAfter']);
-        $filters['startedBefore'] = $from;
-
-        return $this->events->findOneBy($filters, ['startedAt' => 'desc']);
     }
 }
