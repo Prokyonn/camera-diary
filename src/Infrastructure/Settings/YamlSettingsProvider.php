@@ -75,7 +75,7 @@ final class YamlSettingsProvider implements SettingsProviderInterface
         try {
             return Yaml::parseFile($this->path);
         } catch (ParseException $exception) {
-            throw $this->invalid($exception->getMessage(), $exception);
+            throw new InvalidSettingsException($exception->getMessage(), 0, $exception);
         }
     }
 

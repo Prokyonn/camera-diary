@@ -91,9 +91,11 @@ final class YamlSettingsProviderTest extends TestCase
     {
         new Filesystem()->dumpFile($this->path, "ai: [\n");
 
-        $this->expectException(InvalidSettingsException::class);
-        $this->expectExceptionMessageIsOrContains($this->path);
-
-        new YamlSettingsProvider($this->path, new NullLogger())->settings();
+        try {
+            new YamlSettingsProvider($this->path, new NullLogger())->settings();
+            self::fail('Invalid YAML was accepted.');
+        } catch (InvalidSettingsException $exception) {
+            self::assertSame(1, substr_count($exception->getMessage(), \sprintf('Invalid settings in "%s"', $this->path)), 'The file is named once.');
+        }
     }
 }
