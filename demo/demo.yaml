@@ -1,7 +1,8 @@
-# A week in a demo home for `bin/console app:demo`. Each event is placed at the latest past occurrence of its local
-# time of day, days_ago days back. Without an AI, `app:demo --recorded` stores the answers below, recorded from a
-# real run with Gemini; with one, the worker describes the clips itself. The home, its cameras and the clips are
-# AI-generated, see demo/CREDITS.md.
+# A week in a demo home for `bin/console app:demo`. Each event is placed at its local time of day, days_ago days
+# before today (a time still ahead today moves to yesterday). Without an AI, `app:demo --recorded` stores the
+# answers below, recorded from a real run with Gemini; with one, the worker describes the clips itself. The home,
+# its cameras and the clips are AI-generated, see demo/CREDITS.md. In the recorded answers to the questions, the
+# dates are cut down to times of day, so they fit whatever day the demo is loaded.
 
 cameras:
     terrace:
@@ -360,14 +361,18 @@ events:
             confidence: "high"
 questions:
 -   question: "Did a strange cat bother Luna this week?"
-    answer: "Yes, on Monday, 16 November 2026 at 15:20, an unfamiliar ginger cat confronted Luna on the terrace. Both cats arched their backs in a standoff until the ginger cat retreated across the lawn."
+    answer: "Yes, at 15:20 an unfamiliar ginger cat confronted Luna on the terrace. Both cats arched their backs in a standoff until the ginger cat retreated across the lawn."
     events: ["standoff", "luna-4", "luna-3", "luna-2", "luna-1"]
 -   question: "When did Anna come to feed Luna?"
-    answer: "Anna arrived holding cat food on Tuesday, 17 November 2026 at 08:05, Wednesday, 18 November 2026 at 08:10, and Thursday, 19 November 2026 at 08:00."
+    answer: "Anna arrived holding cat food on three mornings: at 08:05, 08:10 and 08:00."
     events: ["anna-1", "anna-2", "anna-3", "luna-1", "luna-2", "standoff", "luna-3", "luna-4"]
 -   question: "Which camera has the most false alarms, and why?"
     answer: "The Shed camera has the most false alarms, with 8 occurrences caused by a spider repeatedly crawling directly across the camera lens."
     events: ["spider-8", "spider-7", "spider-6", "spider-5", "spider-4", "spider-3", "spider-2", "spider-1", "rain-1"]
 -   question: "How often did the cameras see Luna this week?"
-    answer: "Luna was seen by the Terrace camera 5 times this week: on Friday, November 13 at 16:55, Sunday, November 15 at 17:05, Monday, November 16 at 15:20, Tuesday, November 17 at 16:50, and Wednesday, November 18 at 16:58."
+    answer: "Luna was seen by the Terrace camera 5 times this week: at 16:55, 17:05, 15:20, 16:50 and 16:58."
     events: ["luna-4", "luna-3", "standoff", "luna-2", "luna-1"]
+digests:
+-   days_ago: 1
+    model: "gemini-flash-latest"
+    text: "Everything was quiet and orderly around the house today with no unusual activity to report. Anna arrived at the front door at 08:10 with cat food, and a neighbour's grey cat crossed the terrace at 13:35. Luna then made an appearance on the terrace at 16:58, sitting comfortably outside the glass door and looking inside."
