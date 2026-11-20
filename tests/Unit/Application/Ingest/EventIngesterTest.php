@@ -29,6 +29,9 @@ use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use ReflectionProperty;
+use RuntimeException;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 #[CoversClass(EventIngester::class)]
 final class EventIngesterTest extends TestCase
@@ -151,6 +154,18 @@ final class EventIngesterTest extends TestCase
         $this->ingester()->ingest(new IngestRequest('garden', CameraEventFactory::utc('2026-11-10 07:16:20'), imagePaths: ['/tmp/notes.txt']));
     }
 
+    public function testRemovesTheEventWhenStoringTheFramesFails(): void
+    {
+        $this->extractor->extract(Argument::cetera())->willThrow(new RuntimeException('No space left on device'));
+        $this->events->remove(Argument::type(CameraEvent::class))->shouldBeCalledOnce();
+        $this->storage->remove(['garden/2026/11/10/42-0.jpg'])->shouldBeCalledOnce();
+        $this->indexer->index(Argument::any())->shouldNotBeCalled();
+
+        $this->expectExceptionObject(new RuntimeException('No space left on device'));
+
+        $this->ingester()->ingest(new IngestRequest('garden', CameraEventFactory::utc('2026-11-10 07:16:20'), imagePaths: ['/tmp/a.jpg']));
+    }
+
     public function testRejectsAnUnreadableVideo(): void
     {
         $this->extractor->duration('/tmp/clip.mp4')->willReturn(null);
@@ -189,15 +204,17 @@ final class EventIngesterTest extends TestCase
     private function ingester(): EventIngester
     {
         $unitOfWork = $this->prophesize(UnitOfWorkInterface::class)->reveal();
+        $locks = new LockFactory(new InMemoryStore());
 
         return new EventIngester(
-            new CameraRegistry($this->cameras->reveal(), $unitOfWork),
+            new CameraRegistry($this->cameras->reveal(), $unitOfWork, $locks),
             $this->events->reveal(),
             $this->extractor->reveal(),
             $this->storage->reveal(),
             $this->indexer->reveal(),
             $unitOfWork,
             $this->settingsProvider(),
+            $locks,
         );
     }
 }

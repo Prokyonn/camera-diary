@@ -20,6 +20,8 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\InMemoryStore;
 
 #[CoversClass(EventGrouper::class)]
 final class EventGrouperTest extends TestCase
@@ -116,7 +118,7 @@ final class EventGrouperTest extends TestCase
         return new EventGrouper(
             $this->detections->reveal(),
             $this->events->reveal(),
-            new CameraRegistry($this->cameras->reveal(), $this->unitOfWork->reveal()),
+            new CameraRegistry($this->cameras->reveal(), $this->unitOfWork->reveal(), new LockFactory(new InMemoryStore())),
             $this->unitOfWork->reveal(),
         );
     }

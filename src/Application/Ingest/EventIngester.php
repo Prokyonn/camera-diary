@@ -16,10 +16,13 @@ use App\Domain\Model\CameraEvent;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use DateTimeImmutable;
 use DateTimeZone;
+use Symfony\Component\Lock\LockFactory;
+use Throwable;
 
 /**
  * The hook any application can use: stores an event with frames cut from its video or images. The worker
- * describes it on its next run.
+ * describes it on its next run. Sending the same source and external id again returns the stored event, also when
+ * both requests arrive at once (a lock per external id).
  */
 final readonly class EventIngester
 {
@@ -34,6 +37,7 @@ final readonly class EventIngester
         private EventIndexerInterface $indexer,
         private UnitOfWorkInterface $unitOfWork,
         private SettingsProviderInterface $settings,
+        private LockFactory $lockFactory,
     ) {
     }
 
@@ -44,13 +48,24 @@ final readonly class EventIngester
     {
         $this->assertValid($request);
 
-        if (null !== $request->externalId) {
-            $existing = $this->events->findOneBy(['source' => $request->source, 'externalId' => $request->externalId]);
-            if ($existing instanceof CameraEvent) {
-                return new IngestResult($existing, false);
-            }
+        if (null === $request->externalId) {
+            return $this->store($request);
         }
 
+        $lock = $this->lockFactory->createLock('ingest-'.hash('xxh128', $request->source."\0".$request->externalId));
+        $lock->acquire(true);
+
+        try {
+            $existing = $this->events->findOneBy(['source' => $request->source, 'externalId' => $request->externalId]);
+
+            return $existing instanceof CameraEvent ? new IngestResult($existing, false) : $this->store($request);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function store(IngestRequest $request): IngestResult
+    {
         $sources = $this->frameSources($request);
 
         // Open while the frames are written, so the worker does not pick it up half done.
@@ -73,12 +88,13 @@ final readonly class EventIngester
 
         try {
             $this->storeFrames($event, $sources);
-        } catch (FrameExtractionFailedException $exception) {
+        } catch (Throwable $exception) {
+            // Any failure, not only unreadable media: an open event is never described and would stay forever.
             $this->frameStorage->remove(array_map(fn (int $index): string => $this->frameStorage->relativePathFor($event, $index), array_keys($sources)));
             $this->events->remove($event);
             $this->unitOfWork->flush();
 
-            throw new InvalidIngestException('The media could not be read: '.$exception->getMessage(), 0, $exception);
+            throw $exception instanceof FrameExtractionFailedException ? new InvalidIngestException('The media could not be read: '.$exception->getMessage(), 0, $exception) : $exception;
         }
 
         $event->close();
