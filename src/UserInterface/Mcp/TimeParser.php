@@ -6,8 +6,6 @@ namespace App\UserInterface\Mcp;
 
 use App\Application\Clock\HomeTimeZone;
 use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use InvalidArgumentException;
 
 /**
@@ -26,10 +24,6 @@ final readonly class TimeParser
             return null;
         }
 
-        try {
-            return new DateTimeImmutable($value, $this->homeTimeZone->zone())->setTimezone(new DateTimeZone('UTC'));
-        } catch (Exception $exception) {
-            throw new InvalidArgumentException(\sprintf('"%s" is not a valid time.', $value), 0, $exception);
-        }
+        return $this->homeTimeZone->parseLocal($value) ?? throw new InvalidArgumentException(\sprintf('"%s" is not a valid time.', $value));
     }
 }

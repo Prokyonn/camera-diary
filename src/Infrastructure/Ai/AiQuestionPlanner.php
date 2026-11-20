@@ -12,9 +12,6 @@ use App\Application\Settings\SettingsProviderInterface;
 use App\Infrastructure\Ai\Client\Prompt;
 use App\Infrastructure\Ai\Client\StructuredClientInterface;
 use App\Infrastructure\Ai\Output\SearchPlanOutput;
-use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 
@@ -52,8 +49,8 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
         return new SearchCriteria(
             text: $plan->keywords,
             cameras: array_values(array_intersect($plan->cameras, $this->homeContext->cameraSlugs())),
-            from: $this->parseTime($plan->from),
-            to: $this->parseTime($plan->to),
+            from: $this->homeTimeZone->parseLocal($plan->from),
+            to: $this->homeTimeZone->parseLocal($plan->to),
             side: $plan->side->side(),
             includeFalseAlarms: $plan->includeFalseAlarms,
             limit: $limit,
@@ -90,18 +87,5 @@ final readonly class AiQuestionPlanner implements QuestionPlannerInterface
         }
 
         return $known;
-    }
-
-    private function parseTime(string $value): ?DateTimeImmutable
-    {
-        if ('' === trim($value)) {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value, $this->homeTimeZone->zone())->setTimezone(new DateTimeZone('UTC'));
-        } catch (Exception) {
-            return null;
-        }
     }
 }

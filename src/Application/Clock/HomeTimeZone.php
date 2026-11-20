@@ -6,6 +6,7 @@ namespace App\Application\Clock;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use Exception;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
@@ -28,6 +29,22 @@ final readonly class HomeTimeZone
     public function toLocal(DateTimeImmutable $at): DateTimeImmutable
     {
         return $at->setTimezone($this->zone);
+    }
+
+    /**
+     * Reads a date and time that is in the home time zone unless it has an offset; null if blank or invalid.
+     */
+    public function parseLocal(string $value): ?DateTimeImmutable
+    {
+        if ('' === trim($value)) {
+            return null;
+        }
+
+        try {
+            return new DateTimeImmutable($value, $this->zone)->setTimezone(new DateTimeZone('UTC'));
+        } catch (Exception) {
+            return null;
+        }
     }
 
     /**
