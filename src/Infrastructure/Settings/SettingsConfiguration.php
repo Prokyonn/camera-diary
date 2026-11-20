@@ -39,8 +39,9 @@ final class SettingsConfiguration implements ConfigurationInterface
         'insect' => ['label' => 'Insect', 'description' => 'insects close to the lens'],
         'rain' => ['label' => 'Rain', 'description' => 'rain or snow'],
         'light' => ['label' => 'Light', 'description' => 'headlights, sun reflections or moving shadows'],
+        'wind' => ['label' => 'Wind', 'description' => 'plants, branches or leaves moving in the wind'],
         'nothing' => ['label' => 'Nothing', 'description' => 'no visible cause'],
-        'other' => ['label' => 'Other', 'description' => 'anything else, e.g. plants moving in the wind'],
+        'other' => ['label' => 'Other', 'description' => 'anything else'],
     ];
 
     public const string DEFAULT_UNUSUAL_RULE = 'A person on our property who does not seem to belong there, or anyone on our property at night.';

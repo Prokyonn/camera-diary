@@ -21,7 +21,7 @@ final class SettingsBuilderTest extends TestCase
 
         self::assertSame(['person', 'animal', 'vehicle', 'motion'], $settings->detectionTypes->names());
         self::assertSame(['person', 'cat', 'dog', 'bird', 'other_animal', 'vehicle', 'nothing', 'other'], $settings->subjects->names());
-        self::assertSame(['spider_web', 'insect', 'rain', 'light', 'nothing', 'other'], $settings->falseAlarmCauses->names());
+        self::assertSame(['spider_web', 'insect', 'rain', 'light', 'wind', 'nothing', 'other'], $settings->falseAlarmCauses->names());
         self::assertSame(500, $settings->ai->dailyCallLimit);
         self::assertSame([], $settings->ai->callPools);
         self::assertSame([1, 2, 3], $settings->description->frameOffsets);

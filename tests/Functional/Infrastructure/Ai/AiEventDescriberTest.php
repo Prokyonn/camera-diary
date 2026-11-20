@@ -100,7 +100,7 @@ final class AiEventDescriberTest extends TestCase
         self::assertStringContainsString('Our cat is called Luna.', $input, 'The prompt carries the home context.');
         self::assertStringContainsString('Unusual events: A stranger on our property.', $input, 'The prompt carries the rule for unusual events.');
         $options = json_encode($call['options'], \JSON_THROW_ON_ERROR);
-        self::assertStringContainsString('"enum":["none","spider_web","insect","rain","light","nothing","other","snail"]', $options, 'The JSON schema lists the false-alarm causes.');
+        self::assertStringContainsString('"enum":["none","spider_web","insect","rain","light","wind","nothing","other","snail"]', $options, 'The JSON schema lists the false-alarm causes.');
         self::assertStringContainsString('fox: a red fox', $options, 'The JSON schema lists configured subjects with their hints.');
         self::assertStringContainsString('a spider, its web or a single thread', $input, 'The prompt names the configured false-alarm causes.');
         self::assertStringContainsString('Reference photos of the known individual \\"luna\\" (Luna, a cat): grey-brown tabby. Not part of the event.', $input, 'The reference photos come with the event.');

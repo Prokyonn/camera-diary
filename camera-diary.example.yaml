@@ -37,7 +37,7 @@ ai:
 # Defaults:
 #   detection_types: person, animal, vehicle, motion
 #   subjects: person, cat, dog, bird, other_animal, vehicle, nothing, other
-#   false_alarm_causes: spider_web, insect, rain, light, nothing, other ("none" is reserved for real events)
+#   false_alarm_causes: spider_web, insect, rain, light, wind, nothing, other ("none" is reserved for real events)
 detection_types:
     package: { label: Package }
 subjects:
