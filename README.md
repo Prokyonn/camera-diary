@@ -123,6 +123,8 @@ For `vertexai`, enable the Agent Platform API (formerly Vertex AI) in a project 
 
 The CLI providers run on the machine that runs the worker. The Docker image does not contain them.
 
+Ask and "Summarize this day" call the AI inside the web request. A CLI provider can take minutes for one answer, so PHP's `max_execution_time` (and any proxy timeout) must be long enough for it.
+
 ## Settings
 
 Everything an installation may want to change lives in one YAML file, `var/data/camera-diary.yaml` (or `CAMERA_DIARY_CONFIG`). Every key is optional, and a running worker picks up changes. [camera-diary.example.yaml](camera-diary.example.yaml) lists them all; `bin/console app:settings` checks the file.

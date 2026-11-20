@@ -27,6 +27,14 @@ Ports and adapters:
 
 Repositories only offer `add`, `remove`, `findBy`, `findOneBy`, `getOneBy` and `countBy`. Each Doctrine implementation lists its `ALLOWED_FILTER_KEYS` and rejects other keys.
 
+## Pragmatic exceptions
+
+The layering is strict except in these places.
+
+- **Doctrine ORM attributes on the Domain models:** one class per entity instead of a second mapping class that would only copy its fields.
+- **Symfony Lock (`LockFactory`) and DI attributes in Application:** use cases such as `PendingEventRunner`, `EventIngester` and `CameraRegistry` need mutual exclusion, and `#[Autowire]` and `#[AutowireIterator]` keep their wiring out of YAML; the alternative is a port and an adapter for each, which would only wrap the component.
+- **The add-on reuses the core's `Infrastructure\Doctrine\Repository\FilterKeys` and `OrderBy`:** its repositories apply the same filter and sort rules, and copying the helpers would let them drift.
+
 ## Settings
 
 `SettingsProviderInterface` returns one `Settings` object: the vocabularies, the AI limits and context, and the timings. `YamlSettingsProvider` reads `CAMERA_DIARY_CONFIG`, validates it against `SettingsConfiguration` (defaults for everything left out) and reads it again when the file changes. Nothing else reads the environment for these values.
