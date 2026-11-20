@@ -13,6 +13,7 @@ use App\Tests\Support\ResetsStorage;
 use App\Tests\Support\StoresEvents;
 use App\UserInterface\Controller\TimelineController;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Symfony\AI\Platform\Exception\RateLimitExceededException;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 
@@ -92,6 +93,22 @@ final class TimelineControllerTest extends WebTestCase
         $this->storeEvents(self::getContainer(), CameraEventFactory::described('A person.', '2026-11-07 15:00:00', 'street', subject: 'person'));
         $client->request('GET', '/');
         self::assertSelectorTextContains('.digest button', 'Update the summary');
+    }
+
+    public function testSaysWhenTheSummaryCouldNotBeWritten(): void
+    {
+        self::mockTime('2026-11-07 20:00:00');
+        $client = self::createClient();
+        $client->disableReboot();
+        $this->resetStorage(self::getContainer());
+        $this->storeEvents(self::getContainer(), CameraEventFactory::described('Luna crosses the lawn.', '2026-11-07 12:00:00', 'garden', individual: 'luna'));
+        self::getContainer()->get(FakePlatform::class)->respondWith(new RateLimitExceededException());
+
+        $client->request('GET', '/');
+        $client->submitForm('Summarize this day');
+        $client->followRedirect();
+
+        self::assertSelectorTextContains('.flash.is-error[role=alert]', 'The AI could not write the summary right now.');
     }
 
     public function testFiltersByDayAndShowsFalseAlarmsOnRequest(): void

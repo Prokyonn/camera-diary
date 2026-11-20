@@ -97,7 +97,7 @@ final class TimelineController extends AbstractController
         try {
             $this->digests->write(new DateTimeImmutable($day, $this->homeTimeZone->zone()));
         } catch (DigestNotWrittenException $exception) {
-            $this->addFlash('success', $exception->getMessage());
+            $this->addFlash('error', $exception->getMessage());
         }
 
         return $this->redirectToRoute('timeline', ['day' => $day], Response::HTTP_SEE_OTHER);

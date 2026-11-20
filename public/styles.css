@@ -249,6 +249,11 @@ code {
   color: var(--color-text);
   font-weight: 500;
   border: 1px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
+
+  &.is-error {
+    background: var(--color-warn-soft);
+    border-color: color-mix(in oklab, var(--color-warn) 45%, transparent);
+  }
 }
 
 /* Forms */
