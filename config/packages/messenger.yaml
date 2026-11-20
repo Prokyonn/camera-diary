@@ -1,3 +1,3 @@
-# The worker consumes only the scheduler transport: `messenger:consume scheduler_default`.
+# The worker consumes the scheduler transports: `messenger:consume scheduler_default scheduler_home_assistant`.
 framework:
     messenger: ~

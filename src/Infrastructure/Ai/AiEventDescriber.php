@@ -107,7 +107,7 @@ final readonly class AiEventDescriber implements EventDescriberInterface
         }
 
         return <<<'TEXT'
-            Known individuals: their reference photos come before the event. First decide what kind of animal or person the subject is from its build, head, muzzle, ears, coat and tail; a dog, a fox or any other animal is never a known cat. Name a known individual only if the subject is of its kind and clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt. When the subject is small, far away, dark, blurred or only partly visible, do not answer high confidence. A known individual seen on another camera shortly before or after, given in the hints, makes it likely the same one, but the markings must still fit. List other known individuals that are clearly visible too, e.g. the household cat next to a person, under alsoSeen.
+            Known individuals: their reference photos come before the event. First decide what kind of animal or person the subject is from its build, head, muzzle, ears, coat and tail; a dog, a fox or any other animal is never a known cat. Name a known individual only if the subject is of its kind and clearly matches it in markings, colours and build; similar-looking ones may visit, so answer unknown when in doubt. When the subject is small, far away, dark, blurred or only partly visible, do not answer high confidence. A known individual seen on another camera shortly before or after, listed with the event, makes it likely the same one, but the markings must still fit. List other known individuals that are clearly visible too, e.g. the household cat next to a person, under alsoSeen.
             TEXT;
     }
 
