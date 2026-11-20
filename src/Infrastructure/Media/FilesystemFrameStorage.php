@@ -77,16 +77,17 @@ final readonly class FilesystemFrameStorage implements FrameStorageInterface
             return false;
         }
 
-        $spread = 0;
+        // How far the colour channels of each sampled pixel lie apart; infrared night images have almost none.
+        $spreads = [];
         for ($x = 0; $x < self::SAMPLE_SIZE; ++$x) {
             for ($y = 0; $y < self::SAMPLE_SIZE; ++$y) {
                 $rgb = imagecolorat($sample, $x, $y);
                 $channels = [($rgb >> 16) & 0xFF, ($rgb >> 8) & 0xFF, $rgb & 0xFF];
-                $spread += max($channels) - min($channels);
+                $spreads[] = max($channels) - min($channels);
             }
         }
 
-        return $spread / self::SAMPLE_SIZE ** 2 < self::MONOCHROME_SPREAD;
+        return array_sum($spreads) / \count($spreads) < self::MONOCHROME_SPREAD;
     }
 
     public function brightnessGrid(string $relativePath, int $columns): ?BrightnessGrid

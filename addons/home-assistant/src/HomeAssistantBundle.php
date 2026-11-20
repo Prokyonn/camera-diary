@@ -23,7 +23,6 @@ final class HomeAssistantBundle extends AbstractBundle
                         'is_bundle' => false,
                         'dir' => __DIR__.'/Domain/Model',
                         'prefix' => 'CameraDiary\HomeAssistant\Domain\Model',
-                        'alias' => 'HomeAssistant',
                     ],
                 ],
             ],
