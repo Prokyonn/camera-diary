@@ -44,6 +44,7 @@ final readonly class HomeTools
      *     to: string,
      *     real_events: int,
      *     false_alarms: int,
+     *     false_alarms_filed_without_ai: int,
      *     not_described_yet: int,
      *     real_events_by_who: array<string, int>,
      *     false_alarms_by_cause: array<string, int>,

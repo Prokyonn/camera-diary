@@ -51,6 +51,7 @@ final class HomeToolsTest extends KernelTestCase
 
         self::assertSame(4, $activity['real_events']);
         self::assertSame(1, $activity['false_alarms']);
+        self::assertSame(0, $activity['false_alarms_filed_without_ai']);
         self::assertSame(1, $activity['not_described_yet']);
         self::assertSame(['Luna' => 3, 'Person' => 1, 'Other cat' => 1], $activity['real_events_by_who'], 'Luna next to the postman counts for both.');
         self::assertSame(['Spider web' => 1], $activity['false_alarms_by_cause']);
