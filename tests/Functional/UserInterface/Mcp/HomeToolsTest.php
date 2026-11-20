@@ -99,6 +99,21 @@ final class HomeToolsTest extends KernelTestCase
         $this->tools->correct($event->getId(), individual: 'garfield');
     }
 
+    public function testTellsTheAssistantAboutAnUnknownEventOrAnEmptyRange(): void
+    {
+        try {
+            $this->tools->correct(999, label: 'the postman');
+            self::fail('An unknown event was accepted.');
+        } catch (ToolCallException $exception) {
+            self::assertSame('Event 999 does not exist.', $exception->getMessage());
+        }
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessageIsOrContains('"from" must be before "to".');
+
+        $this->tools->activity(from: '2026-11-08T10:00', to: '2026-11-07T10:00');
+    }
+
     public function testRejectsAnUnknownVerdict(): void
     {
         $event = CameraEventFactory::described('A grey cat.');

@@ -14,7 +14,6 @@ use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Mcp\Capability\Attribute\McpPrompt;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
@@ -70,7 +69,7 @@ final readonly class HomeTools
         $end = $this->timeParser->parse($to) ?? $this->clock->now();
         $start = $this->timeParser->parse($from) ?? $end->modify('-7 days');
         if ($start >= $end) {
-            throw new InvalidArgumentException('"from" must be before "to".');
+            throw new ToolCallException('"from" must be before "to".');
         }
 
         $activity = $this->activityReport->between($start, $end, '' === $camera ? null : $camera);
@@ -133,7 +132,7 @@ final readonly class HomeTools
         #[Schema(description: 'What caused a false alarm, e.g. spider_web or wind; empty to keep')]
         string $cause = '',
     ): array {
-        $event = $this->events->findOneBy(['id' => $id]) ?? throw new InvalidArgumentException(\sprintf('Event %d does not exist.', $id));
+        $event = $this->events->findOneBy(['id' => $id]) ?? throw new ToolCallException(\sprintf('Event %d does not exist.', $id));
         $verdictOverride = '' === $verdict ? $event->getVerdictOverride() : Verdict::tryFrom($verdict) ?? throw new ToolCallException(\sprintf('"%s" is no verdict; use real or false_alarm.', $verdict));
 
         try {

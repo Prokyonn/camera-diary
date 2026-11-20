@@ -10,7 +10,7 @@ use App\Tests\Support\ResetsStorage;
 use App\Tests\Support\StoresEvents;
 use App\UserInterface\Mcp\CameraEventTools;
 use App\UserInterface\Mcp\EventPresenter;
-use InvalidArgumentException;
+use Mcp\Exception\ToolCallException;
 use Mcp\Schema\Content\ImageContent;
 use Mcp\Schema\Content\TextContent;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -74,10 +74,22 @@ final class CameraEventToolsTest extends KernelTestCase
         self::assertCount(1, $this->tools->get($event->getId(), includeFrames: false));
     }
 
-    public function testRejectsUnknownCamerasAndEvents(): void
+    /**
+     * The MCP SDK passes only a ToolCallException's message to the assistant, so it can correct its call.
+     */
+    public function testTellsTheAssistantWhatWasWrong(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-
-        $this->tools->search(camera: 'kitchen');
+        foreach ([
+            'Unknown camera "kitchen".' => fn (): mixed => $this->tools->search(camera: 'kitchen'),
+            '"yesterday-ish" is not a valid time.' => fn (): mixed => $this->tools->search(from: 'yesterday-ish'),
+            'Event 999 does not exist.' => fn (): mixed => $this->tools->get(999),
+        ] as $message => $call) {
+            try {
+                $call();
+                self::fail('Accepted: '.$message);
+            } catch (ToolCallException $exception) {
+                self::assertSame($message, $exception->getMessage());
+            }
+        }
     }
 }

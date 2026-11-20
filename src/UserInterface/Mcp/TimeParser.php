@@ -6,7 +6,7 @@ namespace App\UserInterface\Mcp;
 
 use App\Application\Clock\HomeTimeZone;
 use DateTimeImmutable;
-use InvalidArgumentException;
+use Mcp\Exception\ToolCallException;
 
 /**
  * Reads a time an assistant sends: ISO 8601, local time if it has no offset; returns UTC.
@@ -24,6 +24,6 @@ final readonly class TimeParser
             return null;
         }
 
-        return $this->homeTimeZone->parseLocal($value) ?? throw new InvalidArgumentException(\sprintf('"%s" is not a valid time.', $value));
+        return $this->homeTimeZone->parseLocal($value) ?? throw new ToolCallException(\sprintf('"%s" is not a valid time.', $value));
     }
 }

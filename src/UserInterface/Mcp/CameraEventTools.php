@@ -10,9 +10,9 @@ use App\Application\Search\SearchCriteria;
 use App\Domain\Model\Camera;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
-use InvalidArgumentException;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
+use Mcp\Exception\ToolCallException;
 use Mcp\Schema\Content\Content;
 use Mcp\Schema\Content\ImageContent;
 use Mcp\Schema\Content\TextContent;
@@ -63,7 +63,7 @@ final readonly class CameraEventTools
     ): array {
         $result = $this->search->search(new SearchCriteria(
             text: $query,
-            cameras: '' === $camera ? [] : [$this->cameras->findOneBy(['slug' => $camera])?->getSlug() ?? throw new InvalidArgumentException(\sprintf('Unknown camera "%s".', $camera))],
+            cameras: '' === $camera ? [] : [$this->cameras->findOneBy(['slug' => $camera])?->getSlug() ?? throw new ToolCallException(\sprintf('Unknown camera "%s".', $camera))],
             from: $this->timeParser->parse($from),
             to: $this->timeParser->parse($to),
             includeFalseAlarms: $includeFalseAlarms,
@@ -104,7 +104,7 @@ final readonly class CameraEventTools
         #[Schema(description: 'Attach the frames (up to three JPEG images)')]
         bool $includeFrames = true,
     ): array {
-        $event = $this->events->findOneBy(['id' => $id]) ?? throw new InvalidArgumentException(\sprintf('Event %d does not exist.', $id));
+        $event = $this->events->findOneBy(['id' => $id]) ?? throw new ToolCallException(\sprintf('Event %d does not exist.', $id));
         $content = [new TextContent(json_encode($this->presenter->present($event), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR))];
         if (!$includeFrames) {
             return $content;
