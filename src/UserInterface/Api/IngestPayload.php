@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * Form fields of POST /api/events; the media come as the files `video` or `images[]`.
  */
-final class IngestPayload
+final readonly class IngestPayload
 {
     /**
      * @param list<string> $detections names from the detection types vocabulary
