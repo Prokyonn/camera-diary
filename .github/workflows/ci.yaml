@@ -27,6 +27,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
+      # The lint validates the mapping against a migrated database.
+      - name: Migrate a fresh database
+        run: mkdir -p var/data && bin/console doctrine:migrations:migrate --no-interaction
+
       - name: Lint, static analysis and tests
         run: composer check
 
@@ -43,8 +47,8 @@ jobs:
       - name: A fresh install migrates and loads the recorded demo
         run: |
           docker run --rm -e APP_SECRET=ci -e CAMERA_DIARY_CONFIG=/app/demo/camera-diary.yaml camera-diary:ci sh -c '
-            mkdir -p var/data/locks
-            && bin/console doctrine:migrations:migrate --no-interaction
-            && bin/console doctrine:schema:validate
-            && bin/console cmsig:seal:index-create
-            && bin/console app:demo --recorded'
+            mkdir -p var/data/locks &&
+            bin/console doctrine:migrations:migrate --no-interaction &&
+            bin/console doctrine:schema:validate &&
+            bin/console cmsig:seal:index-create &&
+            bin/console app:demo --recorded'
