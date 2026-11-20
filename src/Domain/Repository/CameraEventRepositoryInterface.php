@@ -14,6 +14,7 @@ use DateTimeImmutable;
  * @phpstan-type CameraEventFilters array{
  *     id?: int,
  *     ids?: list<int>,
+ *     idAfter?: int,
  *     camera?: Camera,
  *     cameraSlug?: string,
  *     source?: string,

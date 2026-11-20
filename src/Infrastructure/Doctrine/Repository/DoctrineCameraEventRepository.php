@@ -23,6 +23,7 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
     public const array ALLOWED_FILTER_KEYS = [
         'id',
         'ids',
+        'idAfter',
         'camera',
         'cameraSlug',
         'source',
@@ -102,6 +103,7 @@ final readonly class DoctrineCameraEventRepository implements CameraEventReposit
         $comparisons = [
             'id' => 'event.id = :id',
             'ids' => 'event.id IN (:ids)',
+            'idAfter' => 'event.id > :idAfter',
             'camera' => 'event.camera = :camera',
             'cameraSlug' => 'IDENTITY(event.camera) = :cameraSlug',
             'source' => 'event.source = :source',
