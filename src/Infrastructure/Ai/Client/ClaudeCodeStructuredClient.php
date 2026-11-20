@@ -9,6 +9,7 @@ use Symfony\AI\Platform\Exception\ExceptionInterface as PlatformException;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\Component\Process\Exception\ExceptionInterface as ProcessException;
 
 /**
  * The Claude Code CLI (Claude subscription). The bridge only passes text, so the images are listed as files the
@@ -50,7 +51,7 @@ final readonly class ClaudeCodeStructuredClient implements StructuredClientInter
             $text = $this->platform
                 ->invoke($this->model, new MessageBag(Message::forSystem($prompt->instructions), Message::ofUser($this->text($prompt))), $options)
                 ->asText();
-        } catch (PlatformException $exception) {
+        } catch (PlatformException|ProcessException $exception) {
             throw new AiRequestFailedException($exception->getMessage(), 0, $exception);
         }
 

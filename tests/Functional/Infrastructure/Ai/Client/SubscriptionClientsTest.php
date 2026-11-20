@@ -19,6 +19,8 @@ use Symfony\AI\Platform\Bridge\Codex\Codex;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\Test\MockPlatformFactory;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\Process;
 
 #[CoversClass(ClaudeCodeStructuredClient::class)]
 #[CoversClass(CodexStructuredClient::class)]
@@ -92,6 +94,22 @@ final class SubscriptionClientsTest extends TestCase
         $this->expectException(AiRequestFailedException::class);
 
         $client->request($this->prompt(), EventDescriptionOutput::class);
+    }
+
+    public function testACliThatTimesOutFailsLikeAnyOtherAiRequest(): void
+    {
+        $platform = MockPlatformFactory::createPlatform(static function (): never {
+            throw new ProcessTimedOutException(new Process(['codex', 'exec']), ProcessTimedOutException::TYPE_GENERAL);
+        });
+
+        foreach ([new CodexStructuredClient($platform, 'gpt-5.4-mini', new OutputDecoder()), new ClaudeCodeStructuredClient($platform, 'sonnet', new OutputDecoder())] as $client) {
+            try {
+                $client->request($this->prompt(), EventDescriptionOutput::class);
+                self::fail(\sprintf('%s let the timeout escape.', $client::class));
+            } catch (AiRequestFailedException $exception) {
+                self::assertInstanceOf(ProcessTimedOutException::class, $exception->getPrevious(), 'The worker retries the event later instead of stopping the batch.');
+            }
+        }
     }
 
     public function testTheCliCatalogAcceptsAnyModelName(): void

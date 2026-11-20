@@ -10,6 +10,7 @@ use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Exception\ExceptionInterface as ProcessException;
 
 /**
  * The Codex CLI (ChatGPT subscription). The bridge only passes text, so the images go in as `--image` files and the
@@ -48,7 +49,7 @@ final readonly class CodexStructuredClient implements StructuredClientInterface
                     'ignore_user_config' => true,
                 ])
                 ->asText();
-        } catch (PlatformException $exception) {
+        } catch (PlatformException|ProcessException $exception) {
             throw new AiRequestFailedException($exception->getMessage(), 0, $exception);
         } finally {
             $this->filesystem->remove($schemaFile);
