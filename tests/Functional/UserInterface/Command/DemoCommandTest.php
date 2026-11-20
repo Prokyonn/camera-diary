@@ -54,6 +54,7 @@ final class DemoCommandTest extends KernelTestCase
                         side: our_property
                         subject: cat
                         individual: luna
+                        also_seen: [anna]
                         summary: Luna comes in through the cat flap.
                         confidence: medium
                     correction:
@@ -85,6 +86,7 @@ final class DemoCommandTest extends KernelTestCase
         self::assertSame(EventStatus::Described, $event->getStatus());
         self::assertSame('2026-11-05 21:40', $event->getStartedAt()->setTimezone(new DateTimeZone('Europe/Vienna'))->format('Y-m-d H:i'), 'Two days before the latest 21:40.');
         self::assertSame('luna', $event->getEffectiveIndividual());
+        self::assertSame(['anna'], $event->getAlsoSeen());
         self::assertSame(Confidence::Medium, $event->getConfidence());
         self::assertSame(Verdict::Real, $event->getEffectiveVerdict());
         self::assertSame('Luna after the rain', $event->getLabel());

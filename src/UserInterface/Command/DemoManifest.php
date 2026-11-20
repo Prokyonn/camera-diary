@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\UserInterface\Command;
 
+use App\Application\Demo\DemoLoader;
+use App\Application\Description\EventDescription;
+use App\Application\Settings\Individual;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Exception\Exception as ConfigException;
@@ -15,11 +18,7 @@ use Symfony\Component\Yaml\Yaml;
  * Reads demo/demo.yaml: the cameras, the clips with their time, and optionally the AI's answer recorded from a real
  * run, an owner's correction, and questions asked about them.
  *
- * @phpstan-type Recorded array{model: string, verdict: string, false_alarm_cause: string, side: string, subject: string, individual: string, summary: string, unusual: bool, confidence: string}
- * @phpstan-type Correction array{verdict: ?string, individual: ?string, label: ?string, false_alarm_cause: ?string}
- * @phpstan-type DemoEvent array{camera: string, clip: string, time: string, days_ago: int, detections: list<string>, hints: list<string>, recorded?: Recorded, repeat_of?: string, correction?: Correction}
- * @phpstan-type Question array{question: string, answer: string, events: list<string>}
- * @phpstan-type Manifest array{cameras: array<string, array{name: string, scene: string}>, events: array<string, DemoEvent>, questions: list<Question>}
+ * @phpstan-import-type Manifest from DemoLoader
  */
 final class DemoManifest
 {
@@ -85,10 +84,11 @@ final class DemoManifest
                         ->children()
                             ->scalarNode('model')->isRequired()->end()
                             ->scalarNode('verdict')->isRequired()->end()
-                            ->scalarNode('false_alarm_cause')->defaultValue('none')->end()
+                            ->scalarNode('false_alarm_cause')->defaultValue(EventDescription::NO_FALSE_ALARM)->end()
                             ->scalarNode('side')->isRequired()->end()
                             ->scalarNode('subject')->isRequired()->end()
-                            ->scalarNode('individual')->defaultValue('unknown')->end()
+                            ->scalarNode('individual')->defaultValue(Individual::UNKNOWN)->end()
+                            ->arrayNode('also_seen')->info('Other known individuals in the frames')->scalarPrototype()->end()->end()
                             ->scalarNode('summary')->isRequired()->end()
                             ->booleanNode('unusual')->defaultFalse()->end()
                             ->scalarNode('confidence')->defaultValue('high')->end()

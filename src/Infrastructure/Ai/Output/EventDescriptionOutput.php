@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Ai\Output;
 
+use App\Application\Description\EventDescription;
 use App\Application\Settings\Individual;
 use App\Application\Settings\VocabularyKind;
 use App\Domain\Model\Confidence;
@@ -17,7 +18,7 @@ use Symfony\AI\Platform\Contract\JsonSchema\Attribute\Schema;
 final readonly class EventDescriptionOutput
 {
     /** The false-alarm cause of a real event. */
-    public const string NO_FALSE_ALARM = 'none';
+    public const string NO_FALSE_ALARM = EventDescription::NO_FALSE_ALARM;
 
     /**
      * @param list<string> $alsoSeen

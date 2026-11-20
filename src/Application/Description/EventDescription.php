@@ -10,6 +10,9 @@ use App\Domain\Model\Verdict;
 
 final readonly class EventDescription
 {
+    /** The false-alarm cause the AI names for a real event; reserved. */
+    public const string NO_FALSE_ALARM = 'none';
+
     /**
      * @param ?string      $falseAlarmCause a name from the false-alarm causes vocabulary; null for real events
      * @param string       $subject         a name from the subjects vocabulary
