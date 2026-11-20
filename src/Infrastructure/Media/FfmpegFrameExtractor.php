@@ -17,6 +17,17 @@ final readonly class FfmpegFrameExtractor implements FrameExtractorInterface
 {
     private const int TIMEOUT_SECONDS = 60;
 
+    /**
+     * Uploaded media is read as a local file in a usual video or image format only: a crafted playlist (HLS, concat)
+     * cannot make ffmpeg open other files or URLs.
+     *
+     * @var list<string>
+     */
+    private const array INPUT_LIMITS = [
+        '-protocol_whitelist', 'file',
+        '-format_whitelist', 'mov,mp4,m4a,3gp,3g2,mj2,matroska,webm,avi,mpegts,flv,image2,jpeg_pipe,png_pipe,webp_pipe',
+    ];
+
     public function __construct(
         #[Autowire(env: 'FFMPEG_PATH')]
         private string $ffmpegPath,
@@ -29,7 +40,7 @@ final readonly class FfmpegFrameExtractor implements FrameExtractorInterface
 
     public function extract(string $sourcePath, ?float $atSeconds, string $targetPath): void
     {
-        $command = [$this->ffmpegPath, '-hide_banner', '-loglevel', 'error', '-nostdin'];
+        $command = [$this->ffmpegPath, '-hide_banner', '-loglevel', 'error', '-nostdin', ...self::INPUT_LIMITS];
         if (null !== $atSeconds) {
             $command[] = '-ss';
             $command[] = \sprintf('%.3f', $atSeconds);
@@ -69,6 +80,7 @@ final readonly class FfmpegFrameExtractor implements FrameExtractorInterface
         $process = new Process([
             $this->ffprobePath,
             '-v', 'error',
+            ...self::INPUT_LIMITS,
             '-select_streams', 'v:0',
             '-show_entries', 'format=duration',
             '-of', 'default=noprint_wrappers=1:nokey=1',
