@@ -52,6 +52,16 @@ final class DemoManifest
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('digests')
+                    ->info('Day summaries recorded from a real run, stored by app:demo --recorded')
+                    ->arrayPrototype()
+                        ->children()
+                            ->integerNode('days_ago')->min(0)->defaultValue(1)->end()
+                            ->scalarNode('text')->isRequired()->cannotBeEmpty()->end()
+                            ->scalarNode('model')->isRequired()->cannotBeEmpty()->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         /** @var Manifest */
@@ -76,7 +86,7 @@ final class DemoManifest
                             ->thenInvalid('Use HH:MM, got %s.')
                         ->end()
                     ->end()
-                    ->integerNode('days_ago')->min(0)->defaultValue(0)->info('0 for the latest past occurrence of the time, 1 for the day before, ...')->end()
+                    ->integerNode('days_ago')->min(0)->defaultValue(0)->info('Days before today: 0 for today (a time still ahead moves to yesterday), 1 for yesterday, ...')->end()
                     ->arrayNode('detections')->scalarPrototype()->end()->end()
                     ->arrayNode('hints')->scalarPrototype()->end()->end()
                     ->arrayNode('recorded')

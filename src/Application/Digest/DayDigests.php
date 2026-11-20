@@ -74,11 +74,24 @@ final readonly class DayDigests
             throw new DigestNotWrittenException('The AI could not write the summary right now.', 0, $exception);
         }
 
-        $digest = $this->of($from);
+        return $this->save($from, $text, \count($events), $this->writer->modelName());
+    }
+
+    /**
+     * Stores a summary written elsewhere without an AI call, e.g. one recorded from a real run for the demo.
+     */
+    public function record(DateTimeImmutable $day, string $text, string $model): DayDigest
+    {
+        return $this->save($day, $text, $this->eventCount($day), $model);
+    }
+
+    private function save(DateTimeImmutable $day, string $text, int $eventCount, string $model): DayDigest
+    {
+        $digest = $this->of($day);
         if ($digest instanceof DayDigest) {
-            $digest->rewrite($text, \count($events), $this->writer->modelName(), $this->clock->now());
+            $digest->rewrite($text, $eventCount, $model, $this->clock->now());
         } else {
-            $digest = new DayDigest($this->homeTimeZone->toLocal($from)->format('Y-m-d'), $text, \count($events), $this->writer->modelName(), $this->clock->now());
+            $digest = new DayDigest($this->homeTimeZone->toLocal($day)->format('Y-m-d'), $text, $eventCount, $model, $this->clock->now());
             $this->digests->add($digest);
         }
 

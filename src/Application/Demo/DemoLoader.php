@@ -8,6 +8,7 @@ use App\Application\Camera\CameraSettings;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\DescriptionReplay;
 use App\Application\Description\EventDescription;
+use App\Application\Digest\DayDigests;
 use App\Application\Event\CameraEventLabeler;
 use App\Application\Ingest\EventIngester;
 use App\Application\Ingest\IngestRequest;
@@ -34,7 +35,8 @@ use Psr\Clock\ClockInterface;
  * @phpstan-type Correction array{verdict: ?string, individual: ?string, label: ?string, false_alarm_cause: ?string}
  * @phpstan-type DemoEvent array{camera: string, clip: string, time: string, days_ago: int, detections: list<string>, hints: list<string>, recorded?: Recorded, repeat_of?: string, correction?: Correction}
  * @phpstan-type Question array{question: string, answer: string, events: list<string>}
- * @phpstan-type Manifest array{cameras: array<string, array{name: string, scene: string}>, events: array<string, DemoEvent>, questions: list<Question>}
+ * @phpstan-type Digest array{days_ago: int, text: string, model: string}
+ * @phpstan-type Manifest array{cameras: array<string, array{name: string, scene: string}>, events: array<string, DemoEvent>, questions: list<Question>, digests: list<Digest>}
  */
 final readonly class DemoLoader
 {
@@ -46,6 +48,7 @@ final readonly class DemoLoader
         private DescriptionReplay $replay,
         private CameraEventLabeler $labeler,
         private QuestionHistory $questions,
+        private DayDigests $digests,
         private ClockInterface $clock,
         private HomeTimeZone $homeTimeZone,
     ) {
@@ -95,6 +98,7 @@ final readonly class DemoLoader
 
         if ($recorded) {
             $this->recordQuestions($demo, $events);
+            $this->recordDigests($demo);
         }
 
         return $loaded;
@@ -160,12 +164,25 @@ final readonly class DemoLoader
         }
     }
 
+    /**
+     * Day summaries from a real run, so the timeline shows one without an AI.
+     *
+     * @param Manifest $demo
+     */
+    private function recordDigests(array $demo): void
+    {
+        foreach ($demo['digests'] as $digest) {
+            $this->digests->record($this->occurrence('12:00', $digest['days_ago']), $digest['text'], $digest['model'].' (recorded)');
+        }
+    }
+
     private function occurrence(string $time, int $daysAgo): DateTimeImmutable
     {
+        // Calendar days, so a day of the demo keeps its events whatever time it is loaded; only a time still ahead
+        // today moves to yesterday.
         $now = $this->homeTimeZone->toLocal($this->clock->now());
-        $at = $now->modify($time);
-        $at = $at > $now ? $at->modify('-1 day') : $at;
+        $at = $now->modify($time)->modify(\sprintf('-%d days', $daysAgo));
 
-        return $at->modify(\sprintf('-%d days', $daysAgo))->setTimezone(new DateTimeZone('UTC'));
+        return ($at > $now ? $at->modify('-1 day') : $at)->setTimezone(new DateTimeZone('UTC'));
     }
 }

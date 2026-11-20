@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\UserInterface\Command;
 
+use App\Application\Digest\DayDigests;
 use App\Application\Question\QuestionHistory;
 use App\Domain\Model\Confidence;
+use App\Domain\Model\DayDigest;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
@@ -63,6 +65,10 @@ final class DemoCommandTest extends KernelTestCase
                 - question: When did Luna come home?
                   answer: At 21:40, through the cat flap.
                   events: [demo-flap]
+            digests:
+                - days_ago: 2
+                  text: A quiet day; Luna came home through the cat flap at 21:40.
+                  model: gemini-flash-latest
             YAML);
     }
 
@@ -84,7 +90,7 @@ final class DemoCommandTest extends KernelTestCase
 
         $event = self::getContainer()->get(CameraEventRepositoryInterface::class)->getOneBy(['externalId' => 'demo-flap']);
         self::assertSame(EventStatus::Described, $event->getStatus());
-        self::assertSame('2026-11-05 21:40', $event->getStartedAt()->setTimezone(new DateTimeZone('Europe/Vienna'))->format('Y-m-d H:i'), 'Two days before the latest 21:40.');
+        self::assertSame('2026-11-06 21:40', $event->getStartedAt()->setTimezone(new DateTimeZone('Europe/Vienna'))->format('Y-m-d H:i'), 'Two calendar days before today, at 21:40.');
         self::assertSame('luna', $event->getEffectiveIndividual());
         self::assertSame(['anna'], $event->getAlsoSeen());
         self::assertSame(Confidence::Medium, $event->getConfidence());
@@ -95,6 +101,12 @@ final class DemoCommandTest extends KernelTestCase
         $questions = self::getContainer()->get(QuestionHistory::class)->recent(10);
         self::assertCount(1, $questions, 'Each question is stored once.');
         self::assertSame([$event->getId()], $questions[0]->getEventIds());
+
+        $digest = self::getContainer()->get(DayDigests::class)->of($event->getStartedAt());
+        self::assertInstanceOf(DayDigest::class, $digest, 'The recorded summary of that day.');
+        self::assertSame('A quiet day; Luna came home through the cat flap at 21:40.', $digest->getText());
+        self::assertSame(1, $digest->getEventCount());
+        self::assertSame('gemini-flash-latest (recorded)', $digest->getModel());
     }
 
     public function testLeavesTheEventsToTheAiByDefault(): void

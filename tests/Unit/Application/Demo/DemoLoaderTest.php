@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Application\Demo;
 
+use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Camera\CameraRegistry;
 use App\Application\Camera\CameraSettings;
 use App\Application\Clock\HomeTimeZone;
@@ -11,6 +12,8 @@ use App\Application\Demo\DemoLoader;
 use App\Application\Demo\InvalidDemoException;
 use App\Application\Demo\LoadedDemoEvent;
 use App\Application\Description\DescriptionReplay;
+use App\Application\Digest\DayDigests;
+use App\Application\Digest\DigestWriterInterface;
 use App\Application\Event\CameraEventLabeler;
 use App\Application\Frame\FrameExtractionFailedException;
 use App\Application\Frame\FrameExtractorInterface;
@@ -23,11 +26,13 @@ use App\Domain\Model\AskedQuestion;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Model\Confidence;
+use App\Domain\Model\DayDigest;
 use App\Domain\Model\EventStatus;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\AskedQuestionRepositoryInterface;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use App\Domain\Repository\CameraRepositoryInterface;
+use App\Domain\Repository\DayDigestRepositoryInterface;
 use App\Tests\Factory\CameraFactory;
 use App\Tests\Support\ProvidesSettings;
 use LogicException;
@@ -36,6 +41,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
+use Psr\Log\NullLogger;
 use ReflectionProperty;
 use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Lock\LockFactory;
@@ -56,6 +62,9 @@ final class DemoLoaderTest extends TestCase
     /** @var ObjectProphecy<AskedQuestionRepositoryInterface> */
     private ObjectProphecy $askedQuestions;
 
+    /** @var ObjectProphecy<DayDigestRepositoryInterface> */
+    private ObjectProphecy $digests;
+
     /** @var array<string, CameraEvent> the events the loader stored, by external id */
     private array $stored = [];
 
@@ -67,11 +76,16 @@ final class DemoLoaderTest extends TestCase
         $this->askedQuestions = $this->prophesize(AskedQuestionRepositoryInterface::class);
         $this->askedQuestions->findBy(Argument::cetera())->willReturn([]);
         $this->askedQuestions->add(Argument::type(AskedQuestion::class));
+        $this->digests = $this->prophesize(DayDigestRepositoryInterface::class);
+        $this->digests->findOneBy(Argument::cetera())->willReturn(null);
+        $this->digests->add(Argument::type(DayDigest::class));
     }
 
     public function testStoresTheRecordedAnswersCorrectionsAndQuestions(): void
     {
         $this->askedQuestions->add(Argument::that(static fn (AskedQuestion $asked): bool => 'Who came by?' === $asked->getQuestion() && [1] === $asked->getEventIds()))->shouldBeCalledOnce();
+
+        $this->digests->add(Argument::that(static fn (DayDigest $digest): bool => '2026-11-07' === $digest->getDay() && 'A quiet day.' === $digest->getText() && 'gemini (recorded)' === $digest->getModel()))->shouldBeCalledOnce();
 
         $loaded = $this->loader()->load($this->manifest(), '/demo', true);
 
@@ -156,6 +170,7 @@ final class DemoLoaderTest extends TestCase
                 ],
             ],
             'questions' => [['question' => 'Who came by?', 'answer' => 'Luna.', 'events' => ['demo-flap']]],
+            'digests' => [['days_ago' => 1, 'text' => 'A quiet day.', 'model' => 'gemini']],
         ];
     }
 
@@ -176,6 +191,7 @@ final class DemoLoaderTest extends TestCase
         $registry = new CameraRegistry($cameraRepository->reveal(), $uow, new LockFactory(new InMemoryStore()));
 
         $eventRepository = $this->prophesize(CameraEventRepositoryInterface::class);
+        $eventRepository->countBy(Argument::cetera())->willReturn(1);
         $eventRepository->findOneBy(Argument::cetera())->willReturn(null);
         $eventRepository->remove(Argument::type(CameraEvent::class));
         $eventRepository->add(Argument::type(CameraEvent::class))->will(static function (array $arguments) use (&$stored): void {
@@ -203,6 +219,7 @@ final class DemoLoaderTest extends TestCase
             new DescriptionReplay($uow, $indexer, $clock),
             new CameraEventLabeler($uow, $indexer, $clock, $settings),
             $questions,
+            new DayDigests($this->digests->reveal(), $eventRepository->reveal(), $this->prophesize(DigestWriterInterface::class)->reveal(), $this->prophesize(AiCallBudgetInterface::class)->reveal(), $uow, new HomeTimeZone('Europe/Vienna'), $clock, new NullLogger()),
             $clock,
             new HomeTimeZone('Europe/Vienna'),
         );
