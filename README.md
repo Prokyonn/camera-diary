@@ -98,7 +98,7 @@ AI_MODEL=gemini-2.5-flash
 VERTEX_AI_API_KEY=...
 ```
 
-Then describe the events and start the web server:
+The hook takes videos of up to 200 MB: raise `upload_max_filesize` and `post_max_size` in your php.ini to match (the Docker image does, see `docker/php.ini`). Then describe the events and start the web server:
 
 ```
 bin/console app:process
