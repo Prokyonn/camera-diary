@@ -81,6 +81,31 @@ final class HistoryImporterTest extends TestCase
         self::assertSame(1, $result->signals);
     }
 
+    public function testSkipsARepeatedSignalWhoseTimeLiesLongBeforeTheRange(): void
+    {
+        $from = CameraEventFactory::utc('2026-11-06 12:00:00');
+        $to = CameraEventFactory::utc('2026-11-06 13:00:00');
+        $history = $this->prophesize(HomeHistoryInterface::class);
+        $history->fetch(Argument::containing('binary_sensor.luna'), $from, $to, true)->willReturn([
+            // Home Assistant restarted and reports the flap's state again, with the time of the real passage.
+            new StateChange('binary_sensor.luna', 'on', CameraEventFactory::utc('2026-11-06 12:30:00'), ['since' => '2026-11-06T10:12:01+00:00']),
+        ]);
+        $history->fetch(Argument::cetera())->willReturn([]);
+        $detections = $this->prophesize(DetectionRepositoryInterface::class);
+        $detections->findBy(Argument::cetera())->willReturn([]);
+        $stored = new HomeSignal('binary_sensor.luna', 'on', CameraEventFactory::utc('2026-11-06 10:12:01'));
+        $signals = $this->prophesize(HomeSignalRepositoryInterface::class);
+        $signals->findBy(['changedAtOrAfter' => CameraEventFactory::utc('2026-11-06 10:12:01'), 'changedAtOrBefore' => $to])->willReturn([$stored]);
+        $signals->add(Argument::any())->shouldNotBeCalled();
+        $cursors = $this->prophesize(ImportCursorRepositoryInterface::class);
+        $cursors->findOneBy(Argument::cetera())->willReturn(null);
+        $cursors->add(Argument::type(ImportCursor::class))->shouldBeCalledOnce();
+
+        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $this->prophesize(PushHandoverRepositoryInterface::class)->reveal(), $this->prophesize(UnitOfWorkInterface::class)->reveal(), new NullLogger());
+
+        self::assertSame(0, $importer->importRange(SettingsFactory::create(), $from, $to)->signals);
+    }
+
     public function testSplitsLongRangesIntoSixHourChunks(): void
     {
         $history = $this->prophesize(HomeHistoryInterface::class);

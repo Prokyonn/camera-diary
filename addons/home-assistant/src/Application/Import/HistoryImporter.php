@@ -30,9 +30,6 @@ final readonly class HistoryImporter
 {
     private const int CHUNK_SECONDS = 6 * 3600;
 
-    /** A signal's time attribute can lie a few minutes before the state change that reports it. */
-    private const int SIGNAL_LOOKBACK_SECONDS = 600;
-
     public function __construct(
         private HomeHistoryInterface $history,
         private DetectionRepositoryInterface $detections,
@@ -120,31 +117,34 @@ final readonly class HistoryImporter
             return 0;
         }
 
+        $entityIds = array_map(static fn (SignalMapping $signal): string => $signal->entityId, $settings->signals);
+        $candidates = [];
+        foreach ($this->history->fetch($entityIds, $from, $to, true) as $change) {
+            $mapping = $settings->signal($change->entityId);
+            if ($mapping instanceof SignalMapping && null !== $mapping->describe($change->state)) {
+                $candidates[] = new HomeSignal($change->entityId, $change->state, $this->signalTime($mapping, $change));
+            }
+        }
+
+        if ([] === $candidates) {
+            return 0;
+        }
+
+        // A time attribute can lie long before the change that reports it, e.g. when Home Assistant repeats a state after a restart.
+        $earliest = min(array_map(static fn (HomeSignal $signal): DateTimeImmutable => $signal->getChangedAt(), $candidates));
         $existing = [];
-        $stored = $this->signals->findBy([
-            'changedAtOrAfter' => $from->modify(\sprintf('-%d seconds', self::SIGNAL_LOOKBACK_SECONDS)),
-            'changedAtOrBefore' => $to,
-        ]);
-        foreach ($stored as $signal) {
+        foreach ($this->signals->findBy(['changedAtOrAfter' => min($earliest, $from), 'changedAtOrBefore' => $to]) as $signal) {
             $existing[$signal->key()] = true;
         }
 
-        $entityIds = array_map(static fn (SignalMapping $signal): string => $signal->entityId, $settings->signals);
         $imported = 0;
-        foreach ($this->history->fetch($entityIds, $from, $to, true) as $change) {
-            $mapping = $settings->signal($change->entityId);
-            if (!$mapping instanceof SignalMapping || null === $mapping->describe($change->state)) {
+        foreach ($candidates as $signal) {
+            if (isset($existing[$signal->key()])) {
                 continue;
             }
 
-            $changedAt = $this->signalTime($mapping, $change);
-            $key = HomeSignal::keyOf($change->entityId, $change->state, $changedAt);
-            if (isset($existing[$key])) {
-                continue;
-            }
-
-            $this->signals->add(new HomeSignal($change->entityId, $change->state, $changedAt));
-            $existing[$key] = true;
+            $this->signals->add($signal);
+            $existing[$signal->key()] = true;
             ++$imported;
         }
 
