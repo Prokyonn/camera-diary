@@ -65,20 +65,12 @@ Then ask, e.g., "What did Luna do yesterday? Show me the frames." or "The person
 
 ### With PHP
 
-You need PHP 8.4 with `gd`, `intl` and `pdo_sqlite`, Composer, and ffmpeg.
+You need PHP 8.4 or 8.5 with `gd`, `intl` and `pdo_sqlite`, Composer, and ffmpeg.
+
+First choose the AI and the demo settings in `.env.local` (never committed):
 
 ```
-composer install
-mkdir -p var/data
-bin/console doctrine:migrations:migrate --no-interaction
-bin/console cmsig:seal:index-create
-bin/console app:demo                     # or: app:demo --recorded, without an AI
-```
-
-Choose the AI and the demo settings in `.env.local` (never committed):
-
-```
-CAMERA_DIARY_CONFIG=demo/camera-diary.yaml
+CAMERA_DIARY_CONFIG="%kernel.project_dir%/demo/camera-diary.yaml"
 
 # Claude subscription: the claude CLI, logged in
 AI_PLATFORM=claude_code
@@ -97,6 +89,16 @@ GEMINI_API_KEY=...
 AI_PLATFORM=vertexai
 AI_MODEL=gemini-2.5-flash
 VERTEX_AI_API_KEY=...
+```
+
+Then install and load the demo:
+
+```
+composer install
+mkdir -p var/data
+bin/console doctrine:migrations:migrate --no-interaction
+bin/console cmsig:seal:index-create
+bin/console app:demo                     # or: app:demo --recorded, without an AI
 ```
 
 The hook takes videos of up to 200 MB: raise `upload_max_filesize` and `post_max_size` in your php.ini to match (the Docker image does, see `docker/php.ini`). Then describe the events and start the web server:

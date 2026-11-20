@@ -36,6 +36,8 @@ The layering is strict except in these places.
 - **Doctrine ORM attributes on the Domain models:** one class per entity instead of a second mapping class that would only copy its fields.
 - **Symfony Lock (`LockFactory`) and DI attributes in Application:** use cases such as `PendingEventRunner`, `EventIngester` and `CameraRegistry` need mutual exclusion, and `#[Autowire]` and `#[AutowireIterator]` keep their wiring out of YAML; the alternative is a port and an adapter for each, which would only wrap the component.
 - **The add-on reuses the core's `Infrastructure\Doctrine\Repository\FilterKeys` and `OrderBy`:** its repositories apply the same filter and sort rules, and copying the helpers would let them drift.
+- **Ask and the day summary call the AI inside the web request:** one person waits for one answer on their phone; a Messenger message plus a polling page would add moving parts without making the answer faster. The CLI providers can take minutes, so they need a long `max_execution_time` (see the README).
+- **Demo loading lives in Application (`Demo\DemoLoader`, `Description\DescriptionReplay`):** the demo goes through the same `EventIngester`, labeler and question history as real events, so it exercises the real path; only the AI's answers come from the manifest instead of a call.
 - **UserInterface reads through Domain repositories and entity route parameters:** read-only pages and tools (the Check page, the timeline filters, the MCP tools) call `findBy` on a repository interface, and `/events/{id}` and `/ask/{id}` receive the entity through Symfony's entity value resolver. Writes always go through an Application service; a query service per page would only forward the same `findBy`.
 
 ## Settings
