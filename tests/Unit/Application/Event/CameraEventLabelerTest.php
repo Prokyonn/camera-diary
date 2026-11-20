@@ -61,7 +61,7 @@ final class CameraEventLabelerTest extends TestCase
 
     public function testAcceptsNobodyWeKnowAndKeepingTheAnswer(): void
     {
-        $event = CameraEventFactory::described('A grey cat.');
+        $event = CameraEventFactory::described('A grey cat.', individual: 'luna');
 
         $this->labeler->relabel($event, null, null, CameraEvent::NO_KNOWN_INDIVIDUAL, null);
 

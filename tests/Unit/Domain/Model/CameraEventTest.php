@@ -202,6 +202,14 @@ final class CameraEventTest extends TestCase
 
         $event->relabel(null, Verdict::Real, 'luna', null);
         self::assertFalse($event->isCorrected(), 'The same verdict and individual confirm the answer.');
+        self::assertNull($event->getVerdictOverride(), 'An override that repeats the AI is not stored, so the page does not call it set by hand.');
+        self::assertNull($event->getIndividualOverride());
+
+        $stranger = CameraEventFactory::described('A person at the car.', subject: 'person');
+        $stranger->relabel('my brother Tom', Verdict::Real, CameraEvent::NO_KNOWN_INDIVIDUAL, null);
+        self::assertNull($stranger->getVerdictOverride());
+        self::assertNull($stranger->getIndividualOverride(), 'Nobody we know, like the AI said.');
+        self::assertTrue($stranger->isCorrected(), 'The label still is a correction.');
 
         $event->relabel(null, Verdict::FalseAlarm, null, null);
         self::assertTrue($event->isCorrected());

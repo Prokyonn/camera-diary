@@ -546,9 +546,12 @@ class CameraEvent
     {
         $label = null !== $label ? trim($label) : null;
         $this->label = '' === $label ? null : $label;
-        $this->verdictOverride = $verdictOverride;
-        $this->individualOverride = null === $individualOverride ? null : $this->termName($individualOverride);
-        $this->falseAlarmCauseOverride = null === $falseAlarmCauseOverride ? null : $this->termName($falseAlarmCauseOverride);
+        // An override that repeats the AI's answer is no correction: the event keeps following the AI's answer.
+        $this->verdictOverride = $verdictOverride === $this->verdict ? null : $verdictOverride;
+        $individual = null === $individualOverride ? null : $this->termName($individualOverride);
+        $this->individualOverride = $individual === ($this->individual ?? self::NO_KNOWN_INDIVIDUAL) ? null : $individual;
+        $cause = null === $falseAlarmCauseOverride ? null : $this->termName($falseAlarmCauseOverride);
+        $this->falseAlarmCauseOverride = $cause === $this->falseAlarmCause ? null : $cause;
     }
 
     /**
