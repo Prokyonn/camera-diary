@@ -182,7 +182,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 | `correct_camera_event` | Set the verdict, the false-alarm cause, the known individual or a label; the AI learns from it |
 | Prompt `daily_report` | Asks the assistant for a short report of one day, using the tools above |
 
- Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). Only `localhost` is an allowed host by default, see `config/packages/mcp.yaml`.
+Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). Only `localhost` is an allowed host by default (DNS rebinding protection, see `config/packages/mcp.yaml`). Set `MCP_TOKEN` to require `Authorization: Bearer <token>`, e.g. `claude mcp add --transport http camera-diary https://cameras.example/mcp --header "Authorization: Bearer <token>"`; without it the server is open, which is fine for the demo or a private network.
 
 ## Web pages
 
@@ -193,7 +193,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 - `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.
 - `/at?camera=<slug>&t=<epoch seconds>`: deep link for push notifications. It waits and refreshes while the event is not stored yet.
 
-The pages and MCP have no login. Run them in a private network, e.g. behind Tailscale Serve. Only the hook needs a credential.
+The pages have no login. Run them in a private network, e.g. behind Tailscale Serve. The hook needs `INGEST_TOKEN`, and MCP needs `MCP_TOKEN` once it is set. `TRUSTED_PROXIES` (default `private_ranges`, for Tailscale Serve and Docker) decides whose `X-Forwarded-*` headers count; narrow it to your proxy's address where the private network is shared.
 
 ## Running it for real
 

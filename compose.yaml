@@ -8,10 +8,12 @@ x-app: &app
   build: .
   image: camera-diary:local
   environment:
+    # The defaults of APP_SECRET and INGEST_TOKEN are for the local demo only; set your own anywhere else.
     APP_SECRET: ${APP_SECRET:-demo-only-change-me}
     APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
     DEFAULT_URI: http://localhost:8080
     INGEST_TOKEN: ${INGEST_TOKEN:-demo-token}
+    MCP_TOKEN: ${MCP_TOKEN:-}
     AI_PLATFORM: ${AI_PLATFORM:-gemini}
     AI_MODEL: ${AI_MODEL:-gemini-flash-latest}
     GEMINI_API_KEY: ${GEMINI_API_KEY:-}
