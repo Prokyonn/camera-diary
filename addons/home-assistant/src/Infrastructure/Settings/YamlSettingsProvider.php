@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CameraDiary\HomeAssistant\Infrastructure\Settings;
 
+use App\Application\Settings\Settings as CoreSettings;
 use App\Application\Settings\SettingsProviderInterface as CoreSettingsProviderInterface;
 use CameraDiary\HomeAssistant\Application\Settings\CameraMapping;
 use CameraDiary\HomeAssistant\Application\Settings\HomeAssistantSettings;
@@ -12,6 +13,7 @@ use CameraDiary\HomeAssistant\Application\Settings\PushSettings;
 use CameraDiary\HomeAssistant\Application\Settings\SettingsProviderInterface;
 use CameraDiary\HomeAssistant\Application\Settings\SignalMapping;
 use CameraDiary\HomeAssistant\Domain\Model\GroupingRule;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception as ConfigException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -20,7 +22,9 @@ use Symfony\Component\Yaml\Yaml;
 use Throwable;
 
 /**
- * Reads the add-on's YAML file on every use, so edits apply without a restart. Without a file, the add-on is idle.
+ * Reads the add-on's YAML file on first use and again whenever it or the core settings change, so edits apply without
+ * a restart. Without a file, the add-on is idle. If an edit makes the file invalid, the last valid settings stay in
+ * use until the next edit and the error is logged; only a file that was never valid throws.
  *
  * @phpstan-type Config array{
  *     cameras: array<string, array{name: ?string, scene: ?string, sensor_prefix: string, detections: list<string>, recording_folder: ?string}>,
@@ -29,19 +33,61 @@ use Throwable;
  *     push?: array{handover_entity: string, notify_service: string, url: ?string, details_title: string, loud_interruption_level: string, mute_actions: array<string, string>, max_age: int, frames: non-empty-list<'snapshot'|int|float>},
  * }
  */
-final readonly class YamlSettingsProvider implements SettingsProviderInterface
+final class YamlSettingsProvider implements SettingsProviderInterface
 {
+    private ?HomeAssistantSettings $settings = null;
+    private int|false|null $loadedVersion = null;
+    private ?CoreSettings $loadedCore = null;
+
     public function __construct(
-        private CoreSettingsProviderInterface $coreSettings,
+        private readonly CoreSettingsProviderInterface $coreSettings,
         #[Autowire(env: 'resolve:HOME_ASSISTANT_CONFIG')]
-        private string $path,
+        private readonly string $path,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
     public function settings(): HomeAssistantSettings
     {
-        $exists = '' !== $this->path && is_file($this->path);
+        $core = $this->coreSettings->settings();
+        $version = $this->version();
+        if ($this->settings instanceof HomeAssistantSettings && $version === $this->loadedVersion && $core === $this->loadedCore) {
+            return $this->settings;
+        }
 
+        try {
+            $settings = $this->build($core, false !== $version);
+        } catch (InvalidSettingsException $exception) {
+            if (!$this->settings instanceof HomeAssistantSettings) {
+                throw $exception;
+            }
+
+            $this->logger->error('Keeping the last valid Home Assistant settings: {message}', ['message' => $exception->getMessage()]);
+            $settings = $this->settings;
+        }
+
+        $this->loadedVersion = $version;
+        $this->loadedCore = $core;
+
+        return $this->settings = $settings;
+    }
+
+    /**
+     * The file's modification time; false without a file.
+     */
+    private function version(): int|false
+    {
+        if ('' === $this->path) {
+            return false;
+        }
+
+        clearstatcache(true, $this->path);
+
+        return is_file($this->path) ? filemtime($this->path) : false;
+    }
+
+    private function build(CoreSettings $core, bool $exists): HomeAssistantSettings
+    {
         try {
             /** @var Config $config */
             $config = new Processor()->processConfiguration(new SettingsConfiguration(), [$exists ? Yaml::parseFile($this->path) ?? [] : []]);
@@ -50,7 +96,7 @@ final readonly class YamlSettingsProvider implements SettingsProviderInterface
         }
 
         return new HomeAssistantSettings(
-            $this->cameras($config['cameras']),
+            $this->cameras($config['cameras'], $core),
             $this->signals($config['signals']),
             new GroupingRule($config['import']['max_gap'], $config['import']['max_duration']),
             $config['import']['hint_window'],
@@ -63,9 +109,9 @@ final readonly class YamlSettingsProvider implements SettingsProviderInterface
      *
      * @return list<CameraMapping>
      */
-    private function cameras(array $configured): array
+    private function cameras(array $configured, CoreSettings $core): array
     {
-        $detectionTypes = $this->coreSettings->settings()->detectionTypes;
+        $detectionTypes = $core->detectionTypes;
         $cameras = [];
         foreach ($configured as $slug => $camera) {
             foreach ($camera['detections'] as $type) {

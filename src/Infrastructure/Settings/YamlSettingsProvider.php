@@ -7,6 +7,7 @@ namespace App\Infrastructure\Settings;
 use App\Application\Settings\InvalidSettingsException;
 use App\Application\Settings\Settings;
 use App\Application\Settings\SettingsProviderInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
@@ -14,7 +15,8 @@ use Throwable;
 
 /**
  * Reads the settings file on first use and again whenever it changes, so a running worker picks up edits.
- * Without a file, the defaults apply.
+ * Without a file, the defaults apply. If an edit makes the file invalid, the last valid settings stay in use until
+ * the next edit and the error is logged; only a file that was never valid throws.
  */
 final class YamlSettingsProvider implements SettingsProviderInterface
 {
@@ -24,6 +26,7 @@ final class YamlSettingsProvider implements SettingsProviderInterface
     public function __construct(
         #[Autowire(env: 'resolve:CAMERA_DIARY_CONFIG')]
         private readonly string $path,
+        private readonly LoggerInterface $logger,
         private readonly SettingsBuilder $builder = new SettingsBuilder(),
     ) {
     }
@@ -38,7 +41,14 @@ final class YamlSettingsProvider implements SettingsProviderInterface
         try {
             $settings = $this->builder->build(false === $version ? [] : $this->read(), \dirname($this->path));
         } catch (InvalidSettingsException $exception) {
-            throw $this->invalid($exception->getMessage(), $exception);
+            if (!$this->settings instanceof Settings) {
+                throw $this->invalid($exception->getMessage(), $exception);
+            }
+
+            $this->logger->error('Keeping the last valid settings: {message}', ['message' => $exception->getMessage()]);
+            $this->loadedVersion = $version;
+
+            return $this->settings;
         }
 
         $this->loadedVersion = $version;

@@ -11,7 +11,10 @@ use CameraDiary\HomeAssistant\Infrastructure\Settings\SettingsConfiguration;
 use CameraDiary\HomeAssistant\Infrastructure\Settings\YamlSettingsProvider;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Filesystem\Filesystem;
 
 #[CoversClass(YamlSettingsProvider::class)]
@@ -118,11 +121,43 @@ final class YamlSettingsProviderTest extends TestCase
         self::assertSame([null, 0.5, 3.5], $settings->push->frames);
     }
 
+    public function testParsesTheFileOnlyWhenItChanges(): void
+    {
+        new Filesystem()->dumpFile($this->path, "push:\n    handover_entity: input_text.first\n    notify_service: mobile_app_phone\n");
+        touch($this->path, time() - 10);
+        $provider = $this->provider($this->path);
+        $first = $provider->settings();
+        self::assertSame($first, $provider->settings(), 'The same settings come back while the file is unchanged.');
+
+        new Filesystem()->dumpFile($this->path, "push:\n    handover_entity: input_text.second\n    notify_service: mobile_app_phone\n");
+        touch($this->path, time() - 10);
+        self::assertSame($first, $provider->settings(), 'Not read again with the same modification time.');
+
+        touch($this->path, time());
+        self::assertSame('input_text.second', $provider->settings()->push?->handoverEntity);
+    }
+
+    public function testKeepsTheLastValidSettingsWhenAnEditBreaksTheFile(): void
+    {
+        $logger = $this->prophesize(LoggerInterface::class);
+        $logger->error(Argument::containingString('Keeping the last valid Home Assistant settings'), Argument::type('array'))->shouldBeCalledOnce();
+        $provider = $this->provider($this->path, logger: $logger->reveal());
+        new Filesystem()->dumpFile($this->path, "cameras:\n    garden:\n        sensor_prefix: binary_sensor.garden\n        detections: [person]\n");
+        touch($this->path, time() - 10);
+        $valid = $provider->settings();
+
+        new Filesystem()->dumpFile($this->path, "cameras:\n    garden:\n        detections: [ghost]\n");
+        touch($this->path, time() - 5);
+
+        self::assertSame($valid, $provider->settings());
+        self::assertSame($valid, $provider->settings());
+    }
+
     /**
      * @param array<string, mixed> $coreSettings
      */
-    private function provider(string $path, array $coreSettings = []): YamlSettingsProvider
+    private function provider(string $path, array $coreSettings = [], ?LoggerInterface $logger = null): YamlSettingsProvider
     {
-        return new YamlSettingsProvider($this->settingsProvider($coreSettings), $path);
+        return new YamlSettingsProvider($this->settingsProvider($coreSettings), $path, $logger ?? new NullLogger());
     }
 }
