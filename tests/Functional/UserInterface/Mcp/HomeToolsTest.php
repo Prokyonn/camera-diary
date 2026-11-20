@@ -11,7 +11,7 @@ use App\Tests\Factory\CameraEventFactory;
 use App\Tests\Support\ResetsStorage;
 use App\Tests\Support\StoresEvents;
 use App\UserInterface\Mcp\HomeTools;
-use InvalidArgumentException;
+use Mcp\Exception\ToolCallException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
@@ -94,9 +94,20 @@ final class HomeToolsTest extends KernelTestCase
         $event = CameraEventFactory::described('A grey cat.');
         $this->storeEvents(self::getContainer(), $event);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ToolCallException::class);
 
         $this->tools->correct($event->getId(), individual: 'garfield');
+    }
+
+    public function testRejectsAnUnknownVerdict(): void
+    {
+        $event = CameraEventFactory::described('A grey cat.');
+        $this->storeEvents(self::getContainer(), $event);
+
+        $this->expectException(ToolCallException::class);
+        $this->expectExceptionMessageIsOrContains('"maybe" is no verdict');
+
+        $this->tools->correct($event->getId(), verdict: 'maybe');
     }
 
     public function testThePromptAsksForAReportOfOneDay(): void

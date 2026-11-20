@@ -8,9 +8,9 @@ use App\Application\Activity\ActivityReport;
 use App\Application\Activity\CameraActivity;
 use App\Application\Clock\HomeTimeZone;
 use App\Application\Event\CameraEventLabeler;
+use App\Application\Event\InvalidCorrectionException;
 use App\Application\Settings\Individual;
 use App\Application\Settings\SettingsProviderInterface;
-use App\Domain\Model\CameraEvent;
 use App\Domain\Model\Verdict;
 use App\Domain\Repository\CameraEventRepositoryInterface;
 use DateTimeImmutable;
@@ -18,6 +18,7 @@ use InvalidArgumentException;
 use Mcp\Capability\Attribute\McpPrompt;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Capability\Attribute\Schema;
+use Mcp\Exception\ToolCallException;
 use Mcp\Schema\ToolAnnotations;
 use Psr\Clock\ClockInterface;
 
@@ -133,22 +134,19 @@ final readonly class HomeTools
         string $cause = '',
     ): array {
         $event = $this->events->findOneBy(['id' => $id]) ?? throw new InvalidArgumentException(\sprintf('Event %d does not exist.', $id));
-        if ('' !== $individual && CameraEvent::NO_KNOWN_INDIVIDUAL !== $individual && !$this->settings->settings()->individual($individual) instanceof Individual) {
-            throw new InvalidArgumentException(\sprintf('"%s" is no known individual; list_known_individuals names them.', $individual));
-        }
+        $verdictOverride = '' === $verdict ? $event->getVerdictOverride() : Verdict::tryFrom($verdict) ?? throw new ToolCallException(\sprintf('"%s" is no verdict; use real or false_alarm.', $verdict));
 
-        $causes = $this->settings->settings()->falseAlarmCauses;
-        if ('' !== $cause && !$causes->has($cause)) {
-            throw new InvalidArgumentException(\sprintf('"%s" is no false-alarm cause. Known: %s.', $cause, implode(', ', $causes->names())));
+        try {
+            $this->labeler->relabel(
+                $event,
+                '' === trim($label) ? $event->getLabel() : mb_substr(trim($label), 0, 120),
+                $verdictOverride,
+                '' === $individual ? $event->getIndividualOverride() : $individual,
+                '' === $cause ? $event->getFalseAlarmCauseOverride() : $cause,
+            );
+        } catch (InvalidCorrectionException $exception) {
+            throw new ToolCallException($exception->getMessage(), 0, $exception);
         }
-
-        $this->labeler->relabel(
-            $event,
-            '' === trim($label) ? $event->getLabel() : mb_substr(trim($label), 0, 120),
-            '' === $verdict ? $event->getVerdictOverride() : Verdict::from($verdict),
-            '' === $individual ? $event->getIndividualOverride() : $individual,
-            '' === $cause ? $event->getFalseAlarmCauseOverride() : $cause,
-        );
 
         return $this->presenter->present($event);
     }
