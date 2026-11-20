@@ -41,9 +41,9 @@ git clone https://github.com/Prokyonn/camera-diary.git && cd camera-diary
 docker compose up --build
 ```
 
-Open http://localhost:8080. Without an AI key, the demo loads the AI answers recorded from a real run with Gemini: browse the timeline, the event pages, "Check", "Insights", and the earlier questions on "Ask". New questions need an AI.
+Open http://localhost:8080. Without an AI key, the demo loads the AI answers recorded from a real run with Gemini: browse the timeline with yesterday's summary, the event pages, "Check", "Insights", and the earlier questions on "Ask". New questions need an AI.
 
-With an AI, the worker describes the 32 clips itself, about 20 per minute:
+With an AI, the worker describes the 23 clips itself, about 20 per minute:
 
 ```
 docker compose down -v                   # start from an empty demo
