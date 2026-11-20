@@ -43,6 +43,4 @@
         </deprecationTrigger>
     </source>
 
-    <extensions>
-    </extensions>
 </phpunit>

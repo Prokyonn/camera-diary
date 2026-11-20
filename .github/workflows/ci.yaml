@@ -54,7 +54,6 @@ jobs:
       - name: A fresh install migrates and loads the recorded demo
         run: |
           docker run --rm -e APP_SECRET=ci -e CAMERA_DIARY_CONFIG=/app/demo/camera-diary.yaml camera-diary:ci sh -c '
-            mkdir -p var/data/locks &&
             bin/console doctrine:migrations:migrate --no-interaction &&
             bin/console doctrine:schema:validate &&
             bin/console cmsig:seal:index-create &&

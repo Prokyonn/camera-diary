@@ -34,8 +34,7 @@ services:
     command:
       - sh
       - -c
-      - mkdir -p var/data/locks
-        && bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+      - bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
         && bin/console cmsig:seal:index-create
         && if [ "$$AI_PLATFORM" = gemini ] && [ -z "$$GEMINI_API_KEY" ]; then bin/console app:demo --recorded; else bin/console app:demo; fi
 
