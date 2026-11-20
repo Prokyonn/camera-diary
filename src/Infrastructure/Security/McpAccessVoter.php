@@ -11,8 +11,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
- * Access to the MCP server: open without an MCP_TOKEN (the demo, a server only reachable in a private network),
- * otherwise only with that bearer token (McpTokenHandler).
+ * Access to the MCP server: with an MCP_TOKEN only with that bearer token (McpTokenHandler). Without one it is closed,
+ * like the ingest hook, unless MCP_OPEN says it may be open (the demo, a server only reachable in a private network).
  *
  * @extends Voter<string, null>
  */
@@ -24,6 +24,8 @@ final class McpAccessVoter extends Voter
         #[Autowire(env: 'MCP_TOKEN')]
         #[SensitiveParameter]
         private readonly string $token,
+        #[Autowire(env: 'bool:MCP_OPEN')]
+        private readonly bool $openWithoutToken,
     ) {
     }
 
@@ -34,6 +36,10 @@ final class McpAccessVoter extends Voter
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
-        return '' === $this->token || \in_array(McpTokenHandler::ROLE, $token->getRoleNames(), true);
+        if ('' === $this->token) {
+            return $this->openWithoutToken;
+        }
+
+        return \in_array(McpTokenHandler::ROLE, $token->getRoleNames(), true);
     }
 }

@@ -185,7 +185,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 | `correct_camera_event` | Set the verdict, the false-alarm cause, the known individual or a label; the AI learns from it |
 | Prompt `daily_report` | Asks the assistant for a short report of one day, using the tools above |
 
-Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). It answers only to the host names in `MCP_ALLOWED_HOSTS` (DNS rebinding protection; default `localhost,127.0.0.1,[::1]`): add your server's name when an assistant on another machine connects. Set `MCP_TOKEN` to require `Authorization: Bearer <token>`, e.g. `claude mcp add --transport http camera-diary https://cameras.example/mcp --header "Authorization: Bearer <token>"`; without it the server is open, which is fine for the demo or a private network.
+Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). It answers only to the host names in `MCP_ALLOWED_HOSTS` (DNS rebinding protection; default `localhost,127.0.0.1,[::1]`): add your server's name when an assistant on another machine connects. It needs the bearer token `MCP_TOKEN`, e.g. `claude mcp add --transport http camera-diary https://cameras.example/mcp --header "Authorization: Bearer <token>"`. Without a token it is closed, unless `MCP_OPEN=1` opens it: the demo's `compose.yaml` and the `dev` environment do, so the examples above work without one.
 
 ## Web pages
 
@@ -196,7 +196,7 @@ Home Assistant's "Model Context Protocol" integration connects Assist to it, and
 - `/insights`: who came by and when, and the false alarms per camera and cause, for 7 or 30 days.
 - `/at?camera=<slug>&t=<epoch seconds>`: deep link for push notifications. It waits and refreshes while the event is not stored yet.
 
-The pages have no login. Run them in a private network, e.g. behind Tailscale Serve. The hook needs `INGEST_TOKEN`, and MCP needs `MCP_TOKEN` once it is set. `TRUSTED_PROXIES` (default `private_ranges`, for Tailscale Serve and Docker) decides whose `X-Forwarded-*` headers count; narrow it to your proxy's address where the private network is shared.
+The pages have no login. Run them in a private network, e.g. behind Tailscale Serve. The hook needs `INGEST_TOKEN`, and MCP needs `MCP_TOKEN` (or `MCP_OPEN=1`). `TRUSTED_PROXIES` (default `private_ranges`, for Tailscale Serve and Docker) decides whose `X-Forwarded-*` headers count; narrow it to your proxy's address where the private network is shared.
 
 ## Running it for real
 

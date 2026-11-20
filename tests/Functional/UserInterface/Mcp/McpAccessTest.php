@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 #[CoversClass(McpAccessVoter::class)]
 final class McpAccessTest extends WebTestCase
 {
-    private const array VARIABLES = ['MCP_TOKEN', 'MCP_ALLOWED_HOSTS'];
+    private const array VARIABLES = ['MCP_TOKEN', 'MCP_OPEN', 'MCP_ALLOWED_HOSTS'];
 
     /** @var array<string, mixed> the values from .env, restored after each test */
     private array $environment = [];
@@ -34,12 +34,16 @@ final class McpAccessTest extends WebTestCase
         parent::tearDown();
     }
 
-    public function testIsOpenWithoutAnMcpToken(): void
+    public function testIsClosedWithoutAnMcpTokenUnlessOpened(): void
     {
         $client = self::createClient();
-
         $this->initialize($client);
+        self::assertResponseStatusCodeSame(401, 'Closed by default, like the ingest hook.');
 
+        self::ensureKernelShutdown();
+        $_SERVER['MCP_OPEN'] = $_ENV['MCP_OPEN'] = '1';
+        $client = self::createClient();
+        $this->initialize($client);
         self::assertResponseIsSuccessful();
     }
 
@@ -60,6 +64,7 @@ final class McpAccessTest extends WebTestCase
 
     public function testAnswersOnlyToTheAllowedHostNames(): void
     {
+        $_SERVER['MCP_OPEN'] = $_ENV['MCP_OPEN'] = '1';
         $client = self::createClient();
         $this->initialize($client, host: 'cameras.example');
         self::assertResponseStatusCodeSame(403, 'Only localhost by default.');
