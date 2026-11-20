@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b32778b94d371e3ac892efad075bfca7",
+    "content-hash": "335716c45f27823f34204158f6bec872",
     "packages": [
         {
             "name": "camera-diary/home-assistant",
