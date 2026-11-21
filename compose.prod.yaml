@@ -32,7 +32,7 @@ services:
   worker:
     <<: *app
     restart: unless-stopped
-    command: [bin/console, messenger:consume, scheduler_default, scheduler_home_assistant, --time-limit=3600]
+    command: [bin/console, messenger:consume, scheduler_default, scheduler_home_assistant, --memory-limit=256M]
     depends_on:
       setup:
         condition: service_completed_successfully
