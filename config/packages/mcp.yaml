@@ -1,6 +1,14 @@
 mcp:
     servers:
         default:
+            name: camera-diary
+            version: 1.0.0
+            description: The diary of your home cameras, every event described by an AI.
+            website_url: https://github.com/Prokyonn/camera-diary
+            instructions: >-
+                Each camera event has a time, a camera, a verdict (real or false alarm) and a short description.
+                Use search_camera_events to find events, camera_activity for exact counts, and get_camera_event to look at an event's frames yourself.
+                When the user corrects an event, write it back with correct_camera_event.
             registry: 'App\UserInterface\Mcp\'
 
             # DNS rebinding protection: only the host names in MCP_ALLOWED_HOSTS may call the server (default: localhost).

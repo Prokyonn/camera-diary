@@ -14,8 +14,8 @@ x-app: &app
     DEFAULT_URI: http://localhost:8080
     INGEST_TOKEN: ${INGEST_TOKEN:-demo-token}
     MCP_TOKEN: ${MCP_TOKEN:-}
-    # The demo's MCP server is open without a token; set MCP_TOKEN anywhere else.
-    MCP_OPEN: ${MCP_OPEN:-1}
+    # The demo's MCP server is open without a token (fixed here, because .env closes it); set MCP_TOKEN anywhere else.
+    MCP_OPEN: "1"
     MCP_ALLOWED_HOSTS: ${MCP_ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}
     AI_PLATFORM: ${AI_PLATFORM:-gemini}
     AI_MODEL: ${AI_MODEL:-gemini-3.8-flash}
