@@ -2,7 +2,7 @@
 
 Imports camera detections and context signals from the Home Assistant history. It cuts the frames from continuous recordings. Camera diary describes and indexes the events like any other.
 
-Use it when your cameras record around the clock (e.g. Synology Surveillance Station) and Home Assistant knows when something happened (e.g. the Reolink integration's person and animal sensors). If your camera system can send clips itself, use the [hook](../../README.md#the-hook) instead.
+Use it when your cameras record around the clock (e.g. Synology Surveillance Station) and Home Assistant knows when something happened (e.g. the Reolink integration's person and animal sensors). If your camera system can send clips itself, use the [hook](../../docs/usage.md#the-hook) instead.
 
 ## Setup
 
@@ -23,7 +23,7 @@ Use it when your cameras record around the clock (e.g. Synology Surveillance Sta
 Every minute (`home-assistant:import` runs it once):
 
 1. It reads the state changes since the last run, with 5 minutes of overlap, up to 30 s ago. The first run looks back one hour, and longer ranges go in 6-hour chunks.
-2. **Detections:** each change of `<sensor_prefix>_<detection>` to `on` is one detection, unique per camera, type and second. A camera's `detections` are names from `detection_types` in the [Camera diary settings](../../README.md#settings), so a new type there (e.g. `package`) works here too.
+2. **Detections:** each change of `<sensor_prefix>_<detection>` to `on` is one detection, unique per camera, type and second. A camera's `detections` are names from `detection_types` in the [Camera diary settings](../../docs/usage.md#settings), so a new type there (e.g. `package`) works here too.
 3. **Grouping:** detections less than 2 minutes apart form one event, capped at 10 minutes (`import.max_gap`, `import.max_duration`). These events are created open, with the source `home-assistant`.
 4. **Closing:** an event is closed once the import is `max_gap` past its end. The core worker then asks this add-on for frames, at the settings' `frame_offsets` (1, 2 and 3 s) after the first detection. The subject often appears only a moment after the camera reacts.
 5. **Signals:** state changes of the configured entities become hints for every event within 3 minutes (`import.hint_window`), e.g. "07:17:02 Luna came in through the cat flap". With `time_attribute`, the attribute's time is used instead of the state's, for entities that report late.
