@@ -6,6 +6,8 @@ Home cameras send dozens of notifications a day, and many of them are a spider i
 > How often was Luna outside in the last seven days?
 > Which camera has the most false alarms, and why?
 
+**[▶ Watch the 80-second video](https://youtu.be/JKazCCm5AbY)**
+
 ![The timeline with the day's summary, Luna recognised, the Check page with the standoff and the stranger at the car, an answer with its sources, and the insights, on a phone](docs/images/screens.jpg)
 
 Built with [Symfony AI](https://symfony.com/doc/current/ai/index.html) and the [PHP MCP SDK](https://github.com/modelcontextprotocol/php-sdk) for the [Symfony AI & MCP Hackathon](https://symfony.com/hackathon).
