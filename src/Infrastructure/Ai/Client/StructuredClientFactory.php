@@ -15,12 +15,11 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
  */
 final readonly class StructuredClientFactory
 {
-    public const array PLATFORMS = ['gemini', 'vertexai', 'ollama', 'claude_code', 'codex'];
+    public const array PLATFORMS = ['gemini', 'ollama', 'claude_code', 'codex'];
 
     public function __construct(
         #[AutowireLocator([
             'gemini' => new Autowire(service: 'ai.platform.gemini'),
-            'vertexai' => new Autowire(service: 'ai.platform.vertexai'),
             'ollama' => new Autowire(service: 'ai.platform.ollama'),
             'claude_code' => new Autowire(service: 'app.ai.platform.claude_code'),
             'codex' => new Autowire(service: 'app.ai.platform.codex'),

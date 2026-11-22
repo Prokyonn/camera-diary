@@ -113,15 +113,6 @@
             "ref": "8d8a4c5ebfa1423d3e2a2c39cce16b0a270e81f0"
         }
     },
-    "symfony/ai-vertex-ai-platform": {
-        "version": "1.0",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "0.1",
-            "ref": "6395e5fbe1cc639e38cf09bf2bbb70ea973d3927"
-        }
-    },
     "symfony/console": {
         "version": "8.1",
         "recipe": {

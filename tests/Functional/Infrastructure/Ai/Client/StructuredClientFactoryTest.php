@@ -27,7 +27,6 @@ final class StructuredClientFactoryTest extends TestCase
     public static function platforms(): iterable
     {
         yield 'gemini' => ['gemini', PlatformStructuredClient::class, 'gemini-flash-latest'];
-        yield 'vertexai' => ['vertexai', PlatformStructuredClient::class, 'gemini-2.5-flash'];
         yield 'ollama' => ['ollama', PlatformStructuredClient::class, 'qwen2.5vl:7b'];
         yield 'claude_code' => ['claude_code', ClaudeCodeStructuredClient::class, 'claude-code/sonnet'];
         yield 'codex' => ['codex', CodexStructuredClient::class, 'codex/gpt-6.1-sol'];

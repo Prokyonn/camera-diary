@@ -15,7 +15,7 @@ use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpException;
 
 /**
- * API platforms with native image input and structured output, e.g. Gemini, Vertex AI and Ollama.
+ * API platforms with native image input and structured output, e.g. Gemini and Ollama.
  */
 final readonly class PlatformStructuredClient implements StructuredClientInterface
 {
