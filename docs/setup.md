@@ -53,7 +53,7 @@ symfony serve        # or: php -S 127.0.0.1:8000 -t public
 | `AI_PLATFORM` | How it runs | Needs |
 |---|---|---|
 | `gemini` | Gemini API with native image input and structured output | `GEMINI_API_KEY` |
-| `ollama` | Local model through the Ollama API | `OLLAMA_HOST_URL`, a model with vision |
+| `ollama` | Local model through the Ollama API. Tested with `qwen2.5vl` 7B and 32B on an RTX 4090: valid answers, but far less reliable verdicts than Gemini's (the stranger at the car came out as a false alarm). Good for trying the app offline, not for guarding a home | `OLLAMA_HOST_URL`, a model with vision |
 | `claude_code` | `claude -p` from your Claude subscription. It reads the frames with its Read tool and answers against `--json-schema` | the `claude` CLI, logged in |
 | `codex` | `codex exec` from your ChatGPT subscription, with `--image` and `--output-schema` | the `codex` CLI, logged in |
 
