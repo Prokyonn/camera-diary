@@ -146,3 +146,10 @@ An add-on is a Symfony bundle. It uses the core through these extension points a
 | `ImportHistory` (add-on) | every minute | Home Assistant import, see the add-on README |
 
 The default schedule is stateful, so a missed nightly run happens after a restart of the worker. Its state lives in the application cache, so it does not survive a new container (`docker compose up --build`); the next night runs as usual. The schedule is built when the worker starts, so a new `maintenance.nightly_at` needs a restart.
+
+## Dependencies
+
+Every direct dependency is at its newest release. Two items are upstream and wait for a release:
+
+- `bin/console debug:container --deprecations` lists two deprecations, both raised by `cmsig/seal-symfony-bundle` 0.12: its tagged locator uses `defaultIndexMethod`, deprecated in DependencyInjection 8.1.
+- `mcp/sdk` 0.10 exists, but `symfony/mcp-bundle` 1.0.0-BETA1 requires `^0.9`.
