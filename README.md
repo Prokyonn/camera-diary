@@ -42,7 +42,7 @@ claude mcp add --transport http camera-diary http://localhost:8080/mcp
 
 ## Documentation
 
-- [Setup](docs/setup.md): install with PHP, AI providers, running it for real, security.
+- [Setup](docs/setup.md): install with PHP, AI providers, production, security.
 - [Usage](docs/usage.md): settings, the hook for any camera, the Home Assistant add-on, the MCP tools, the web pages.
 - [Design](docs/design.md): layers, data flow, extension points.
 

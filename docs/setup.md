@@ -48,7 +48,7 @@ symfony serve                   # or: php -S 127.0.0.1:8000 -t public
 - Ask and the day summary call the AI in the web request: a CLI provider needs a long `max_execution_time` and proxy timeout.
 - Google AI Pro and Ultra's monthly Cloud credits pay for the Gemini API (billing account on the AI Studio key's project, prepay in AI Studio); the free trial credit does not.
 
-## Running it for real
+## Production
 
 - `compose.prod.yaml`: the demo's layout without demo data; put its variables into `.env.prod.local`, then `docker compose -f compose.prod.yaml up -d --build`.
 - One image (FrankenPHP, PHP 8.4, ffmpeg) runs as uid 1000: `mkdir -p data && sudo chown -R 1000:1000 data`.

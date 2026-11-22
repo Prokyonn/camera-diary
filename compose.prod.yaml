@@ -1,4 +1,4 @@
-# Running it for real, without the demo: docker compose -f compose.prod.yaml up -d --build
+# Production, without the demo: docker compose -f compose.prod.yaml up -d --build
 # Compose reads the variables below from a .env.prod.local file next to this one (ignored by Git and kept out of the image):
 #   APP_SECRET, INGEST_TOKEN, MCP_TOKEN (or MCP_OPEN=1 in a private network), DEFAULT_URI (the address you open),
 #   each secret long and random, e.g. from `openssl rand -hex 32`,
