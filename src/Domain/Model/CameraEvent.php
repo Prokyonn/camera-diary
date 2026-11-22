@@ -526,6 +526,14 @@ class CameraEvent
         $this->nextAttemptAt = $nextAttemptAt;
     }
 
+    /**
+     * Waits without counting an attempt, e.g. until its call pool has calls again.
+     */
+    public function postponeUntil(DateTimeImmutable $nextAttemptAt): void
+    {
+        $this->nextAttemptAt = $nextAttemptAt;
+    }
+
     public function markNoFootage(): void
     {
         $this->status = EventStatus::NoFootage;

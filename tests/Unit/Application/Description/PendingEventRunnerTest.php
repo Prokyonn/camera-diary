@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Application\Description;
 
 use App\Application\Ai\AiCallBudgetInterface;
+use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
 use App\Application\Description\EventProcessor;
@@ -153,6 +154,7 @@ final class PendingEventRunnerTest extends TestCase
             $dispatcher->reveal(),
             $settingsProvider,
             $clock,
+            new HomeTimeZone('Europe/Vienna'),
             new NullLogger(),
         );
 

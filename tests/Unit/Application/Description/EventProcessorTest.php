@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Application\Description;
 
 use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Ai\AiRequestFailedException;
+use App\Application\Clock\HomeTimeZone;
 use App\Application\Description\EventDescribed;
 use App\Application\Description\EventDescriberInterface;
 use App\Application\Description\EventDescription;
@@ -227,6 +228,7 @@ final class EventProcessorTest extends TestCase
         $event = CameraEventFactory::create('2026-11-06 06:16:40', type: 'animal', id: 1);
         $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
         $this->budget->tryConsume(Argument::that(static fn (?CallPool $pool): bool => 'animals' === $pool?->name))->willReturn(false)->shouldBeCalledOnce();
+        $this->budget->hasCallsLeftToday()->willReturn(true);
         $this->describer->describe(Argument::cetera())->shouldNotBeCalled();
 
         $processor = $this->processor(['ai' => ['call_pools' => [
@@ -235,6 +237,8 @@ final class EventProcessorTest extends TestCase
         ]]]);
 
         self::assertSame(ProcessOutcome::OverBudget, $processor->process($event));
+        self::assertEquals(CameraEventFactory::utc('2026-11-06 23:00:00'), $event->getNextAttemptAt(), 'Waits for midnight in Vienna, so the other pools come first.');
+        self::assertSame(0, $event->getAttempts());
     }
 
     public function testFilesARepeatedFalseAlarmWithoutTheAi(): void
@@ -274,6 +278,7 @@ final class EventProcessorTest extends TestCase
             $this->eventDispatcher->reveal(),
             $settingsProvider,
             $this->clock,
+            new HomeTimeZone('Europe/Vienna'),
             new NullLogger(),
         );
     }

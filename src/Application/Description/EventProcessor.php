@@ -6,6 +6,7 @@ namespace App\Application\Description;
 
 use App\Application\Ai\AiCallBudgetInterface;
 use App\Application\Ai\AiRequestFailedException;
+use App\Application\Clock\HomeTimeZone;
 use App\Application\Frame\FootageNotFoundException;
 use App\Application\Frame\FrameExtractionFailedException;
 use App\Application\Frame\FrameSourceInterface;
@@ -13,6 +14,7 @@ use App\Application\Frame\FrameSources;
 use App\Application\Frame\FrameStorageInterface;
 use App\Application\Persistence\UnitOfWorkInterface;
 use App\Application\Search\EventIndexerInterface;
+use App\Application\Settings\CallPool;
 use App\Application\Settings\SettingsProviderInterface;
 use App\Domain\Model\CameraEvent;
 use Psr\Clock\ClockInterface;
@@ -38,6 +40,7 @@ final readonly class EventProcessor
         private EventDispatcherInterface $eventDispatcher,
         private SettingsProviderInterface $settings,
         private ClockInterface $clock,
+        private HomeTimeZone $homeTimeZone,
         private LoggerInterface $logger,
     ) {
     }
@@ -82,6 +85,11 @@ final readonly class EventProcessor
 
         $pool = $this->settings->settings()->ai->callPoolFor($event->getDetectionTypes());
         if (!$this->budget->tryConsume($pool)) {
+            if ($pool instanceof CallPool && $this->budget->hasCallsLeftToday()) {
+                // Only this pool is used up: wait for tomorrow's calls, so its events do not crowd out the other pools'.
+                $event->postponeUntil($this->homeTimeZone->dayBounds($this->clock->now())[1]);
+            }
+
             return ProcessOutcome::OverBudget;
         }
 
