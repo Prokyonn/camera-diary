@@ -61,7 +61,7 @@ bin/console app:camera garden --name=Garden --scene="Back garden; the fence at t
 | `correct_camera_event` | Set the verdict, the false-alarm cause, the known individual or a label; the AI learns from it |
 | Prompt `daily_report` | Asks the assistant for a short report of one day, using the tools above |
 
-Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). It answers only to the host names in `MCP_ALLOWED_HOSTS` (DNS rebinding protection; default `localhost,127.0.0.1,[::1]`): add your server's name when an assistant on another machine connects. It needs the bearer token `MCP_TOKEN`, e.g. `claude mcp add --transport http camera-diary https://cameras.example/mcp --header "Authorization: Bearer <token>"`. Without a token it is closed, unless `MCP_OPEN=1` opens it: the demo's `compose.yaml` and the `dev` environment do, so the README's example works without one.
+Home Assistant's "Model Context Protocol" integration connects Assist to it, and so does any other MCP client. Results link to the event page (`DEFAULT_URI`). It answers only to the host names in `MCP_ALLOWED_HOSTS` (DNS rebinding protection; default `localhost,127.0.0.1,[::1]`): add your server's name when an assistant on another machine connects. It needs the bearer token `MCP_TOKEN`, long and random (`openssl rand -hex 32`; nothing limits wrong attempts), e.g. `claude mcp add --transport http camera-diary https://cameras.example/mcp --header "Authorization: Bearer <token>"`. Without a token it is closed, unless `MCP_OPEN=1` opens it: the demo's `compose.yaml` and the `dev` environment do, so the README's example works without one.
 
 ## Web pages
 
