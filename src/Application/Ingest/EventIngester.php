@@ -52,7 +52,8 @@ final readonly class EventIngester
             return $this->store($request);
         }
 
-        $lock = $this->lockFactory->createLock('ingest-'.hash('xxh128', $request->source."\0".$request->externalId));
+        // 256 lock names at most (a lock file each): two ids that share one only wait for each other.
+        $lock = $this->lockFactory->createLock('ingest-'.substr(hash('xxh128', $request->source."\0".$request->externalId), 0, 2));
         $lock->acquire(true);
 
         try {
