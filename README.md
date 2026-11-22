@@ -24,19 +24,18 @@ git clone https://github.com/Prokyonn/camera-diary.git && cd camera-diary
 docker compose up --build
 ```
 
-Open http://localhost:8080: a week in a made-up, AI-generated home ([demo/CREDITS.md](demo/CREDITS.md)). Without an AI key you browse the answers recorded from a real run with Gemini. With `export GEMINI_API_KEY=...` ([free key](https://aistudio.google.com/apikey)) before `docker compose down -v && docker compose up --build`, the app describes the 23 clips itself.
-
-Then connect Claude to the same diary:
+- Open http://localhost:8080: a week in a made-up, AI-generated home ([credits](demo/CREDITS.md)).
+- Without an AI key, you browse the answers recorded from a real run with Gemini.
+- With a [free Gemini key](https://aistudio.google.com/apikey), the app describes the 23 clips itself: `export GEMINI_API_KEY=...`, then `docker compose down -v && docker compose up --build`.
+- Connect Claude to the same diary, then ask "What did Luna do yesterday? Show me the frames.":
 
 ```
 claude mcp add --transport http camera-diary http://localhost:8080/mcp
 ```
 
-and ask "What did Luna do yesterday? Show me the frames."
-
 ## What Symfony AI and the MCP SDK made possible
 
-- **One structured output, four providers:** the AI's answer is a PHP class; Symfony AI turns it into a JSON schema whose `enum`s come from your settings. Gemini, Ollama, and the Claude Code and Codex CLIs (so a subscription works too).
+- **One structured output, four providers:** the answer is a PHP class, its JSON schema's `enum`s come from your settings; Gemini, Ollama, and the Claude Code and Codex CLIs (so a subscription works too).
 - **Multimodal prompts that teach:** reference photos, the camera's usual empty view, your latest corrections and hints from the home go with the frames.
 - **Images both ways over MCP:** `get_camera_event` returns the frames as `ImageContent`; `correct_camera_event` writes a correction back into the learning loop.
 - **The AI plans the search:** a question becomes a structured search plan, and the answer cites the events it used.
