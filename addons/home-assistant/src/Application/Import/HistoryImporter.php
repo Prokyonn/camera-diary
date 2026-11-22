@@ -130,10 +130,11 @@ final readonly class HistoryImporter
             return 0;
         }
 
-        // A time attribute can lie long before the change that reports it, e.g. when Home Assistant repeats a state after a restart.
-        $earliest = min(array_map(static fn (HomeSignal $signal): DateTimeImmutable => $signal->getChangedAt(), $candidates));
+        // A time attribute can lie long before the change that reports it (Home Assistant repeats a state after a restart),
+        // or after the range end when the device's clock runs ahead.
+        $times = array_map(static fn (HomeSignal $signal): DateTimeImmutable => $signal->getChangedAt(), $candidates);
         $existing = [];
-        foreach ($this->signals->findBy(['changedAtOrAfter' => min($earliest, $from), 'changedAtOrBefore' => $to]) as $signal) {
+        foreach ($this->signals->findBy(['changedAtOrAfter' => min([...$times, $from]), 'changedAtOrBefore' => max([...$times, $to])]) as $signal) {
             $existing[$signal->key()] = true;
         }
 
@@ -157,6 +158,7 @@ final readonly class HistoryImporter
             return;
         }
 
+        $seenTags = [];
         foreach ($this->history->fetch([$settings->push->handoverEntity], $from, $to, false) as $change) {
             if (\in_array($change->state, ['', 'unknown', 'unavailable'], true)) {
                 continue;
@@ -169,9 +171,11 @@ final readonly class HistoryImporter
                 continue;
             }
 
-            if ([] === $this->pushHandovers->findBy(['tag' => $handover->getTag()])) {
+            // Home Assistant repeats a state after a restart, so the same handover can come twice in one range.
+            if (!isset($seenTags[$handover->getTag()]) && [] === $this->pushHandovers->findBy(['tag' => $handover->getTag()])) {
                 $this->pushHandovers->add($handover);
             }
+            $seenTags[$handover->getTag()] = true;
         }
     }
 

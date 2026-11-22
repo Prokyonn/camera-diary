@@ -106,6 +106,56 @@ final class HistoryImporterTest extends TestCase
         self::assertSame(0, $importer->importRange(SettingsFactory::create(), $from, $to)->signals);
     }
 
+    public function testSkipsASignalWhoseTimeLiesAfterTheRangeWhenItIsStoredAlready(): void
+    {
+        $from = CameraEventFactory::utc('2026-11-06 12:00:00');
+        $to = CameraEventFactory::utc('2026-11-06 12:01:00');
+        $history = $this->prophesize(HomeHistoryInterface::class);
+        $history->fetch(Argument::containing('binary_sensor.luna'), $from, $to, true)->willReturn([
+            // The flap's clock runs two minutes ahead of Home Assistant.
+            new StateChange('binary_sensor.luna', 'on', CameraEventFactory::utc('2026-11-06 12:00:30'), ['since' => '2026-11-06T12:02:30+00:00']),
+        ]);
+        $history->fetch(Argument::cetera())->willReturn([]);
+        $detections = $this->prophesize(DetectionRepositoryInterface::class);
+        $detections->findBy(Argument::cetera())->willReturn([]);
+        $stored = new HomeSignal('binary_sensor.luna', 'on', CameraEventFactory::utc('2026-11-06 12:02:30'));
+        $signals = $this->prophesize(HomeSignalRepositoryInterface::class);
+        $signals->findBy(['changedAtOrAfter' => $from, 'changedAtOrBefore' => CameraEventFactory::utc('2026-11-06 12:02:30')])->willReturn([$stored]);
+        $signals->add(Argument::any())->shouldNotBeCalled();
+        $cursors = $this->prophesize(ImportCursorRepositoryInterface::class);
+        $cursors->findOneBy(Argument::cetera())->willReturn(null);
+        $cursors->add(Argument::type(ImportCursor::class))->shouldBeCalledOnce();
+
+        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $signals->reveal(), $cursors->reveal(), $this->prophesize(PushHandoverRepositoryInterface::class)->reveal(), $this->prophesize(UnitOfWorkInterface::class)->reveal(), new NullLogger());
+
+        self::assertSame(0, $importer->importRange(SettingsFactory::create(), $from, $to)->signals);
+    }
+
+    public function testStoresAHandoverOnceWhenHomeAssistantRepeatsIt(): void
+    {
+        $from = CameraEventFactory::utc('2026-11-06 06:00:00');
+        $to = CameraEventFactory::utc('2026-11-06 07:00:00');
+        $value = 'garden|1793945800|1|garden-2026-11-06_07-16-40-person|reolink-garden|motion/garden/2026-11-06_07-16-40_person|Person in the garden|Person at 07:16:40.';
+        $history = $this->prophesize(HomeHistoryInterface::class);
+        $history->fetch(['input_text.camera_push'], $from, $to, false)->willReturn([
+            new StateChange('input_text.camera_push', $value, CameraEventFactory::utc('2026-11-06 06:16:58')),
+            new StateChange('input_text.camera_push', 'unavailable', CameraEventFactory::utc('2026-11-06 06:30:00')),
+            new StateChange('input_text.camera_push', $value, CameraEventFactory::utc('2026-11-06 06:30:20')),
+        ]);
+        $history->fetch(Argument::cetera())->willReturn([]);
+        $detections = $this->prophesize(DetectionRepositoryInterface::class);
+        $detections->findBy(Argument::cetera())->willReturn([]);
+        $pushHandovers = $this->prophesize(PushHandoverRepositoryInterface::class);
+        $pushHandovers->findBy(['tag' => 'garden-2026-11-06_07-16-40-person'])->willReturn([]);
+        $pushHandovers->add(Argument::type(PushHandover::class))->shouldBeCalledOnce();
+        $cursors = $this->prophesize(ImportCursorRepositoryInterface::class);
+        $cursors->findOneBy(Argument::cetera())->willReturn(null);
+        $cursors->add(Argument::type(ImportCursor::class))->shouldBeCalledOnce();
+
+        $importer = new HistoryImporter($history->reveal(), $detections->reveal(), $this->prophesize(HomeSignalRepositoryInterface::class)->reveal(), $cursors->reveal(), $pushHandovers->reveal(), $this->prophesize(UnitOfWorkInterface::class)->reveal(), new NullLogger());
+        $importer->importRange(SettingsFactory::create(), $from, $to);
+    }
+
     public function testSplitsLongRangesIntoSixHourChunks(): void
     {
         $history = $this->prophesize(HomeHistoryInterface::class);
