@@ -142,6 +142,20 @@ final class EventIngesterTest extends TestCase
         self::assertSame($stored, $result->event);
     }
 
+    public function testReplacesAnEventLeftOpenByAnIngestThatDied(): void
+    {
+        $leftover = CameraEventFactory::create(camera: 'garden', id: 42, open: true, externalId: 'abc');
+        $this->events->findOneBy(['source' => 'api', 'externalId' => 'abc'])->willReturn($leftover);
+        $this->events->remove($leftover)->shouldBeCalledOnce();
+        $this->storage->remove(['garden/2026/11/10/42-0.jpg', 'garden/2026/11/10/42-1.jpg', 'garden/2026/11/10/42-2.jpg'])->shouldBeCalledOnce();
+
+        $result = $this->ingester()->ingest(new IngestRequest('garden', CameraEventFactory::utc('2026-11-10 07:16:20'), imagePaths: ['/tmp/a.jpg'], externalId: 'abc'));
+
+        self::assertTrue($result->created);
+        self::assertNotSame($leftover, $result->event);
+        self::assertFalse($result->event->isOpen());
+    }
+
     public function testRemovesTheEventWhenTheMediaCannotBeRead(): void
     {
         $this->extractor->extract(Argument::cetera())->willThrow(new FrameExtractionFailedException('Invalid data found when processing input'));

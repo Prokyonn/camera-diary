@@ -57,6 +57,11 @@ final readonly class EventIngester
 
         try {
             $existing = $this->events->findOneBy(['source' => $request->source, 'externalId' => $request->externalId]);
+            if ($existing instanceof CameraEvent && $existing->isOpen()) {
+                // Left over from an ingest that died while writing the frames; the lock rules out one still running.
+                $this->removeWithFrames($existing, max(\count(self::VIDEO_POSITIONS), IngestRequest::MAX_IMAGES));
+                $existing = null;
+            }
 
             return $existing instanceof CameraEvent ? new IngestResult($existing, false) : $this->store($request);
         } finally {
@@ -90,9 +95,7 @@ final readonly class EventIngester
             $this->storeFrames($event, $sources);
         } catch (Throwable $exception) {
             // Any failure, not only unreadable media: an open event is never described and would stay forever.
-            $this->frameStorage->remove(array_map(fn (int $index): string => $this->frameStorage->relativePathFor($event, $index), array_keys($sources)));
-            $this->events->remove($event);
-            $this->unitOfWork->flush();
+            $this->removeWithFrames($event, \count($sources));
 
             throw $exception instanceof FrameExtractionFailedException ? new InvalidIngestException('The media could not be read: '.$exception->getMessage(), 0, $exception) : $exception;
         }
@@ -102,6 +105,13 @@ final readonly class EventIngester
         $this->indexer->index($event);
 
         return new IngestResult($event, true);
+    }
+
+    private function removeWithFrames(CameraEvent $event, int $frameCount): void
+    {
+        $this->frameStorage->remove(array_map(fn (int $index): string => $this->frameStorage->relativePathFor($event, $index), range(0, $frameCount - 1)));
+        $this->events->remove($event);
+        $this->unitOfWork->flush();
     }
 
     private function assertValid(IngestRequest $request): void
