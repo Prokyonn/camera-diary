@@ -156,7 +156,7 @@ curl -H "Authorization: Bearer $INGEST_TOKEN" \
 |---|---|
 | `camera` | Slug: lower-case letters, digits, `-`, `_`. Unknown cameras are created. |
 | `video` or `images[]` | One video (frames are taken at 25, 50 and 75 % of it) or up to three images |
-| `startedAt`, `endedAt` | ISO 8601; default now |
+| `startedAt`, `endedAt` | ISO 8601, in `APP_TIMEZONE` without an offset; default now |
 | `detections[]` | Names from `detection_types` in the settings (default `person`, `animal`, `vehicle`, `motion`) |
 | `hints[]` | Context for the AI and the search, e.g. "Front door opened" |
 | `externalId`, `source` | Your id and app name; sending the same pair again returns the stored event |

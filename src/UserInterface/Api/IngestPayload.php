@@ -7,7 +7,6 @@ namespace App\UserInterface\Api;
 use App\Domain\Model\Camera;
 use App\Domain\Model\CameraEvent;
 use App\Domain\Model\TermName;
-use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -25,8 +24,11 @@ final readonly class IngestPayload
         public string $camera = '',
         #[Assert\Length(max: 120)]
         public ?string $cameraName = null,
-        public ?DateTimeImmutable $startedAt = null,
-        public ?DateTimeImmutable $endedAt = null,
+        /** ISO 8601; in the home time zone (APP_TIMEZONE) when it has no offset */
+        #[Assert\Length(max: 40)]
+        public ?string $startedAt = null,
+        #[Assert\Length(max: 40)]
+        public ?string $endedAt = null,
         #[Assert\Count(max: 10)]
         #[Assert\All([new Assert\Type('string'), new Assert\Regex('/^'.TermName::PATTERN.'$/')])]
         public array $detections = [],

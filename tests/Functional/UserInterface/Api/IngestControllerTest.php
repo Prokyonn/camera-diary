@@ -97,6 +97,15 @@ final class IngestControllerTest extends WebTestCase
         self::assertSame(1, self::getContainer()->get(CameraEventRepositoryInterface::class)->countBy());
     }
 
+    public function testReadsATimeWithoutOffsetInTheHomeTimeZone(): void
+    {
+        $this->client->request('POST', '/api/events', ['camera' => 'garden', 'startedAt' => '2026-11-10T07:16:20'], ['images' => [$this->image('a.png')]], self::AUTH);
+        self::assertResponseStatusCodeSame(201);
+
+        $event = self::getContainer()->get(CameraEventRepositoryInterface::class)->getOneBy(['cameraSlug' => 'garden']);
+        self::assertSame('2026-11-10 06:16:20', $event->getStartedAt()->format('Y-m-d H:i:s'), 'Europe/Vienna in the test environment.');
+    }
+
     public function testRejectsAMissingOrWrongToken(): void
     {
         $this->client->request('POST', '/api/events', ['camera' => 'garden'], ['images' => [$this->image('a.png')]]);
@@ -113,6 +122,9 @@ final class IngestControllerTest extends WebTestCase
 
         $this->client->request('POST', '/api/events', ['camera' => 'Front Door'], ['images' => [$this->image('a.png')]], self::AUTH);
         self::assertResponseStatusCodeSame(422, 'Invalid camera slug.');
+
+        $this->client->request('POST', '/api/events', ['camera' => 'garden', 'startedAt' => 'half past seven'], ['images' => [$this->image('a.png')]], self::AUTH);
+        self::assertResponseStatusCodeSame(422, 'Unreadable time.');
 
         new Filesystem()->dumpFile($this->mediaDir.'/notes.mp4', 'not a video');
         $this->client->request('POST', '/api/events', ['camera' => 'garden'], ['video' => new UploadedFile($this->mediaDir.'/notes.mp4', 'notes.mp4', null, null, true)], self::AUTH);
