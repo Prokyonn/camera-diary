@@ -4,3 +4,12 @@ ai:
             api_key: '%env(GEMINI_API_KEY)%'
         ollama:
             endpoint: '%env(OLLAMA_HOST_URL)%'
+            http_client: ollama.client
+
+framework:
+    http_client:
+        scoped_clients:
+            # A local model answers only when it is done; with several images that can take minutes.
+            ollama.client:
+                base_uri: '%env(OLLAMA_HOST_URL)%'
+                timeout: 300
