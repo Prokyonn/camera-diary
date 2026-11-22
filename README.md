@@ -27,6 +27,12 @@ docker compose up --build
 - Open http://localhost:8080: a week in a made-up, AI-generated home ([credits](demo/CREDITS.md)).
 - Without an AI key, you browse the answers recorded from a real run with Gemini.
 - With a [free Gemini key](https://aistudio.google.com/apikey), the app describes the 23 clips itself: `export GEMINI_API_KEY=...`, then `docker compose down -v && docker compose up --build`.
+- Send a clip of your own, as any camera would (with an AI key it is described within a minute):
+
+```
+curl -H "Authorization: Bearer demo-token" -F camera=garden -F 'detections[]=animal' -F video=@clip.mp4 http://localhost:8080/api/events
+```
+
 - Connect Claude to the same diary, then ask "What did Luna do yesterday? Show me the frames.":
 
 ```
