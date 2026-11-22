@@ -18,6 +18,7 @@ use App\Domain\Model\CameraEvent;
 use Psr\Clock\ClockInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Takes one closed event from pending to described: frames first (from its add-on, if it came without), then the AI
@@ -47,7 +48,13 @@ final readonly class EventProcessor
             return ProcessOutcome::Open;
         }
 
-        $outcome = $this->advance($event);
+        try {
+            $outcome = $this->advance($event);
+        } catch (Throwable $exception) {
+            // One broken event (a frame or reference photo gone, an unexpected answer) must not block the queue.
+            $this->logger->error('Event {id} could not be processed: {message}', ['id' => $event->getId(), 'message' => $exception->getMessage(), 'exception' => $exception]);
+            $outcome = $this->retryOrFail($event);
+        }
         $this->unitOfWork->flush();
         $this->indexer->index($event);
         if (ProcessOutcome::Described === $outcome) {

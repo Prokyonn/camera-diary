@@ -40,6 +40,7 @@ use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 use Symfony\Component\Clock\MockClock;
 
 #[CoversClass(EventProcessor::class)]
@@ -180,6 +181,18 @@ final class EventProcessorTest extends TestCase
         self::assertSame(ProcessOutcome::Waiting, $this->processor()->process($event));
         self::assertSame([], $event->getFramePaths());
         self::assertSame(1, $event->getAttempts());
+    }
+
+    public function testCountsAnUnexpectedErrorAsAFailedAttemptSoTheQueueMovesOn(): void
+    {
+        $event = CameraEventFactory::create('2026-11-06 06:16:40', id: 1);
+        $event->recordFrames(['terrace/2026/11/06/1-0.jpg'], 640, 360);
+        $this->describer->describe(Argument::cetera())->willThrow(new RuntimeException('Frame file is gone.'));
+        $this->unitOfWork->flush()->shouldBeCalledOnce();
+
+        self::assertSame(ProcessOutcome::Waiting, $this->processor()->process($event));
+        self::assertSame(1, $event->getAttempts());
+        self::assertEquals($this->clock->now()->modify('+600 seconds'), $event->getNextAttemptAt());
     }
 
     public function testFailsAfterTheLastAttempt(): void
