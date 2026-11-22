@@ -203,11 +203,11 @@ The pages have no login. Run them in a private network, e.g. behind Tailscale Se
 
 ## Running it for real
 
-One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg), as the unprivileged user `app` (uid 1000). A `var/data` written by an older, root-run image needs `chown -R 1000:1000` once:
+One image runs everything (`Dockerfile`: FrankenPHP, PHP 8.4, ffmpeg), as the unprivileged user `app` (uid 1000). A data folder mounted from the host must belong to it (`mkdir -p data && sudo chown -R 1000:1000 data`). Where the camera recordings are readable by root only, as with Synology Surveillance Station, run the containers with `user: "0:0"`:
 
 - **Setup, once per start:** `bin/console doctrine:migrations:migrate` and `bin/console cmsig:seal:index-create`.
 - **Web:** the image's default command.
-- **Worker:** `bin/console messenger:consume scheduler_default scheduler_home_assistant`.
+- **Worker:** `bin/console messenger:consume scheduler_default scheduler_home_assistant --memory-limit=128M`. It keeps running; only when its memory grows past the limit does it exit, and Docker starts it again.
   - Every minute it describes up to 20 pending events and runs the add-on import.
   - At 03:30 (`APP_TIMEZONE`) it removes false-alarm frames older than 30 days and writes a database backup (14 kept). All of these are [settings](#settings).
 

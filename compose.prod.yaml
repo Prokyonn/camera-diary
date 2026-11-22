@@ -4,7 +4,8 @@
 #   APP_TIMEZONE, the AI (AI_PLATFORM, AI_MODEL and its key, see the README) and, for an assistant on another machine,
 #   MCP_ALLOWED_HOSTS.
 # Everything lives in ./data: the database, the search index, frames, backups and your settings file
-# (data/camera-diary.yaml, see camera-diary.example.yaml).
+# (data/camera-diary.yaml, see camera-diary.example.yaml). The image runs as uid 1000, so create the folder for it first:
+#   mkdir -p data && sudo chown 1000:1000 data
 name: camera-diary
 
 x-app: &app
@@ -32,7 +33,7 @@ services:
   worker:
     <<: *app
     restart: unless-stopped
-    command: [bin/console, messenger:consume, scheduler_default, scheduler_home_assistant, --memory-limit=256M]
+    command: [bin/console, messenger:consume, scheduler_default, scheduler_home_assistant, --memory-limit=128M]
     depends_on:
       setup:
         condition: service_completed_successfully
